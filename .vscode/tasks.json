@@ -1,0 +1,15 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/金融数据整理大赛.csproj"
+            ],
+            "problemMatcher": "$msCompile"
+        }
+    ]
+}
