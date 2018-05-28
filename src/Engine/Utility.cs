@@ -3,8 +3,25 @@ using System.IO;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using static ExtractProperty;
+
 public static class Utility
 {
+    //获得开始字符结束字符的排列组合
+    public static struStartEndStringFeature[] GetStartEndStringArray(string[] StartStringList, string[] EndStringList)
+    {
+        var KeyWordListArray = new struStartEndStringFeature[StartStringList.Length * EndStringList.Length];
+        int cnt = 0;
+        foreach (var StartString in StartStringList)
+        {
+            foreach (var EndString in EndStringList)
+            {
+                KeyWordListArray[cnt] = new struStartEndStringFeature { StartWith = StartString, EndWith = EndString };
+                cnt++;
+            }
+        }
+        return KeyWordListArray;
+    }
 
     //提取某个关键字后的信息
     public static string GetStringAfter(String SearchLine, String KeyWord, String Exclude = "")
@@ -56,7 +73,7 @@ public static class Utility
             if (NumberIndex != -1)
             {
                 //数字模式下
-                if (s == "元" || s == "美元" || s =="欧元")
+                if (s == "元" || s == "美元" || s == "欧元")
                 {
                     return RemainString.Substring(NumberIndex, i - NumberIndex) + s;
                 }
@@ -72,11 +89,4 @@ public static class Utility
         }
         return "";
     }
-
-    public static string GetValueBetweenString(string str, string s, string e)
-    {
-        Regex rg = new Regex("(?<=(" + s + "))[.\\s\\S]*?(?=(" + e + "))", RegexOptions.Multiline | RegexOptions.Singleline);
-        return rg.Match(str).Value;
-    }
-
 }

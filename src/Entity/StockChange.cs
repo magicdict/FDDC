@@ -45,7 +45,7 @@ public class StockChange
 
 
 
-    static Tuple<String,String> GetHolderFullName(HTMLEngine.MyHtmlNode node)
+    static Tuple<String, String> GetHolderFullName(HTMLEngine.MyHtmlNode node)
     {
         var KeyWordListArray = new string[][]
         {
@@ -138,23 +138,8 @@ public class StockChange
             new string[]{"收到", "通知"},
             new string[]{"收到", "告知函"},
             new string[]{"收到", "的告知函"},
-
-
-
             };
-        foreach (var keyword in KeyWordListArray)
-        {
-            var HolderFullName = HTMLEngine.GetValueBetweenString(node, keyword[0], keyword[1]);
-            if (HolderFullName != "")
-            {
-                var HolderName = Utility.GetValueBetweenString(HolderFullName, "简称“", "”");
-                Program.Logger.WriteLine("股东全称：[" + HolderFullName + "]");
-                Program.Logger.WriteLine("股东简称：[" + HolderName + "]");
-                HolderFullNameCnt++;
-                return Tuple.Create(HolderFullName,HolderName);
-            }
-        }
-        return Tuple.Create("","");
+        return Tuple.Create("", "");
     }
 
 
@@ -165,19 +150,7 @@ public class StockChange
         {
             new string[]{"截止", "日"},
             new string[]{"截至", "日"},
-
         };
-        foreach (var keyword in KeyWordListArray)
-        {
-            var ChangeEndDate = HTMLEngine.GetValueBetweenString(node, keyword[0], keyword[1]);
-            if (ChangeEndDate != "")
-            {
-                ChangeEndDate = ChangeEndDate + "日";
-                Program.Logger.WriteLine("变动截止日期[" + ChangeEndDate + "]");
-                ChangeEndDateCnt++;
-                return ChangeEndDate;
-            }
-        }
         return "";
     }
 

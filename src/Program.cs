@@ -13,13 +13,6 @@ namespace 金融数据整理大赛
         static void Main(string[] args)
         {
 
-            var x1 = Normalizer.NormalizeItemListNumber("（4）2012 年 4 月，公司与中国华西企业股份"); 
-            var x2 = Normalizer.NormalizeItemListNumber("4 、承包方式： 从深化设计、制作、运输、");   
-            var x3 = Normalizer.NormalizeItemListNumber("4、承包方式： 从深化设计、制作、运输、");   
-            //Contract.Extract(DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1042224.html");
-            //Contract.Extract(DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\917362.html");
-            //return;    
-
             var IsRunContract = true;
             var IsRunContract_TEST = false;
 

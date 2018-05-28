@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using 金融数据整理大赛;
+using static HTMLEngine;
 
 public class Contract
 {
@@ -62,6 +63,18 @@ public class Contract
         return c;
     }
 
+    internal static string ConvertToString(struContract contract)
+    {
+        return contract.id + "," +
+               contract.JiaFang + "," +
+               contract.YiFang + "," +
+               contract.ProjectName + "," +
+               contract.ContractName + "," +
+               contract.ContractMoneyUpLimit + "," +
+               contract.COntractMoneyDownLimit + "," +
+               contract.UnionMember;
+    }
+
     public static int CorrectKey = 0;
 
 
@@ -75,12 +88,14 @@ public class Contract
         var node = HTMLEngine.Anlayze(htmlFileName);
         var Id = fi.Name.Replace(".html", "");
         Program.Logger.WriteLine("公告ID:" + Id);
+        //主合同的抽取
         ExtractSingle(node, Id);
+        //子合同的抽取
         ExtractMulti(node, Id);
     }
 
 
-    static struContract ExtractSingle(HTMLEngine.MyHtmlNode node, String Id)
+    static struContract ExtractSingle(MyRootHtmlNode node, String Id)
     {
         var contract = new struContract();
         //公告ID
@@ -89,29 +104,15 @@ public class Contract
         contract.JiaFang = GetJiaFang(node);
         //乙方
         contract.YiFang = GetYiFang(node);
-        //合同金额的提取
-        var ContractMoneyUpLimit = GetMoney(node);
-
-        //测试数据集：
-        var StandardKey = new List<String>();
-        foreach (var c in Traning.GetContractById(contract.id))
-        {
-            StandardKey.Add(c.GetKey());
-            Program.Logger.WriteLine("合同标准主键：" + c.GetKey());
-        }
-        var MyKey = contract.GetKey();
-        Program.Logger.WriteLine("合同提取主键：" + contract.GetKey());
-        if (StandardKey.Contains(MyKey))
-        {
-            CorrectKey++;
-        }
+        //合同
+        contract.ContractName = GetContractName(node);
         return contract;
     }
 
 
 
     //是否为多个合同或者多个工程
-    static List<struContract> ExtractMulti(HTMLEngine.MyHtmlNode node, String Id)
+    static List<struContract> ExtractMulti(MyRootHtmlNode node, String Id)
     {
         var contractlist = new List<struContract>();
         //寻找一下列表项目
@@ -120,33 +121,63 @@ public class Contract
             //能否提取到合同，工程，如果可以的话，直接提取了
             foreach (var content in lst)
             {
-                if (GetContractName(content) != "")
-                {
-                    var contract = new struContract();
-                    //公告ID
-                    contract.id = Id;
-                    //乙方
-                    contract.YiFang = GetYiFang(node);
-                    contract.ContractName = GetContractName(content);
-                    contract.ContractMoneyUpLimit = GetMoney(content);
-                    contractlist.Add(contract);
-                }
+
             }
         }
         return contractlist;
     }
 
-    static string GetContractName(String strContent)
+
+
+    static string GetJiaFang(MyRootHtmlNode node)
     {
-        Regex r = new Regex(@"(?<=\《)(\S+)(?=\》)");
-        if (r.IsMatch(strContent))
+        var Extractor = new ExtractProperty();
+        //这些关键字后面
+        Extractor.LeadingWordList = new string[] { "招标人：", "业主方：", "业主：", "甲方：" };
+        Extractor.Extract(node);
+        foreach (var item in Extractor.CandidateWord)
         {
-            strContent = r.Match(strContent).Value;
-            if (strContent.EndsWith("合同"))
-            {
-                Program.Logger.WriteLine("合同:" + strContent);
-                return strContent;
-            }
+            Program.Logger.WriteLine("甲方候补词：[" + item + "]");
+        }
+
+        //招标
+        Extractor = new ExtractProperty();
+        var StartArray = new string[] { "业主", "收到", "接到" };
+        var EndArray = new string[] { "发来", "发出", "的中标" };
+        Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
+        Extractor.Extract(node);
+        foreach (var item in Extractor.CandidateWord)
+        {
+            Program.Logger.WriteLine("甲方候补词：[" + item + "]");
+        }
+
+        //合同
+        Extractor = new ExtractProperty();
+        StartArray = new string[] { "与" };
+        EndArray = new string[] { "签署", "签订" };
+        Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
+        Extractor.Extract(node);
+        foreach (var item in Extractor.CandidateWord)
+        {
+            Program.Logger.WriteLine("甲方候补词：[" + item + "]");
+        }
+        return "";
+    }
+
+
+
+    static string GetContractName(MyRootHtmlNode root)
+    {
+        var Extractor = new ExtractProperty();
+        var MarkFeature = new ExtractProperty.struMarkFeature();
+        MarkFeature.MarkStartWith = "《";
+        MarkFeature.MarkEndWith = "》";
+        MarkFeature.InnerEndWith = "合同";
+        Extractor.MarkFeature = new ExtractProperty.struMarkFeature[] { MarkFeature };
+        Extractor.Extract(root);
+        foreach (var item in Extractor.CandidateWord)
+        {
+            Program.Logger.WriteLine("合同候补词：[" + item + "]");
         }
         return "";
     }
@@ -157,78 +188,9 @@ public class Contract
     }
 
 
-
-    static string GetJiaFang(HTMLEngine.MyHtmlNode node)
-    {
-        var KeyWordList = new string[] { "招标人：", "业主方：", "业主：", "甲方：" };
-        foreach (var keyword in KeyWordList)
-        {
-            var JiaFang = HTMLEngine.GetValueAfterString(node, keyword);
-            if (JiaFang != "")
-            {
-                if (JiaFang.Contains("（")) JiaFang = Utility.GetStringBefore(JiaFang, "（");
-                Program.Logger.WriteLine("甲方:[" + JiaFang + "]");
-                return JiaFang;
-            }
-            JiaFang = HTMLEngine.GetValueFromNextContent(node, keyword);
-            if (JiaFang != "")
-            {
-                if (JiaFang.Contains("（")) JiaFang = Utility.GetStringBefore(JiaFang, "（");
-                Program.Logger.WriteLine("甲方：[" + JiaFang + "]");
-                return JiaFang;
-            }
-        }
-
-        var KeyWordListArray = new string[][]
-        {
-            //招标
-            new string[]{"业主", "发来"},
-            new string[]{"业主", "发出"},
-            new string[]{"收到", "发出"},
-            new string[]{"收到", "发来"},
-            new string[]{"接到", "发出"},
-            new string[]{"接到", "发来"},
-
-            new string[]{"收到", "的中标"},
-            new string[]{"接到", "的中标"},
-
-            new string[]{"业主", "对总承包"},      //+1
-            new string[]{"确定为", "工程候选人"},   //+1
-            //合同
-            new string[]{"与", "签署"},
-            new string[]{"与", "签订"}
-        };
-        foreach (var keyword in KeyWordListArray)
-        {
-            var JiaFang = HTMLEngine.GetValueBetweenString(node, keyword[0], keyword[1]);
-            if (JiaFang != "")
-            {
-                if (JiaFang.Contains("（")) JiaFang = Utility.GetStringBefore(JiaFang, "（");
-                Program.Logger.WriteLine("甲方：[" + JiaFang + "]");
-                return JiaFang;
-            }
-        }
-        return "";
-    }
-
-
     static string GetYiFang(HTMLEngine.MyHtmlNode node)
     {
-        //乙方
-        var YiFang = "";
-        var Content = HTMLEngine.searchKeyWord(node, "有限公司");
-        for (int i = Content.Count - 1; i > 0; i--)
-        {
-            string line = Content[i].Content;
-            YiFang = Utility.GetStringBefore(line, "有限公司");
-            if (!String.IsNullOrEmpty(YiFang))
-            {
-                YiFang = YiFang + "有限公司";
-                if (YiFang.Contains("（")) YiFang = Utility.GetStringBefore(YiFang, "（");
-                Program.Logger.WriteLine("乙方：[" + YiFang + "]");
-                return YiFang;
-            }
-        }
+        //乙方:"有限公司"
         return "";
     }
 
@@ -239,15 +201,6 @@ public class Contract
     {
         var Money = "";
         var KeyWordList = new string[] { "中标金额", "中标价", "合同金额" };
-        foreach (var keyword in KeyWordList)
-        {
-            Money = Utility.SeekMoney(Content, keyword);
-            if (!String.IsNullOrEmpty(Money))
-            {
-                Program.Logger.WriteLine(keyword + "：[" + Money + "]");
-                return Money;
-            }
-        }
         return Money;
     }
     static string GetMoney(HTMLEngine.MyHtmlNode node)
@@ -255,30 +208,6 @@ public class Contract
         //金额
         var Money = "";
         var KeyWordList = new string[] { "中标金额", "中标价", "合同金额" };
-        foreach (var keyword in KeyWordList)
-        {
-            var Content = HTMLEngine.searchKeyWord(node, keyword);
-            foreach (var line in Content)
-            {
-                Money = Utility.SeekMoney(line.Content, keyword);
-                if (!String.IsNullOrEmpty(Money))
-                {
-                    Program.Logger.WriteLine(keyword + "：[" + Money + "]");
-                    return Money;
-                }
-            }
-
-            Content = HTMLEngine.searchKeyWordAtTable(node, keyword);
-            foreach (var table in Content)
-            {
-                Money = HTMLEngine.GetValueFromTableNode(table, keyword);
-                if (!String.IsNullOrEmpty(Money))
-                {
-                    Program.Logger.WriteLine(keyword + "(FromTable)：[" + Money + "]");
-                    return Money;
-                }
-            }
-        }
         return "";
     }
     #endregion

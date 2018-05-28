@@ -9,25 +9,18 @@ public static class HTMLEngine
 
     public class MyHtmlNode
     {
-        public bool IsTable;
-        public List<String> TableContent;
+        public int TableId = -1;
         public string Content;
-        public List<MyHtmlNode> Children;
-        public MyHtmlNode(string content)
-        {
-            IsTable = false;
-            Content = content;
-            Children = new List<MyHtmlNode>();
-            TableContent = new List<String>();
-        }
+        public List<MyHtmlNode> Children = new List<MyHtmlNode>();
         public MyHtmlNode NextBrother;
-
         public MyHtmlNode PreviewBrother;
+    }
 
-
-        //OnlyRootNode
+    public class MyRootHtmlNode : MyHtmlNode
+    {
+        //所有单元格的内容按表分组
         public Dictionary<int, List<String>> TableList;
-
+        //内置列表内容
         public Dictionary<int, List<String>> DetailItemList;
     }
 
@@ -38,7 +31,7 @@ public static class HTMLEngine
 
     static Dictionary<int, List<String>> DetailItemList;
 
-    public static MyHtmlNode Anlayze(string htmlfile)
+    public static MyRootHtmlNode Anlayze(string htmlfile)
     {
         TableId = 0;
         DetailItemId = 0;
@@ -48,7 +41,8 @@ public static class HTMLEngine
         var doc = new HtmlDocument();
         doc.Load(htmlfile);
         var node = doc.DocumentNode.SelectNodes("//div[@type='pdf']");
-        var root = new MyHtmlNode(node[0].Attributes["title"].Value);
+        var root = new MyRootHtmlNode();
+        root.Content = node[0].Attributes["title"].Value;
         //第二层是所有的一定是Paragraph
         foreach (var SecondLayerNode in node[0].ChildNodes)
         {
@@ -61,9 +55,20 @@ public static class HTMLEngine
                 {
                     title = SecondLayerNode.Attributes["title"].Value;
                 }
-                var sencondNode = new MyHtmlNode(title);
-                AnlayzeParagraph(SecondLayerNode, sencondNode);
-                root.Children.Add(sencondNode);
+                var secondNode = new MyHtmlNode();
+                secondNode.Content = title;
+                AnlayzeParagraph(SecondLayerNode, secondNode);
+                FindContentWithList(secondNode.Children);
+                for (int i = 0; i < secondNode.Children.Count - 1; i++)
+                {
+                    secondNode.Children[i].NextBrother = secondNode.Children[i + 1];
+                }
+
+                for (int i = 1; i < secondNode.Children.Count; i++)
+                {
+                    secondNode.Children[i].PreviewBrother = secondNode.Children[i - 1];
+                }
+                root.Children.Add(secondNode);
             }
         }
 
@@ -82,8 +87,10 @@ public static class HTMLEngine
         return root;
     }
 
-    static void AnlayzeParagraph(HtmlNode paragraph, MyHtmlNode root)
+    static void AnlayzeParagraph(HtmlNode paragraph, MyHtmlNode root, String subTitle = "")
     {
+        //原始HTML的第二阶层无法保证嵌套结构是正确的，
+        //所以决定第二阶层不分层
         foreach (var node in paragraph.ChildNodes)
         {
             if (node.Name == "div")
@@ -94,10 +101,9 @@ public static class HTMLEngine
                     {
                         if (node.ChildNodes.Count == 3 && node.ChildNodes[1].Name == "table")
                         {
-                            var tablenode = new MyHtmlNode("");
-                            tablenode.IsTable = true;
+                            var tablenode = new MyHtmlNode();
                             TableId++;
-                            tablenode.TableContent = GetTable(node.ChildNodes[1]);
+                            tablenode.TableId = TableId;
                             root.Children.Add(tablenode);
                         }
                         else
@@ -105,8 +111,20 @@ public static class HTMLEngine
                             var content = Normalizer.Normalize(node.InnerText);
                             if (!String.IsNullOrEmpty(content))
                             {
-                                root.Children.Add(new MyHtmlNode(content));
+                                var s = new MyHtmlNode();
+                                s.Content = subTitle + content;
+                                root.Children.Add(s);
                             }
+                            else
+                            {
+                                if (subTitle != "")
+                                {
+                                    var s = new MyHtmlNode();
+                                    s.Content = subTitle;
+                                    root.Children.Add(s);
+                                }
+                            }
+                            subTitle = "";
                         }
                     }
                     if (node.Attributes["type"].Value == "paragraph")
@@ -115,24 +133,13 @@ public static class HTMLEngine
                         if (node.Attributes.Contains("title"))
                         {
                             title = node.Attributes["title"].Value;
+                            title = Normalizer.Normalize(title);
                         }
-                        var pNode = new MyHtmlNode(title);
-                        AnlayzeParagraph(node, pNode);
-                        root.Children.Add(pNode);
+                        AnlayzeParagraph(node, root, title);
                     }
                 }
             }
         }
-        for (int i = 0; i < root.Children.Count - 1; i++)
-        {
-            root.Children[i].NextBrother = root.Children[i + 1];
-        }
-
-        for (int i = 1; i < root.Children.Count; i++)
-        {
-            root.Children[i].PreviewBrother = root.Children[i - 1];
-        }
-        FindContentWithList(root.Children);
     }
 
     //找一下Content列表里面是否存在明确带有数字的列表
@@ -143,6 +150,7 @@ public static class HTMLEngine
         var pos = -1;
         foreach (var child in Children)
         {
+            if (child.TableId != -1) continue;
             if (pos != -1)
             {
                 if (child.Content.StartsWith("<" + pos.ToString() + ">"))
@@ -268,127 +276,8 @@ public static class HTMLEngine
         return tablecontentlist;
     }
 
-
-
-
     #endregion
 
-    public static List<MyHtmlNode> searchKeyWord(MyHtmlNode node, string keyword, string exclude = "")
-    {
-        var content = new List<MyHtmlNode>();
-        if (!node.IsTable)
-        {
-            //非表格
-            if (node.Content.IndexOf(keyword) != -1)
-            {
-                if (exclude != "")
-                {
-                    //具有排除词
-                    if (node.Content.IndexOf(exclude) == -1)
-                    {
-                        content.Add(node);
-                    }
-                }
-                else
-                {
-                    //没有排除词
-                    content.Add(node);
-                }
-            }
-            foreach (var subNode in node.Children)
-            {
-                content.AddRange(searchKeyWord(subNode, keyword, exclude));
-            }
-        }
-        return content;
-    }
 
-    public static List<MyHtmlNode> searchKeyWordAtTable(MyHtmlNode node, string keyword, string exclude = "")
-    {
-        var content = new List<MyHtmlNode>();
-        if (node.IsTable)
-        {
-            //表格
-            foreach (var Content in node.TableContent)
-            {
-                if (Content.IndexOf(keyword) != -1)
-                {
-                    //没有排除词
-                    content.Add(node);
-                    break;
-                }
-            }
-        }
-        foreach (var subNode in node.Children)
-        {
-            content.AddRange(searchKeyWordAtTable(subNode, keyword, exclude));
-        }
-        return content;
-    }
-
-    public static string GetValueFromTableNode(MyHtmlNode node, string Keyword)
-    {
-        //Table,Row,Column|Keyword
-        //这里假设值应该在[Table,Row + 1,Column][Value]
-        foreach (var content in node.TableContent)
-        {
-            var pos = content.Split("|")[0];
-            var value = content.Split("|")[1];
-            if (value.IndexOf(Keyword) != -1)
-            {
-                //寻找
-                var valuePos = pos.Split(",")[0] + "," + (int.Parse(pos.Split(",")[1]) + 1).ToString() + "," + pos.Split(",")[2];
-                foreach (var item in node.TableContent)
-                {
-                    if (item.StartsWith(valuePos))
-                    {
-                        return item.Split("|")[1];
-                    }
-                }
-            }
-        }
-        return string.Empty;
-    }
-
-
-    public static string GetValueBetweenString(MyHtmlNode node, string Start, string End)
-    {
-        string rtn = "";
-        var contentlist = searchKeyWord(node, Start);
-        foreach (var item in contentlist)
-        {
-            rtn = Utility.GetValueBetweenString(item.Content, Start, End);
-            if (rtn != "") return rtn;
-        }
-        return rtn;
-    }
-
-    public static string GetValueAfterString(MyHtmlNode node, string Keyword)
-    {
-        string rtn = "";
-        var contentlist = searchKeyWord(node, Keyword);
-        foreach (var item in contentlist)
-        {
-            rtn = Utility.GetStringAfter(item.Content, Keyword);
-            if (rtn != "") return rtn;
-        }
-        return rtn;
-    }
-
-
-    public static string GetValueFromNextContent(MyHtmlNode node, string Keyword)
-    {
-        string rtn = "";
-        var contentlist = searchKeyWord(node, Keyword);
-        foreach (var item in contentlist)
-        {
-            //寻找该节点的下一个节点
-            if (item.NextBrother != null)
-            {
-                return item.NextBrother.Content;
-            }
-        }
-        return rtn;
-    }
 
 }

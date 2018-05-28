@@ -47,7 +47,7 @@ public class IncreaseStock
     }
 
 
-    static List<string> GetBuyer(HTMLEngine.MyHtmlNode node)
+    static List<string> GetBuyer(HTMLEngine.MyRootHtmlNode node)
     {
         var Buyer = new List<string>();
         //按照POS标志分表
@@ -83,29 +83,14 @@ public class IncreaseStock
 
     static string getPublishMethod(HTMLEngine.MyHtmlNode node)
     {
-        var titles = HTMLEngine.searchKeyWord(node, "询价发行");
-        if (titles.Count > 0)
-        {
-            Program.Logger.WriteLine("发行方式:[竞价]");
-            findPublishMethodcount++;
-            return "竞价";
-        }
+        //是否包含关键字 "询价发行"
         return "";
-
     }
 
     static string getBuyMethod(HTMLEngine.MyHtmlNode node)
     {
-        var titles = HTMLEngine.searchKeyWord(node, "现金认购");
-        if (titles.Count > 0)
-        {
-            Program.Logger.WriteLine("认购方式:[现金认购]");
-            findBuyMethodcount++;
-            return "现金认购";
-        }
+        //是否包含关键字 "现金认购"
         return "";
     }
-
-
 
 }
