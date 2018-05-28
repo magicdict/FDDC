@@ -3897,11 +3897,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\金融数据整理大赛\\FDDC_announcements_src\\金融数据整理大赛.csproj",
+      "projectUniqueName": "e:\\金融数据整理大赛\\FDDC\\金融数据整理大赛.csproj",
       "projectName": "金融数据整理大赛",
-      "projectPath": "E:\\金融数据整理大赛\\FDDC_announcements_src\\金融数据整理大赛.csproj",
+      "projectPath": "e:\\金融数据整理大赛\\FDDC\\金融数据整理大赛.csproj",
       "packagesPath": "C:\\Users\\scs\\.nuget\\packages\\",
-      "outputPath": "E:\\金融数据整理大赛\\FDDC_announcements_src\\obj\\",
+      "outputPath": "e:\\金融数据整理大赛\\FDDC\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Users\\scs\\.dotnet\\NuGetFallbackFolder",
