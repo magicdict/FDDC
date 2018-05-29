@@ -13,6 +13,8 @@ public class ExtractProperty
         CandidateWord.Clear();
         //先导词列表
         if (LeadingWordList.Length > 0) ExtractByLeadingKeyWord(root);
+        //结尾词列表
+        if (TrailingWordList.Length > 0) ExtractByTrailingKeyWord(root);
         //是否有符号包裹特征
         if (MarkFeature.Length > 0) ExtractByMarkFeature(root);
         //开始字符结束字符
@@ -31,6 +33,20 @@ public class ExtractProperty
             SearchNormalContent(root, ExtractMethod);
         }
     }
+
+    //先导词（直接取先导词的后面的内容）
+    public string[] TrailingWordList = new string[] { };
+    //先导词
+    void ExtractByTrailingKeyWord(MyRootHtmlNode root)
+    {
+        foreach (var word in TrailingWordList)
+        {
+            Func<String, String> ExtractMethod = (x) => { return Utility.GetStringBefore(x, word); };
+            SearchNormalContent(root, ExtractMethod);
+        }
+    }
+
+
 
     //Search Normal Content
     void SearchNormalContent(MyRootHtmlNode root, Func<String, String> ExtractMethod)

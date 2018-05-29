@@ -12,6 +12,12 @@ namespace 金融数据整理大赛
 
         static void Main(string[] args)
         {
+            //分词系统
+            Traning.InitContract();
+            WordAnlayze.Init();
+            UT.RunWordAnlayze();
+            
+            //return;    
 
             var IsRunContract = true;
             var IsRunContract_TEST = false;
@@ -22,8 +28,6 @@ namespace 金融数据整理大赛
             if (IsRunContract)
             {
                 //合同处理
-                Traning.InitContract();
-
                 var ContractPath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
                 var ContractPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180524\重大合同";
                 Console.WriteLine("Start To Extract Info Contract TRAIN");
@@ -81,9 +85,6 @@ namespace 金融数据整理大赛
 
             if (IsRunIncreaseStock)
             {
-
-
-
                 //定增
                 Console.WriteLine("Start To Extract Info IncreaseStoc TRAIN");
 

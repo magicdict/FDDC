@@ -104,6 +104,10 @@ public class Contract
         contract.JiaFang = GetJiaFang(node);
         //乙方
         contract.YiFang = GetYiFang(node);
+        //金额
+        contract.ContractMoneyUpLimit = GetMoney(node);
+        //项目
+        contract.ContractName = GetProjectName(node);
         //合同
         contract.ContractName = GetContractName(node);
         return contract;
@@ -129,15 +133,15 @@ public class Contract
 
 
 
-    static string GetJiaFang(MyRootHtmlNode node)
+    static string GetJiaFang(MyRootHtmlNode root)
     {
         var Extractor = new ExtractProperty();
         //这些关键字后面
         Extractor.LeadingWordList = new string[] { "招标人：", "业主方：", "业主：", "甲方：" };
-        Extractor.Extract(node);
+        Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            Program.Logger.WriteLine("甲方候补词：[" + item + "]");
+            Program.Logger.WriteLine("甲方候补词(关键字)：[" + item + "]");
         }
 
         //招标
@@ -145,21 +149,21 @@ public class Contract
         var StartArray = new string[] { "业主", "收到", "接到" };
         var EndArray = new string[] { "发来", "发出", "的中标" };
         Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
-        Extractor.Extract(node);
+        Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            Program.Logger.WriteLine("甲方候补词：[" + item + "]");
+            Program.Logger.WriteLine("甲方候补词(招标)：[" + item + "]");
         }
 
         //合同
         Extractor = new ExtractProperty();
-        StartArray = new string[] { "与" };
+        StartArray = new string[] { "与", "与业主" };
         EndArray = new string[] { "签署", "签订" };
         Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
-        Extractor.Extract(node);
+        Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            Program.Logger.WriteLine("甲方候补词：[" + item + "]");
+            Program.Logger.WriteLine("甲方候补词(合同)：[" + item + "]");
         }
         return "";
     }
@@ -177,38 +181,67 @@ public class Contract
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            Program.Logger.WriteLine("合同候补词：[" + item + "]");
+            Program.Logger.WriteLine("合同名称候补词（《XXX》）：[" + item + "]");
+        }
+        
+        Extractor = new ExtractProperty();
+        //这些关键字后面
+        Extractor.LeadingWordList = new string[] { "合同名称："};
+        Extractor.Extract(root);
+        foreach (var item in Extractor.CandidateWord)
+        {
+            Program.Logger.WriteLine("合同名称候补词(关键字)：[" + item + "]");
+        }
+
+        return "";
+    }
+
+    static string GetProjectName(MyRootHtmlNode root)
+    {
+        var Extractor = new ExtractProperty();
+        //这些关键字后面
+        Extractor.LeadingWordList = new string[] { "项目名称："};
+        Extractor.Extract(root);
+        foreach (var item in Extractor.CandidateWord)
+        {
+            Program.Logger.WriteLine("项目名称候补词(关键字)：[" + item + "]");
         }
         return "";
     }
 
-    static string GetProjectName(String strContent)
-    {
-        return "";
-    }
 
-
-    static string GetYiFang(HTMLEngine.MyHtmlNode node)
+    static string GetYiFang(HTMLEngine.MyRootHtmlNode root)
     {
         //乙方:"有限公司"
+        //TODO:子公司
+        var Extractor = new ExtractProperty();
+        //这些关键字后面
+        Extractor.TrailingWordList = new string[] { "有限公司董事会" };
+        Extractor.Extract(root);
+        Extractor.CandidateWord.Reverse();
+        foreach (var item in Extractor.CandidateWord)
+        {
+            Program.Logger.WriteLine("乙方候补词(关键字)：[" + item + "有限公司]");
+        }
         return "";
     }
 
 
 
     #region  Money
-    static string GetMoney(string Content)
+    static string GetMoney(HTMLEngine.MyRootHtmlNode node)
     {
         var Money = "";
-        var KeyWordList = new string[] { "中标金额", "中标价", "合同金额" };
+        var Extractor = new ExtractProperty();
+        //这些关键字后面
+        Extractor.LeadingWordList = new string[] { "中标金额", "中标价", "合同金额" };
+        Extractor.Extract(node);
+        foreach (var item in Extractor.CandidateWord)
+        {
+            Money = Utility.SeekMoney(item, "");
+            Program.Logger.WriteLine("金额候补词：[" + Money + "]");
+        }
         return Money;
-    }
-    static string GetMoney(HTMLEngine.MyHtmlNode node)
-    {
-        //金额
-        var Money = "";
-        var KeyWordList = new string[] { "中标金额", "中标价", "合同金额" };
-        return "";
     }
     #endregion
 }

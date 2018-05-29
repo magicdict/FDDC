@@ -4,6 +4,15 @@ using 金融数据整理大赛;
 
 public static class UT
 {
+
+    public static void RunWordAnlayze()
+    {
+        var root = HTMLEngine.Anlayze(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1044779.html");
+        WordAnlayze.Anlayze(root);
+    }
+
+
+
     public static void GenericTest()
     {
 
@@ -14,10 +23,7 @@ public static class UT
         Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1450.html");
         Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1042224.html");
         Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\917362.html");
-
-
         IncreaseStock.Extract(@"E:\WorkSpace2018\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增\html\7880.html");
-
         //数字金额的测试
         var TestString = "中标价为人民币共计16928.79754万元（大写：人民币壹亿陆仟玖佰贰拾捌万柒仟玖佰柒拾伍元肆角整）。";
         var Result = Utility.SeekMoney(TestString, "中标价");

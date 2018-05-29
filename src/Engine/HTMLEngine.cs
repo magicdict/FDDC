@@ -14,6 +14,23 @@ public static class HTMLEngine
         public List<MyHtmlNode> Children = new List<MyHtmlNode>();
         public MyHtmlNode NextBrother;
         public MyHtmlNode PreviewBrother;
+
+        public string FullText
+        {
+            get
+            {
+                var strFull = "";
+                foreach (var child in Children)
+                {
+                    if (child.TableId == -1)
+                    {
+                        if(child.Content.StartsWith("<")) strFull += System.Environment.NewLine;
+                        strFull += child.Content;
+                    }
+                }
+                return strFull;
+            }
+        }
     }
 
     public class MyRootHtmlNode : MyHtmlNode

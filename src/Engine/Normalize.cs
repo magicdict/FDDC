@@ -17,6 +17,14 @@ public static class Normalizer
         return rtn;
     }
 
+    public static string NormalizeResult(string orgString)
+    {
+        orgString = orgString.Trim();
+        if (orgString.EndsWith("。")) orgString = orgString.TrimEnd("。".ToCharArray());
+        return orgString;
+    }
+
+
     public static string NormalizeItemListNumber(string orgString)
     {
         //（1）  => [1]
