@@ -63,7 +63,7 @@ public class Contract
         return c;
     }
 
-    internal static string ConvertToString(struContract contract)
+    static string ConvertToString(struContract contract)
     {
         return contract.id + "," +
                contract.JiaFang + "," +
@@ -78,11 +78,12 @@ public class Contract
     public static int CorrectKey = 0;
 
 
-    public static void Extract(string htmlFileName)
+    public static List<struContract> Extract(string htmlFileName)
     {
         //模式1：只有一个主合同
         //模式2：只有多个子合同
         //模式3：有一个主合同以及多个子合同
+        var ContractList = new List<struContract>();
         var fi = new System.IO.FileInfo(htmlFileName);
         Program.Logger.WriteLine("Start FileName:[" + fi.Name + "]");
         var node = HTMLEngine.Anlayze(htmlFileName);
@@ -92,6 +93,7 @@ public class Contract
         ExtractSingle(node, Id);
         //子合同的抽取
         ExtractMulti(node, Id);
+        return ContractList;
     }
 
 

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using 金融数据整理大赛;
 
@@ -60,34 +61,65 @@ public class IncreaseStock
         return c;
     }
 
+
+    internal static string ConvertToString(struIncreaseStock increaseStock)
+    {
+        var record = increaseStock.id + "," +
+        increaseStock.PublishTarget + "," +
+        increaseStock.PublishMethod + ",";
+
+        if (!string.IsNullOrEmpty(increaseStock.IncreaseNumber))
+        {
+            record += increaseStock.IncreaseNumber.Replace(",", "") + ",";  //以后移动到Normalize函数中
+        }
+        else
+        {
+            record += ",";
+        }
+        if (!string.IsNullOrEmpty(increaseStock.IncreaseMoney))
+        {
+            record += increaseStock.IncreaseMoney.Replace(",", "") + ",";   //以后移动到Normalize函数中
+        }
+        else
+        {
+            record += ",";
+        }
+        record += increaseStock.FreezeYear + "," +
+        increaseStock.BuyMethod;
+        return record;
+    }
+
     public static int findPublishMethodcount = 0;
 
     public static int findBuyMethodcount = 0;
 
-    public static struIncreaseStock Extract(string htmlFileName)
+    public static List<struIncreaseStock> Extract(string htmlFileName)
     {
         var fi = new System.IO.FileInfo(htmlFileName);
         Program.Logger.WriteLine("Start FileName:[" + fi.Name + "]");
-        var increaseStock = new struIncreaseStock();
         var node = HTMLEngine.Anlayze(htmlFileName);
         //公告ID
-        increaseStock.id = fi.Name.Replace(".html", "");
-        Program.Logger.WriteLine("公告ID:" + increaseStock.id);
-
-        GetBuyer(node);
+        var id = fi.Name.Replace(".html", "");
+        Program.Logger.WriteLine("公告ID:" + id);
 
         //发行方式
-        increaseStock.PublishMethod = getPublishMethod(node);
-
+        var publishMethod = getPublishMethod(node);
         //认购方式
-        increaseStock.BuyMethod = getBuyMethod(node);
-        return increaseStock;
+        var buyMethod = getBuyMethod(node);
+        //样本
+        var increaseStock = new struIncreaseStock();
+        increaseStock.id = id;
+        increaseStock.PublishMethod = publishMethod;
+        increaseStock.BuyMethod = buyMethod;
+        return GetMultiTarget(node, increaseStock);
     }
 
 
-    static Dictionary<int,List<string>> GetBuyer(HTMLEngine.MyRootHtmlNode node)
+    static List<struIncreaseStock> GetMultiTarget(HTMLEngine.MyRootHtmlNode node, struIncreaseStock SampleincreaseStock)
     {
-        var Info = new Dictionary<int,List<string>>();
+        var Info = new Dictionary<int, List<string>>();     //每张表格的认购者名单
+        var increaseStocklist = new Dictionary<String, struIncreaseStock>();
+
         //按照POS标志分表
         for (int tableIndex = 0; tableIndex < node.TableList.Count; tableIndex++)
         {
@@ -97,35 +129,92 @@ public class IncreaseStock
             var pos = -1;
             for (int j = 0; j < HeaderRow.Length; j++)
             {
+                //认购对象必须先于发行对象
                 if (HeaderRow[j] == "认购对象" || HeaderRow[j] == "发行对象" || HeaderRow[j] == "发行对象名称")
                 {
                     var NumberRow = -1;   //股票数
-                    var MoneyRow = -1;    //金额数  
-                    
-                    pos = j + 1;
+                    var MoneyRow = -1;    //金额数
+                    var FreezeRow = -1;  //禁售期  
+                    for (int NumberIndex = 0; NumberIndex < HeaderRow.Length; NumberIndex++)
+                    {
+                        if (HeaderRow[NumberIndex].Contains("配售股数") ||
+                            HeaderRow[NumberIndex].Contains("认购数量") ||
+                            HeaderRow[NumberIndex].Contains("认购股份数"))
+                        {
+                            NumberRow = NumberIndex + 1;    //Index从0开始
+                        }
+                    }
+
+                    for (int MoneyIndex = 0; MoneyIndex < HeaderRow.Length; MoneyIndex++)
+                    {
+                        if (HeaderRow[MoneyIndex].Contains("配售金额") || HeaderRow[MoneyIndex].Contains("认购金额"))
+                        {
+                            MoneyRow = MoneyIndex + 1;  //Index从0开始
+                        }
+                    }
+
+                    for (int FreezeRowIndex = 0; FreezeRowIndex < HeaderRow.Length; FreezeRowIndex++)
+                    {
+                        if (HeaderRow[FreezeRowIndex].Contains("限售期") || HeaderRow[FreezeRowIndex].Contains("锁定期"))
+                        {
+                            FreezeRow = FreezeRowIndex + 1;  //Index从0开始
+                        }
+                    }
+
+                    pos = j + 1;    //Index从0开始
                     var Buyer = new List<String>();
                     for (int k = 2; k < table.RowCount + 1; k++)
                     {
-                        var value = table.CellValue(k, pos);
-                        if (value != "" && value != "<rowspan>" && value != "<colspan>" && value != "<null>")
+                        var target = table.CellValue(k, pos);
+                        if (target == "" || target == "<rowspan>" || target == "<colspan>" || target == "<null>") continue;
+                        if (target == "合计" || target == "小计") continue;
+
+                        struIncreaseStock increase;
+
+                        if (increaseStocklist.ContainsKey(target))
                         {
-                            Program.Logger.WriteLine("候补增发对象:" + value + " @TableIndex:" + tableIndex);
-                            //是否能提取其他信息：
-                            if (NumberRow != -1){
-
-                            }
-                            if (MoneyRow != -1){
-
-                            }
-                            Buyer.Add(value);
+                            increase = increaseStocklist[target];
                         }
+                        else
+                        {
+                            increase = new struIncreaseStock();
+                        }
+
+                        increase.PublishTarget = target;
+                        increase.id = SampleincreaseStock.id;
+                        increase.PublishMethod = SampleincreaseStock.PublishMethod;
+                        increase.BuyMethod = SampleincreaseStock.BuyMethod;
+
+                        Program.Logger.WriteLine("候补增发对象:" + target + " @TableIndex:" + tableIndex);
+                        //是否能提取其他信息：
+                        if (NumberRow != -1)
+                        {
+                            increase.IncreaseNumber = table.CellValue(k, NumberRow);
+                            Program.Logger.WriteLine("候补增发数量:" + table.CellValue(k, NumberRow) + " @TableIndex:" + tableIndex);
+                        }
+                        if (MoneyRow != -1)
+                        {
+                            increase.IncreaseMoney = table.CellValue(k, MoneyRow);
+                            Program.Logger.WriteLine("候补增发金额:" + table.CellValue(k, MoneyRow) + " @TableIndex:" + tableIndex);
+                        }
+                        if (FreezeRow != -1)
+                        {
+                            increase.FreezeYear = table.CellValue(k, FreezeRow);
+                            Program.Logger.WriteLine("候补锁定期:" + table.CellValue(k, FreezeRow) + " @TableIndex:" + tableIndex);
+                        }
+                        if (!increaseStocklist.ContainsKey(target))
+                        {
+                            increaseStocklist.Add(target, increase);
+                        }
+                        Buyer.Add(target);
                     }
-                    Info.Add(tableIndex,Buyer);
-                    break;      //可能出现同时含有认购对象和发行对象的表格14925945
+                    Info.Add(tableIndex, Buyer);
+                    //可能出现同时含有认购对象和发行对象的表格14925945
+                    break;
                 }
             }
         }
-        return Info;
+        return increaseStocklist.Values.ToList();
     }
 
 
