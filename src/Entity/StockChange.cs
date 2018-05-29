@@ -18,8 +18,49 @@ public class StockChange
         //变动截止日期
         public string ChangeEndDate;
 
+        //变动价格
+        public string ChangePrice;
+
+        //变动数量
+        public string ChangeNumber;
+
+        //变动后持股数
+        public string HoldNumberAfterChange;
+
+        //变动后持股比例
+        public string HoldPercentAfterChange;
 
     }
+
+    internal static struStockChange ConvertFromString(string str)
+    {
+        var Array = str.Split("\t");
+        var c = new struStockChange();
+        c.id = Array[0];
+        c.HolderFullName = Array[1];
+        if (Array.Length > 2)
+        {
+            c.ChangeEndDate = Array[2];
+        }
+        if (Array.Length > 3)
+        {
+            c.ChangePrice = Array[3];
+        }
+        if (Array.Length > 4)
+        {
+            c.ChangeNumber = Array[4];
+        }
+        if (Array.Length > 5)
+        {
+            c.HoldNumberAfterChange = Array[5];
+        }
+        if (Array.Length == 7)
+        {
+            c.HoldPercentAfterChange = Array[6];
+        }
+        return c;
+    }
+
 
     public static int HolderFullNameCnt = 0;
     public static int HolderNameCnt = 0;
@@ -45,100 +86,19 @@ public class StockChange
 
 
 
-    static Tuple<String, String> GetHolderFullName(HTMLEngine.MyHtmlNode node)
+    static Tuple<String, String> GetHolderFullName(HTMLEngine.MyRootHtmlNode root)
     {
-        var KeyWordListArray = new string[][]
+        var Extractor = new ExtractProperty();
+        var StartArray = new string[] { "接到", "收到", "股东" };
+        var EndArray = new string[] { "的", "通知", "告知函", "减持", "增持", "《" };
+        Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
+        Extractor.Extract(root);
+        foreach (var item in Extractor.CandidateWord)
         {
-            new string[]{"公司股东", "的通知"},
-            new string[]{"公司股东", "通知"},
-
-            new string[]{"控股股东", "的通知"},
-            new string[]{"控股股东", "通知"},
-
-            new string[]{"公司第一大股东", "的通知"},
-            new string[]{"公司第一大股东", "通知"},
-            new string[]{"第一大股东", "的通知"},
-            new string[]{"第一大股东", "通知"},
-
-            new string[]{"公司第二大股东", "的通知"},
-            new string[]{"公司第二大股东", "通知"},
-            new string[]{"第二大股东", "的通知"},
-            new string[]{"第二大股东", "通知"},
-
-            new string[]{"公司第三大股东", "的通知"},
-            new string[]{"公司第三大股东", "通知"},
-            new string[]{"第三大股东", "的通知"},
-            new string[]{"第三大股东", "通知"},
-
-            new string[]{"以上股东", "通知"},
-            new string[]{"以上股东", "的通知"},
-            new string[]{"以上股份的股东", "通知"},
-            new string[]{"以上股份的股东", "的通知"},
-
-
-            new string[]{"公司股东", "告知函"},
-            new string[]{"公司股东", "的告知函"},
-
-            new string[]{"控股股东", "告知函"},
-            new string[]{"控股股东", "的告知函"},
-
-            new string[]{"公司第一大股东", "告知函"},
-            new string[]{"公司第一大股东", "的告知函"},
-            new string[]{"第一大股东", "告知函"},
-            new string[]{"第一大股东", "的告知函"},
-
-            new string[]{"公司第二大股东", "告知函"},
-            new string[]{"公司第二大股东", "的告知函"},
-            new string[]{"第二大股东", "告知函"},
-            new string[]{"第二大股东", "的告知函"},
-
-            new string[]{"公司第三大股东", "告知函"},
-            new string[]{"公司第三大股东", "的告知函"},
-            new string[]{"第三大股东", "告知函"},
-            new string[]{"第三大股东", "的告知函"},
-
-            new string[]{"以上股东", "告知函"},
-            new string[]{"以上股东", "的告知函"},
-            new string[]{"以上股份的股东", "告知函"},
-            new string[]{"以上股份的股东", "的告知函"},
-
-            new string[]{"接到股东", "《"},
-            new string[]{"接到第一大股东", "《"},
-            new string[]{"接到第二大股东", "《"},
-            new string[]{"接到第三大股东", "《"},
-
-            new string[]{"接到控股股东", "减持"},
-            new string[]{"接到控股股东", "增持"},
-            new string[]{"接到公司股东", "减持"},
-            new string[]{"接到公司股东", "增持"},
-
-            new string[]{"接到公司股东", "的"},
-            new string[]{"接到控股股东", "的"},
-
-            new string[]{"接到", "的通知"},
-            new string[]{"接到", "通知"},
-            new string[]{"接到", "告知函"},
-            new string[]{"接到", "的告知函"},
-
-
-            new string[]{"收到股东", "《"},
-            new string[]{"收到第一大股东", "《"},
-            new string[]{"收到第二大股东", "《"},
-            new string[]{"收到第三大股东", "《"},
-
-            new string[]{"收到控股股东", "减持"},
-            new string[]{"收到控股股东", "增持"},
-            new string[]{"收到公司股东", "减持"},
-            new string[]{"收到公司股东", "增持"},
-
-            new string[]{"收到公司股东", "的"},
-            new string[]{"收到控股股东", "的"},
-
-            new string[]{"收到", "的通知"},
-            new string[]{"收到", "通知"},
-            new string[]{"收到", "告知函"},
-            new string[]{"收到", "的告知函"},
-            };
+            Program.Logger.WriteLine("候补股东全称：[" + item + "]");
+            Program.Logger.WriteLine("候补股东全称修正：[" + Utility.GetStringBefore(item, "（以下简称") + "]");
+            Program.Logger.WriteLine("候补股东简称：[" + RegularTool.GetValueBetweenMark(Utility.GetStringAfter(item, "（以下简称"),"“","”")  + "]");
+        }
         return Tuple.Create("", "");
     }
 

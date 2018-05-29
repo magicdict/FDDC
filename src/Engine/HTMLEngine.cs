@@ -121,7 +121,7 @@ public static class HTMLEngine
                             var tablenode = new MyHtmlNode();
                             TableId++;
                             tablenode.TableId = TableId;
-                            root.Children.Add(tablenode);
+                            GetTable(node.ChildNodes[1]);
                         }
                         else
                         {

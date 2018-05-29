@@ -12,18 +12,25 @@ namespace 金融数据整理大赛
 
         static void Main(string[] args)
         {
-            //分词系统
             Traning.InitContract();
-            WordAnlayze.Init();
-            UT.RunWordAnlayze();
-            
-            //return;    
+            Traning.InitIncreaseStock();
+            Traning.InitStockChange();
+
+            //分词系统
+            //WordAnlayze.Init();
+            //UT.RunWordAnlayze();
+            //UT.IncreaseStockTest();
+            //Logger.Close();
+            //return;
 
             var IsRunContract = true;
-            var IsRunContract_TEST = false;
+            var IsRunContract_TEST = true;
 
-            var IsRunStockChange = false;
-            var IsRunIncreaseStock = false;
+            var IsRunStockChange = true;
+            var IsRunStockChange_TEST = true;
+
+            var IsRunIncreaseStock = true;
+            var IsRunIncreaseStock_TEST = true;
 
             if (IsRunContract)
             {
@@ -67,19 +74,22 @@ namespace 金融数据整理大赛
                 Console.WriteLine("变动截止日期计数:" + StockChange.ChangeEndDateCnt);
                 Console.WriteLine("Complete Extract Info StockChange");
 
-                Console.WriteLine("Start To Extract Info StockChange TEST");
-                var StockChangePath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180524\增减持";
-                StockChange.HolderFullNameCnt = 0;
-                StockChange.HolderNameCnt = 0;
-                StockChange.ChangeEndDateCnt = 0;
-                foreach (var filename in System.IO.Directory.GetFiles(StockChangePath_TEST + @"\html\"))
+                if (IsRunStockChange_TEST)
                 {
-                    StockChange.Extract(filename);
+                    Console.WriteLine("Start To Extract Info StockChange TEST");
+                    var StockChangePath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180524\增减持";
+                    StockChange.HolderFullNameCnt = 0;
+                    StockChange.HolderNameCnt = 0;
+                    StockChange.ChangeEndDateCnt = 0;
+                    foreach (var filename in System.IO.Directory.GetFiles(StockChangePath_TEST + @"\html\"))
+                    {
+                        StockChange.Extract(filename);
+                    }
+                    Console.WriteLine("股东全称计数:" + StockChange.HolderFullNameCnt);
+                    Console.WriteLine("股东简称计数:" + StockChange.HolderNameCnt);
+                    Console.WriteLine("变动截止日期计数:" + StockChange.ChangeEndDateCnt);
+                    Console.WriteLine("Complete Extract Info StockChange");
                 }
-                Console.WriteLine("股东全称计数:" + StockChange.HolderFullNameCnt);
-                Console.WriteLine("股东简称计数:" + StockChange.HolderNameCnt);
-                Console.WriteLine("变动截止日期计数:" + StockChange.ChangeEndDateCnt);
-                Console.WriteLine("Complete Extract Info StockChange");
             }
 
 
@@ -99,18 +109,22 @@ namespace 金融数据整理大赛
                 Console.WriteLine("抽取定增 认购方式（包含疑似）:" + IncreaseStock.findBuyMethodcount);
                 Console.WriteLine("Complete Extract Info IncreaseStoc");
 
-                Console.WriteLine("Start To Extract Info IncreaseStoc TRAIN");
-                var IncreaseStockPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180524\定增";
-                IncreaseStock.findPublishMethodcount = 0;
-                IncreaseStock.findBuyMethodcount = 0;
-                foreach (var filename in System.IO.Directory.GetFiles(IncreaseStockPath_TEST + @"\html\"))
+                if (IsRunIncreaseStock_TEST)
                 {
-                    IncreaseStock.Extract(filename);
+                    Console.WriteLine("Start To Extract Info IncreaseStoc TRAIN");
+                    var IncreaseStockPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180524\定增";
+                    IncreaseStock.findPublishMethodcount = 0;
+                    IncreaseStock.findBuyMethodcount = 0;
+                    foreach (var filename in System.IO.Directory.GetFiles(IncreaseStockPath_TEST + @"\html\"))
+                    {
+                        IncreaseStock.Extract(filename);
+                    }
+                    Console.WriteLine("抽取定增 发行方式（包含疑似）:" + IncreaseStock.findPublishMethodcount);
+                    Console.WriteLine("抽取定增 认购方式（包含疑似）:" + IncreaseStock.findBuyMethodcount);
+                    Console.WriteLine("Complete Extract Info IncreaseStoc");
                 }
-                Console.WriteLine("抽取定增 发行方式（包含疑似）:" + IncreaseStock.findPublishMethodcount);
-                Console.WriteLine("抽取定增 认购方式（包含疑似）:" + IncreaseStock.findBuyMethodcount);
-                Console.WriteLine("Complete Extract Info IncreaseStoc");
             }
+
 
             Logger.Close();
         }

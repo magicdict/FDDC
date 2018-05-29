@@ -47,7 +47,7 @@ public class Contract
         c.JiaFang = Array[1];
         c.YiFang = Array[2];
         c.ProjectName = Array[3];
-        if (Array.Length > 5)
+        if (Array.Length > 4)
         {
             c.ContractName = Array[4];
         }

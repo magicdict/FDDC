@@ -5,6 +5,24 @@ using static HTMLEngine;
 public class ExtractProperty
 {
 
+    public int FindWordCnt(string KeyWord, MyRootHtmlNode root)
+    {
+        int cnt = 0;
+        foreach (var paragrah in root.Children)
+        {
+            //从各个段落的内容中取得：内容包含了内置列表，所以，这里不再重复
+            foreach (var contentNode in paragrah.Children)
+            {
+                if (contentNode.TableId == -1)
+                {
+                    if (contentNode.Content.IndexOf(KeyWord) != -1) cnt++;
+                }
+            }
+        }
+        return cnt;
+    }
+
+
     //候选词
     public List<String> CandidateWord = new List<string>();
 
