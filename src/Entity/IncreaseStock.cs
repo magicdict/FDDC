@@ -78,10 +78,6 @@ public class IncreaseStock
         return record;
     }
 
-    public static int findPublishMethodcount = 0;
-
-    public static int findBuyMethodcount = 0;
-
     public static List<struIncreaseStock> Extract(string htmlFileName)
     {
         var fi = new System.IO.FileInfo(htmlFileName);
@@ -104,16 +100,15 @@ public class IncreaseStock
     }
 
 
-    static List<struIncreaseStock> GetMultiTarget(HTMLEngine.MyRootHtmlNode node, struIncreaseStock SampleincreaseStock)
+    static List<struIncreaseStock> GetMultiTarget(HTMLEngine.MyRootHtmlNode root, struIncreaseStock SampleincreaseStock)
     {
         var Info = new Dictionary<int, List<string>>();     //每张表格的认购者名单
         var increaseStocklist = new Dictionary<String, struIncreaseStock>();
 
-        //按照POS标志分表
-        for (int tableIndex = 0; tableIndex < node.TableList.Count; tableIndex++)
+        for (int tableIndex = 0; tableIndex < root.TableList.Count; tableIndex++)
         {
             //寻找表头是"发行对象" 或者 "发行对象名称" 的列号
-            var table = new HTMLTable(node.TableList[tableIndex + 1]);
+            var table = new HTMLTable(root.TableList[tableIndex + 1]);
             var HeaderRow = table.GetHeaderRow();
             var pos = -1;
             for (int j = 0; j < HeaderRow.Length; j++)
@@ -152,11 +147,11 @@ public class IncreaseStock
 
                     pos = j + 1;    //Index从0开始
                     var Buyer = new List<String>();
-                    for (int k = 2; k < table.RowCount + 1; k++)
+                    for (int k = 2; k <= table.RowCount + 1; k++)
                     {
                         var target = table.CellValue(k, pos);
-                        if (target == "" || target == "<rowspan>" || target == "<colspan>" || target == "<null>") continue;
-                        if (target == "合计" || target == "小计") continue;
+                        if (table.IsTotalRow(k)) continue;
+                        if (target == "" || target == "<rowspan>" || target == "<colspan>" || target == "<null>" ) continue;
 
                         struIncreaseStock increase;
 

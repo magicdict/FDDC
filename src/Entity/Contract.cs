@@ -27,7 +27,7 @@ public class Contract
         public string ContractMoneyUpLimit;
 
         //合同金额下限
-        public string COntractMoneyDownLimit;
+        public string ContractMoneyDownLimit;
 
         //联合体成员
         public string UnionMember;
@@ -54,7 +54,7 @@ public class Contract
         if (Array.Length > 6)
         {
             c.ContractMoneyUpLimit = Array[5];
-            c.COntractMoneyDownLimit = Array[6];
+            c.ContractMoneyDownLimit = Array[6];
         }
         if (Array.Length == 8)
         {
@@ -71,12 +71,10 @@ public class Contract
                      contract.ProjectName + "," +
                      contract.ContractName + ",";
         record += Normalizer.NormalizeNumberResult(contract.ContractMoneyUpLimit) + ",";
-        record += Normalizer.NormalizeNumberResult(contract.COntractMoneyDownLimit) + ",";
+        record += Normalizer.NormalizeNumberResult(contract.ContractMoneyDownLimit) + ",";
         record += contract.UnionMember;
         return record;
     }
-
-    public static int CorrectKey = 0;
 
 
     public static List<struContract> Extract(string htmlFileName)
@@ -92,8 +90,6 @@ public class Contract
         Program.Logger.WriteLine("公告ID:" + Id);
         //主合同的抽取
         ContractList.Add(ExtractSingle(node, Id));
-        //子合同的抽取
-        ExtractMulti(node, Id);
         return ContractList;
     }
 
@@ -105,35 +101,27 @@ public class Contract
         contract.id = Id;
         //甲方
         contract.JiaFang = GetJiaFang(node);
+        if (contract.JiaFang.Contains("（以下"))
+        {
+            contract.JiaFang = Utility.GetStringBefore(contract.JiaFang, "（以下");
+        }
         //乙方
         contract.YiFang = GetYiFang(node);
+        if (contract.YiFang.Contains("（以下"))
+        {
+            contract.YiFang = Utility.GetStringBefore(contract.YiFang, "（以下");
+        }
+
         //金额
         contract.ContractMoneyUpLimit = GetMoney(node);
+
+        contract.ContractMoneyDownLimit = contract.ContractMoneyUpLimit;
         //项目
         contract.ContractName = GetProjectName(node);
         //合同
         contract.ContractName = GetContractName(node);
         return contract;
     }
-
-
-
-    //是否为多个合同或者多个工程
-    static List<struContract> ExtractMulti(MyRootHtmlNode node, String Id)
-    {
-        var contractlist = new List<struContract>();
-        //寻找一下列表项目
-        foreach (var lst in node.DetailItemList.Values)
-        {
-            //能否提取到合同，工程，如果可以的话，直接提取了
-            foreach (var content in lst)
-            {
-
-            }
-        }
-        return contractlist;
-    }
-
 
 
     static string GetJiaFang(MyRootHtmlNode root)
@@ -145,8 +133,9 @@ public class Contract
         foreach (var item in Extractor.CandidateWord)
         {
             Program.Logger.WriteLine("甲方候补词(关键字)：[" + item + "]");
+            return item;
         }
-        
+
         //招标
         Extractor = new ExtractProperty();
         var StartArray = new string[] { "业主", "收到", "接到" };
@@ -156,6 +145,7 @@ public class Contract
         foreach (var item in Extractor.CandidateWord)
         {
             Program.Logger.WriteLine("甲方候补词(招标)：[" + item + "]");
+            return item;
         }
 
         //合同
@@ -167,6 +157,7 @@ public class Contract
         foreach (var item in Extractor.CandidateWord)
         {
             Program.Logger.WriteLine("甲方候补词(合同)：[" + item + "]");
+            return item;
         }
         return "";
     }
@@ -185,6 +176,7 @@ public class Contract
         foreach (var item in Extractor.CandidateWord)
         {
             Program.Logger.WriteLine("合同名称候补词（《XXX》）：[" + item + "]");
+            return item;
         }
 
         Extractor = new ExtractProperty();
@@ -194,8 +186,20 @@ public class Contract
         foreach (var item in Extractor.CandidateWord)
         {
             Program.Logger.WriteLine("合同名称候补词(关键字)：[" + item + "]");
+            return item;
         }
 
+        //合同
+        Extractor = new ExtractProperty();
+        var StartArray = new string[] { "签署了" };
+        var EndArray = new string[] { "合同" };
+        Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
+        Extractor.Extract(root);
+        foreach (var item in Extractor.CandidateWord)
+        {
+            Program.Logger.WriteLine("合同候补词(合同)：[" + item + "]");
+            return item;
+        }
         return "";
     }
 
@@ -208,6 +212,7 @@ public class Contract
         foreach (var item in Extractor.CandidateWord)
         {
             Program.Logger.WriteLine("项目名称候补词(关键字)：[" + item + "]");
+            //return item;
         }
         return "";
     }
@@ -225,6 +230,7 @@ public class Contract
         foreach (var item in Extractor.CandidateWord)
         {
             Program.Logger.WriteLine("乙方候补词(关键字)：[" + item + "有限公司]");
+            //return item;
         }
         return "";
     }

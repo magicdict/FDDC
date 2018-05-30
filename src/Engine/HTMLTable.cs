@@ -28,7 +28,39 @@ public class HTMLTable
     public string CellValue(int RowPos, int ColPos)
     {
         var pos = RowPos + "," + ColPos;
-        if (dict.ContainsKey(pos)) return dict[pos];
+        if (dict.ContainsKey(pos))
+        {
+            var content = dict[pos];
+            if (content == "<rowspan>")
+            {
+                //向上寻找非"<rowspan>"的内容
+                for (int i = RowPos - 1; i >= 0; i--)
+                {
+                    pos = i + "," + ColPos;
+                    if (dict.ContainsKey(pos))
+                    {
+                        content = dict[pos];
+                        if (content != "<rowspan>") return content;
+                    }
+                }
+            }
+
+            if (content == "<colspan>")
+            {
+                //向上寻找非"<rowspan>"的内容
+                for (int i = ColPos - 1; i >= 0; i--)
+                {
+                    pos = RowPos + "," + i;
+                    if (dict.ContainsKey(pos))
+                    {
+                        content = dict[pos];
+                        if (content != "<colspan>") return content;
+                    }
+                }
+            }
+
+            return dict[pos];
+        }
         return "";
     }
 
@@ -43,5 +75,21 @@ public class HTMLTable
         return Header;
     }
 
+    public bool IsTotalRow(int RowNo)
+    {
+        bool IsTotalRow = false;
+        for (int i = 1; i <= ColumnCount; i++)
+        {
+            var x = CellValue(RowNo, i).Replace(" ", "");
+            if (x == "合计" || x == "小计" || 
+                x == "—" || x == "－" || x == "-" || x == "/" || 
+                x == "--" ||  x=="——")
+            {
+                IsTotalRow = true;
+                break;
+            }
+        }
+        return IsTotalRow;
+    }
 
 }

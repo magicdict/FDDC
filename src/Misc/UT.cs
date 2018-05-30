@@ -25,13 +25,21 @@ public static class UT
 
     }
 
-    public static void IncreaseStockTest(){
+
+    public static void StockChangeTest()
+    {
+        StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\1018217.html");
+    }
+
+    public static void IncreaseStockTest()
+    {
         IncreaseStock.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增\html\7880.html");
     }
 
     public static void ContractTest()
     {
-
+        Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1120707.html");
+        return;
         var x1 = Normalizer.NormalizeItemListNumber("（4）2012 年 4 月，公司与中国华西企业股份");
         var x2 = Normalizer.NormalizeItemListNumber("4 、承包方式： 从深化设计、制作、运输、");
         var x3 = Normalizer.NormalizeItemListNumber("4、承包方式： 从深化设计、制作、运输、");
@@ -49,11 +57,14 @@ public static class UT
         Result = Utility.GetStringBefore(TestString, "有限公司");
         Console.WriteLine(Result);
 
-        Contract.Extract(@"E:\WorkSpace2018\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\5258.html");
+        Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\5258.html");
     }
 
     public static void RegularExpress()
     {
+
+        var s0 = "2010年12月3日，中工国际工程股份有限公司与委内瑞拉农业土地部下属的委内瑞拉农业公司签署了委内瑞拉农副产品加工设备制造厂工业园项目商务合同，与委内瑞拉农签署了委内瑞拉奥里合同。";
+        var x = RegularTool.GetMultiValueBetweenString(s0, "与", "签署");
 
         var s1 = "收到贵州高速公路开发总公司发出的通知";
         var s2 = "接到贵州高速公路开发总公司发出的通知";

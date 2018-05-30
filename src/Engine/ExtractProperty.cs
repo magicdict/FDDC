@@ -47,7 +47,12 @@ public class ExtractProperty
     {
         foreach (var word in LeadingWordList)
         {
-            Func<String, String> ExtractMethod = (x) => { return Utility.GetStringAfter(x, word); };
+            Func<String, List<String>> ExtractMethod = (x) =>
+            {
+                var strlist = new List<String>();
+                if (Utility.GetStringAfter(x, word) != "") strlist.Add(Utility.GetStringAfter(x, word));
+                return strlist;
+            };
             SearchNormalContent(root, ExtractMethod);
         }
     }
@@ -59,7 +64,12 @@ public class ExtractProperty
     {
         foreach (var word in TrailingWordList)
         {
-            Func<String, String> ExtractMethod = (x) => { return Utility.GetStringBefore(x, word); };
+            Func<String, List<String>> ExtractMethod = (x) =>
+            {
+                var strlist = new List<String>();
+                if (Utility.GetStringBefore(x, word) != "") strlist.Add(Utility.GetStringBefore(x, word));
+                return strlist;
+            };
             SearchNormalContent(root, ExtractMethod);
         }
     }
@@ -67,7 +77,7 @@ public class ExtractProperty
 
 
     //Search Normal Content
-    void SearchNormalContent(MyRootHtmlNode root, Func<String, String> ExtractMethod)
+    void SearchNormalContent(MyRootHtmlNode root, Func<String, List<String>> ExtractMethod)
     {
         foreach (var paragrah in root.Children)
         {
@@ -78,7 +88,7 @@ public class ExtractProperty
                 {
                     //非表格
                     var candidate = ExtractMethod(contentNode.Content);
-                    if (candidate != "") CandidateWord.Add(candidate);
+                    if (candidate.Count != 0) CandidateWord.AddRange(candidate);
                 }
             }
         }
@@ -108,21 +118,22 @@ public class ExtractProperty
     {
         foreach (var word in MarkFeature)
         {
-            Func<String, String> ExtractMethod = (x) =>
+            Func<String, List<String>> ExtractMethod = (x) =>
             {
-                var strContent = RegularTool.GetValueBetweenMark(x, word.MarkStartWith, word.MarkEndWith);
-                if (strContent != "")
+                var strlist = new List<String>();
+                foreach (var strContent in RegularTool.GetMultiValueBetweenMark(x, word.MarkStartWith, word.MarkEndWith))
                 {
                     if (word.InnerStartWith != null)
                     {
-                        if (!strContent.StartsWith(word.InnerStartWith)) return "";
+                        if (!strContent.StartsWith(word.InnerStartWith)) continue;
                     }
                     if (word.InnerEndWith != null)
                     {
-                        if (!strContent.EndsWith(word.InnerEndWith)) return "";
+                        if (!strContent.EndsWith(word.InnerEndWith)) continue;
                     }
+                    strlist.Add(strContent);
                 }
-                return strContent;
+                return strlist;
             };
             SearchNormalContent(root, ExtractMethod);
         }
@@ -145,7 +156,10 @@ public class ExtractProperty
     {
         foreach (var word in StartEndFeature)
         {
-            Func<String, String> ExtractMethod = (x) => { return RegularTool.GetValueBetweenString(x, word.StartWith, word.EndWith); };
+            Func<String, List<String>> ExtractMethod = (x) =>
+            {
+                return RegularTool.GetMultiValueBetweenString(x, word.StartWith, word.EndWith);
+            };
             SearchNormalContent(root, ExtractMethod);
         }
     }

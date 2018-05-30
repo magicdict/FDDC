@@ -3,5 +3,7 @@ obj/*
 *.log
 *.txt
 Resources/*
+Result/*
 Log.log
 *.csv
+Result.zip

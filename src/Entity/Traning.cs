@@ -10,16 +10,26 @@ public static class Traning
     static string StockChangePath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\zengjianchi.train";
     static string IncreaseStockPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增\dingzeng.train";
 
+
+
     public static List<Contract.struContract> ContractList = new List<Contract.struContract>();
+
+    public static int MaxJiaFangLength = 0;
+    public static int MaxYiFangLength = 0;
 
     public static void InitContract()
     {
         var sr = new StreamReader(ContractPath_TRAIN);
         while (!sr.EndOfStream)
         {
-            ContractList.Add(Contract.ConvertFromString(sr.ReadLine()));
+            var c = Contract.ConvertFromString(sr.ReadLine());
+            if (c.JiaFang.Length > MaxJiaFangLength) MaxJiaFangLength = c.JiaFang.Length;
+            if (c.YiFang.Length > MaxYiFangLength) MaxYiFangLength = c.YiFang.Length;
+            ContractList.Add(c);
         }
         Console.WriteLine("合同标准结果数:" + ContractList.Count);
+        Console.WriteLine("甲方最长字符数:" + MaxJiaFangLength);
+        Console.WriteLine("乙方最长字符数:" + MaxYiFangLength);
         sr.Close();
     }
 
