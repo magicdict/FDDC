@@ -63,16 +63,17 @@ public class Contract
         return c;
     }
 
-    static string ConvertToString(struContract contract)
+    internal static string ConvertToString(struContract contract)
     {
-        return contract.id + "," +
-               contract.JiaFang + "," +
-               contract.YiFang + "," +
-               contract.ProjectName + "," +
-               contract.ContractName + "," +
-               contract.ContractMoneyUpLimit + "," +
-               contract.COntractMoneyDownLimit + "," +
-               contract.UnionMember;
+        var record = contract.id + "," +
+                     contract.JiaFang + "," +
+                     contract.YiFang + "," +
+                     contract.ProjectName + "," +
+                     contract.ContractName + ",";
+        record += Normalizer.NormalizeNumberResult(contract.ContractMoneyUpLimit) + ",";
+        record += Normalizer.NormalizeNumberResult(contract.COntractMoneyDownLimit) + ",";
+        record += contract.UnionMember;
+        return record;
     }
 
     public static int CorrectKey = 0;
@@ -90,7 +91,7 @@ public class Contract
         var Id = fi.Name.Replace(".html", "");
         Program.Logger.WriteLine("公告ID:" + Id);
         //主合同的抽取
-        ExtractSingle(node, Id);
+        ContractList.Add(ExtractSingle(node, Id));
         //子合同的抽取
         ExtractMulti(node, Id);
         return ContractList;
@@ -145,7 +146,7 @@ public class Contract
         {
             Program.Logger.WriteLine("甲方候补词(关键字)：[" + item + "]");
         }
-
+        
         //招标
         Extractor = new ExtractProperty();
         var StartArray = new string[] { "业主", "收到", "接到" };
@@ -185,10 +186,10 @@ public class Contract
         {
             Program.Logger.WriteLine("合同名称候补词（《XXX》）：[" + item + "]");
         }
-        
+
         Extractor = new ExtractProperty();
         //这些关键字后面
-        Extractor.LeadingWordList = new string[] { "合同名称："};
+        Extractor.LeadingWordList = new string[] { "合同名称：" };
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
@@ -202,7 +203,7 @@ public class Contract
     {
         var Extractor = new ExtractProperty();
         //这些关键字后面
-        Extractor.LeadingWordList = new string[] { "项目名称："};
+        Extractor.LeadingWordList = new string[] { "项目名称：" };
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {

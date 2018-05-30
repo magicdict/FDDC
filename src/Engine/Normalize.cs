@@ -17,10 +17,20 @@ public static class Normalizer
         return rtn;
     }
 
-    public static string NormalizeResult(string orgString)
+    public static string NormalizeTextResult(string orgString)
     {
-        orgString = orgString.Trim();
-        if (orgString.EndsWith("。")) orgString = orgString.TrimEnd("。".ToCharArray());
+        if (!String.IsNullOrEmpty(orgString)){
+            orgString = orgString.Trim();
+            if (orgString.EndsWith("。")) orgString = orgString.TrimEnd("。".ToCharArray());
+        }
+        return orgString;
+    }
+
+    public static string NormalizeNumberResult(string orgString)
+    {
+        if (!String.IsNullOrEmpty(orgString)){
+            orgString = orgString.Trim().Replace(",", "");
+        }
         return orgString;
     }
 

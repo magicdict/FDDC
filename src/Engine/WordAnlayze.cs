@@ -12,7 +12,6 @@ public static class WordAnlayze
     public static JiebaSegmenter segmenter = new JiebaSegmenter();
     public static void Init()
     {
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         //加入所有实体：甲方，乙方
         foreach (var contract in Traning.ContractList)
         {

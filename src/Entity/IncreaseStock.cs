@@ -67,22 +67,11 @@ public class IncreaseStock
         var record = increaseStock.id + "," +
         increaseStock.PublishTarget + "," +
         increaseStock.PublishMethod + ",";
-
-        if (!string.IsNullOrEmpty(increaseStock.IncreaseNumber))
+        record += Normalizer.NormalizeNumberResult(increaseStock.IncreaseNumber) + ",";
+        record += Normalizer.NormalizeNumberResult(increaseStock.IncreaseMoney) + ",";
+        if (!String.IsNullOrEmpty(increaseStock.FreezeYear) && increaseStock.FreezeYear.EndsWith("个月"))
         {
-            record += increaseStock.IncreaseNumber.Replace(",", "") + ",";  //以后移动到Normalize函数中
-        }
-        else
-        {
-            record += ",";
-        }
-        if (!string.IsNullOrEmpty(increaseStock.IncreaseMoney))
-        {
-            record += increaseStock.IncreaseMoney.Replace(",", "") + ",";   //以后移动到Normalize函数中
-        }
-        else
-        {
-            record += ",";
+            increaseStock.FreezeYear = increaseStock.FreezeYear.Replace("个月", "");
         }
         record += increaseStock.FreezeYear + "," +
         increaseStock.BuyMethod;
@@ -224,6 +213,7 @@ public class IncreaseStock
         var Extractor = new ExtractProperty();
         var cnt = Extractor.FindWordCnt("询价发行", root);
         Program.Logger.WriteLine("询价发行(文本):" + cnt);
+        if (cnt > 0) return "竞价";
         return "";
     }
 
@@ -233,6 +223,7 @@ public class IncreaseStock
         var Extractor = new ExtractProperty();
         var cnt = Extractor.FindWordCnt("现金认购", root);
         Program.Logger.WriteLine("现金认购(文本):" + cnt);
+        if (cnt > 0) return "现金";
         return "";
     }
 

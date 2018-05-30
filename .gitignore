@@ -4,3 +4,4 @@ obj/*
 *.txt
 Resources/*
 Log.log
+*.csv
