@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using 金融数据整理大赛;
+using FDDC;
 
 public class StockChange
 {

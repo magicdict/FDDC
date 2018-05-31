@@ -1,7 +1,8 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using 金融数据整理大赛;
+using FDDC;
+using static HTMLTable;
 
 public class IncreaseStock
 {
@@ -102,6 +103,47 @@ public class IncreaseStock
 
     static List<struIncreaseStock> GetMultiTarget(HTMLEngine.MyRootHtmlNode root, struIncreaseStock SampleincreaseStock)
     {
+        var increaseStocklist = new Dictionary<String, struIncreaseStock>();
+
+        var BuyerRule = new TableSearchRule();
+        BuyerRule.Name = "认购对象";
+        BuyerRule.Rule = new string[] { "认购对象", "发行对象", "发行对象名称" }.ToList();
+        BuyerRule.IsEq = true;
+
+        var BuyNumber = new TableSearchRule();
+        BuyNumber.Name = "增发数量";
+        BuyNumber.Rule = new string[] { "配售股数", "认购数量", "认购股份数" }.ToList();
+        BuyNumber.IsEq = false;             //包含即可
+
+        var BuyMoney = new TableSearchRule();
+        BuyMoney.Name = "增发金额";
+        BuyMoney.Rule = new string[] { "配售金额", "认购金额"}.ToList();
+        BuyMoney.IsEq = false;             //包含即可
+
+        var FreezeYear = new TableSearchRule();
+        FreezeYear.Name = "锁定期";
+        FreezeYear.Rule = new string[] { "锁定期", "限售期"}.ToList();
+        FreezeYear.IsEq = false;             //包含即可
+
+        var Rules = new List<TableSearchRule>();    
+        Rules.Add(BuyerRule);
+        Rules.Add(BuyNumber);
+        Rules.Add(BuyMoney);
+        Rules.Add(FreezeYear);
+
+        var result = HTMLTable.GetMultiInfo(root,Rules);
+
+        foreach (var item in result)
+        {
+            Console.WriteLine(item[0].RawData + "\t" + item[1].RawData + "\t" + item[2].RawData + "\t" + item[3].RawData);
+        }
+
+
+        return increaseStocklist.Values.ToList();
+    }
+
+    static List<struIncreaseStock> GetMultiTarget2(HTMLEngine.MyRootHtmlNode root, struIncreaseStock SampleincreaseStock)
+    {
         var Info = new Dictionary<int, List<string>>();     //每张表格的认购者名单
         var increaseStocklist = new Dictionary<String, struIncreaseStock>();
 
@@ -151,7 +193,7 @@ public class IncreaseStock
                     {
                         var target = table.CellValue(k, pos);
                         if (table.IsTotalRow(k)) continue;
-                        if (target == "" || target == "<rowspan>" || target == "<colspan>" || target == "<null>" ) continue;
+                        if (target == "" || target == "<rowspan>" || target == "<colspan>" || target == "<null>") continue;
 
                         struIncreaseStock increase;
 

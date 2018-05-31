@@ -1,16 +1,50 @@
 using JiebaNet.Analyser;
 using JiebaNet.Segmenter;
+using JiebaNet.Segmenter.PosSeg;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 public static class WordAnlayze
 {
-
-    //特殊符号问题
-    
     public static JiebaSegmenter segmenter = new JiebaSegmenter();
-    public static void Init()
+
+    public static void CompanyAnlayze()
+    {
+        var posSeg = new PosSegmenter();
+        //甲方乙方首单词统计
+        var FirstWordPos = new Dictionary<String, int>();
+        var WordLength = new Dictionary<int, int>();
+        FDDC.Program.Logger.WriteLine("甲方乙方统计：");
+        PropertyWordAnlayze.Init();
+        foreach (var contract in Traning.ContractList)
+        {
+            PropertyWordAnlayze.PutWord(contract.JiaFang);
+            PropertyWordAnlayze.PutWord(contract.YiFang);
+        }
+        PropertyWordAnlayze.WriteToLog();
+
+        FDDC.Program.Logger.WriteLine("合同统计：");
+        PropertyWordAnlayze.Init();
+        foreach (var contract in Traning.ContractList)
+        {
+            PropertyWordAnlayze.PutWord(contract.ContractName);
+        }
+        PropertyWordAnlayze.WriteToLog();
+
+        FDDC.Program.Logger.WriteLine("工程统计：");
+        PropertyWordAnlayze.Init();
+        foreach (var contract in Traning.ContractList)
+        {
+            PropertyWordAnlayze.PutWord(contract.ProjectName);
+        }
+        PropertyWordAnlayze.WriteToLog();
+
+    }
+
+
+    public static void AddCustomerWord()
     {
         //加入所有实体：甲方，乙方
         foreach (var contract in Traning.ContractList)

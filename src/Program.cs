@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace 金融数据整理大赛
+namespace FDDC
 {
     class Program
     {
@@ -19,23 +19,25 @@ namespace 金融数据整理大赛
             Traning.InitStockChange();
 
             //分词系统
-            //WordAnlayze.Init();
+            WordAnlayze.CompanyAnlayze();
             //UT.RunWordAnlayze();
             //UT.StockChangeTest();
             //UT.IncreaseStockTest();
-            UT.ContractTest();
-            UT.RegularExpress();
-            Logger.Close();
-            return;
+            //UT.ContractTest();
+            //UT.RegularExpress();
+            //UT.JianchengTest();
+            //IncreaseStock.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增\html\7880.html");
+            //Logger.Close();
+            //return;
 
-            var IsRunContract = true;
-            var IsRunContract_TEST = true;
+            var IsRunContract = false;
+            var IsRunContract_TEST = false;
 
-            var IsRunStockChange = true;
-            var IsRunStockChange_TEST = true;
+            var IsRunStockChange = false;
+            var IsRunStockChange_TEST = false;
 
             var IsRunIncreaseStock = true;
-            var IsRunIncreaseStock_TEST = true;
+            var IsRunIncreaseStock_TEST = false;
 
             if (IsRunContract)
             {

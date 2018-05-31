@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using 金融数据整理大赛;
+using FDDC;
 
 public static class Traning
 {

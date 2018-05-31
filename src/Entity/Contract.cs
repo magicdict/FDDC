@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using 金融数据整理大赛;
+using FDDC;
 using static HTMLEngine;
 
 public class Contract
@@ -212,7 +212,7 @@ public class Contract
         foreach (var item in Extractor.CandidateWord)
         {
             Program.Logger.WriteLine("项目名称候补词(关键字)：[" + item + "]");
-            //return item;
+            return item;
         }
         return "";
     }
@@ -230,7 +230,7 @@ public class Contract
         foreach (var item in Extractor.CandidateWord)
         {
             Program.Logger.WriteLine("乙方候补词(关键字)：[" + item + "有限公司]");
-            //return item;
+            return item;
         }
         return "";
     }

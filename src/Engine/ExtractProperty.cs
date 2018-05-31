@@ -164,42 +164,4 @@ public class ExtractProperty
         }
     }
 
-    public struct CellInfo
-    {
-        public int TableId;
-
-        public int Row;
-
-        public int Column;
-
-        public string RawData;
-    }
-
-
-    public List<CellInfo> CandidateCell = new List<CellInfo>();
-
-    //在所有的表格中，寻找包含指定内容的单元格
-    public void searchKeyWordAtTable(MyRootHtmlNode root, string keyword, string exclude = "")
-    {
-        foreach (var content in root.TableList)
-        {
-            var pos = "";
-            var value = "";
-            if (value.IndexOf(keyword) != -1)
-            {
-                if (exclude != "")
-                {
-                    if (value.IndexOf(exclude) != -1) continue;
-                }
-                var cellInfo = new CellInfo();
-                cellInfo.RawData = value;
-                cellInfo.Column = int.Parse(pos.Split(",")[0]);
-                cellInfo.Row = int.Parse(pos.Split(",")[1]);
-                cellInfo.Column = int.Parse(pos.Split(",")[2]);
-                CandidateCell.Add(cellInfo);
-            }
-        }
-
-    }
-
 }

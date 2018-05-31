@@ -1,9 +1,49 @@
 using System;
 using System.Text.RegularExpressions;
-using 金融数据整理大赛;
+using FDDC;
 
 public static class UT
 {
+
+
+    public static void JianchengTest()
+    {
+        var ContractPath_TRAIN = FDDC.Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
+        Console.WriteLine("Start To Extract Info Contract TRAIN");
+        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\html\"))
+        {
+            var root = HTMLEngine.Anlayze(filename);
+            var fi = new System.IO.FileInfo(filename);
+            FDDC.Program.Logger.WriteLine("FileName:" + fi.Name);
+            BussinessLogic.GetCompanyShortName(root);
+            BussinessLogic.GetCompanyFullName(root);
+        }
+        Console.WriteLine("Complete Extract Info Contract");
+
+        var StockChangePath_TRAIN = FDDC.Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持";
+        Console.WriteLine("Start To Extract Info Contract TRAIN");
+        foreach (var filename in System.IO.Directory.GetFiles(StockChangePath_TRAIN + @"\html\"))
+        {
+            var root = HTMLEngine.Anlayze(filename);
+            var fi = new System.IO.FileInfo(filename);
+            FDDC.Program.Logger.WriteLine("FileName:" + fi.Name);
+            BussinessLogic.GetCompanyShortName(root);
+            BussinessLogic.GetCompanyFullName(root);
+        }
+        Console.WriteLine("Complete Extract Info Contract");
+
+        var IncreaseStockPath_TRAIN = FDDC.Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增";
+        Console.WriteLine("Start To Extract Info Contract TRAIN");
+        foreach (var filename in System.IO.Directory.GetFiles(IncreaseStockPath_TRAIN + @"\html\"))
+        {
+            var root = HTMLEngine.Anlayze(filename);
+            var fi = new System.IO.FileInfo(filename);
+            FDDC.Program.Logger.WriteLine("FileName:" + fi.Name);
+            BussinessLogic.GetCompanyShortName(root);
+            BussinessLogic.GetCompanyFullName(root);
+        }
+        Console.WriteLine("Complete Extract Info Contract");
+    }
 
     public static void RunWordAnlayze()
     {
@@ -39,7 +79,6 @@ public static class UT
     public static void ContractTest()
     {
         Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1120707.html");
-        return;
         var x1 = Normalizer.NormalizeItemListNumber("（4）2012 年 4 月，公司与中国华西企业股份");
         var x2 = Normalizer.NormalizeItemListNumber("4 、承包方式： 从深化设计、制作、运输、");
         var x3 = Normalizer.NormalizeItemListNumber("4、承包方式： 从深化设计、制作、运输、");
