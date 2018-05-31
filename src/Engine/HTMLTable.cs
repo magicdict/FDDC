@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using static HTMLEngine;
 
 public class HTMLTable
@@ -82,7 +83,7 @@ public class HTMLTable
         for (int i = 1; i <= ColumnCount; i++)
         {
             var x = CellValue(RowNo, i).Replace(" ", "");
-            if (x == "合计" || x == "小计" ||
+            if (x.Contains("合计") || x.Contains("小计") || x.Contains("总计") ||
                 x == "—" || x == "－" || x == "-" || x == "/" ||
                 x == "--" || x == "——")
             {
@@ -97,6 +98,7 @@ public class HTMLTable
             for (int ColNo = 1; ColNo <= ColumnCount; ColNo++)
             {
                 var pos = RowNo + "," + ColNo;
+                if (!dict.ContainsKey(pos)) return false;
                 if (dict[pos] == "<rowspan>" || dict[pos] == "<colspan>")
                 {
                     RowSpanCnt++;
@@ -153,6 +155,9 @@ public class HTMLTable
         public List<String> Rule;
 
         public bool IsEq;
+
+        public Func<String, String, String> Normalize;
+
     }
 
 
@@ -168,7 +173,7 @@ public class HTMLTable
         return true;
     }
 
-    public static List<CellInfo[]> GetMultiInfo(HTMLEngine.MyRootHtmlNode root, List<TableSearchRule> Rules)
+    public static List<CellInfo[]> GetMultiInfo(HTMLEngine.MyRootHtmlNode root, List<TableSearchRule> Rules, bool IsMeger)
     {
         var Container = new List<CellInfo[]>();
         for (int tableIndex = 0; tableIndex < root.TableList.Count; tableIndex++)
@@ -227,7 +232,14 @@ public class HTMLTable
                     RowData[checkItemIdx].TableId = tableIndex + 1;
                     RowData[checkItemIdx].Row = RowNo;
                     RowData[checkItemIdx].Column = ColNo;
+
+                    if (table.CellValue(RowNo, ColNo).Equals("<null>")) continue;
                     RowData[checkItemIdx].RawData = table.CellValue(RowNo, ColNo);
+                    if (Rules[checkItemIdx].Normalize != null)
+                    {
+                        RowData[checkItemIdx].RawData = Rules[checkItemIdx].Normalize(RowData[checkItemIdx].RawData, HeaderRow[ColNo - 1]);
+                    }
+
                 }
 
                 var HasSame = false;
@@ -242,6 +254,44 @@ public class HTMLTable
                 if (!HasSame) Container.Add(RowData);
             }
         }
+        if (IsMeger) Container = MergerMultiInfo(Container);
         return Container;
     }
+
+    static List<CellInfo[]> MergerMultiInfo(List<CellInfo[]> rows)
+    {
+        var dict = new Dictionary<String, CellInfo[]>();
+        foreach (var Row in rows)
+        {
+            var key = Row[0].RawData;
+            if (dict.ContainsKey(key))
+            {
+                //已经有了相同Key的记录
+                var Rec = dict[key];
+                for (int i = 1; i < Rec.Length; i++)
+                {
+                    if (!String.IsNullOrEmpty(Row[i].RawData))
+                    {
+                        if (String.IsNullOrEmpty(Rec[i].RawData) || Rec[i].RawData == "<null>")
+                        {
+                            Rec[i].RawData = Row[i].RawData;
+                        }
+                        else
+                        {
+                            if (!Rec[i].RawData.Equals(Row[i].RawData))
+                            {
+                                Rec[i].RawData += "|" + Row[i].RawData;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                dict.Add(key, Row);
+            }
+        }
+        return dict.Values.ToList();
+    }
+
 }

@@ -19,7 +19,7 @@ namespace FDDC
             Traning.InitStockChange();
 
             //分词系统
-            WordAnlayze.CompanyAnlayze();
+            //WordAnlayze.CompanyAnlayze();
             //UT.RunWordAnlayze();
             //UT.StockChangeTest();
             //UT.IncreaseStockTest();
@@ -33,10 +33,10 @@ namespace FDDC
             var IsRunContract = false;
             var IsRunContract_TEST = false;
 
-            var IsRunStockChange = false;
-            var IsRunStockChange_TEST = false;
+            var IsRunStockChange = true;
+            var IsRunStockChange_TEST = true;
 
-            var IsRunIncreaseStock = true;
+            var IsRunIncreaseStock = false;
             var IsRunIncreaseStock_TEST = false;
 
             if (IsRunContract)

@@ -97,14 +97,13 @@ public class IncreaseStock
         increaseStock.id = id;
         increaseStock.PublishMethod = publishMethod;
         increaseStock.BuyMethod = buyMethod;
-        return GetMultiTarget(node, increaseStock);
+        var list = GetMultiTarget(node, increaseStock);
+        return list;
     }
 
 
     static List<struIncreaseStock> GetMultiTarget(HTMLEngine.MyRootHtmlNode root, struIncreaseStock SampleincreaseStock)
     {
-        var increaseStocklist = new Dictionary<String, struIncreaseStock>();
-
         var BuyerRule = new TableSearchRule();
         BuyerRule.Name = "认购对象";
         BuyerRule.Rule = new string[] { "认购对象", "发行对象", "发行对象名称" }.ToList();
@@ -114,135 +113,66 @@ public class IncreaseStock
         BuyNumber.Name = "增发数量";
         BuyNumber.Rule = new string[] { "配售股数", "认购数量", "认购股份数" }.ToList();
         BuyNumber.IsEq = false;             //包含即可
+        BuyNumber.Normalize = Normalizer.NormalizerStockNumber;
 
         var BuyMoney = new TableSearchRule();
         BuyMoney.Name = "增发金额";
-        BuyMoney.Rule = new string[] { "配售金额", "认购金额"}.ToList();
+        BuyMoney.Rule = new string[] { "配售金额", "认购金额" }.ToList();
         BuyMoney.IsEq = false;             //包含即可
+        BuyMoney.Normalize = Normalizer.NormalizerMoney;
 
         var FreezeYear = new TableSearchRule();
         FreezeYear.Name = "锁定期";
-        FreezeYear.Rule = new string[] { "锁定期", "限售期"}.ToList();
+        FreezeYear.Rule = new string[] { "锁定期", "限售期" }.ToList();
         FreezeYear.IsEq = false;             //包含即可
+        FreezeYear.Normalize = NormalizerFreezeYear;
 
-        var Rules = new List<TableSearchRule>();    
+        var Rules = new List<TableSearchRule>();
         Rules.Add(BuyerRule);
         Rules.Add(BuyNumber);
         Rules.Add(BuyMoney);
         Rules.Add(FreezeYear);
 
-        var result = HTMLTable.GetMultiInfo(root,Rules);
-
+        var result = HTMLTable.GetMultiInfo(root, Rules, true);
+        var increaseStocklist = new List<struIncreaseStock>();
         foreach (var item in result)
         {
-            Console.WriteLine(item[0].RawData + "\t" + item[1].RawData + "\t" + item[2].RawData + "\t" + item[3].RawData);
+            var increase = new struIncreaseStock();
+            increase.id = SampleincreaseStock.id;
+            increase.BuyMethod = SampleincreaseStock.BuyMethod;
+            increase.PublishMethod = SampleincreaseStock.PublishMethod;
+            increase.PublishTarget = item[0].RawData;
+            increase.IncreaseNumber = item[1].RawData;
+            increase.IncreaseMoney = item[2].RawData;
+            increase.FreezeYear = item[3].RawData;
+            increaseStocklist.Add(increase);
         }
-
-
-        return increaseStocklist.Values.ToList();
+        return increaseStocklist;
     }
 
-    static List<struIncreaseStock> GetMultiTarget2(HTMLEngine.MyRootHtmlNode root, struIncreaseStock SampleincreaseStock)
+
+
+    static string NormalizerFreezeYear(string orgString, string TitleWord)
     {
-        var Info = new Dictionary<int, List<string>>();     //每张表格的认购者名单
-        var increaseStocklist = new Dictionary<String, struIncreaseStock>();
+        orgString = orgString.Replace(" ", "");
+        if (orgString.Equals("十二")) return "12";
 
-        for (int tableIndex = 0; tableIndex < root.TableList.Count; tableIndex++)
-        {
-            //寻找表头是"发行对象" 或者 "发行对象名称" 的列号
-            var table = new HTMLTable(root.TableList[tableIndex + 1]);
-            var HeaderRow = table.GetHeaderRow();
-            var pos = -1;
-            for (int j = 0; j < HeaderRow.Length; j++)
-            {
-                //认购对象必须先于发行对象
-                if (HeaderRow[j] == "认购对象" || HeaderRow[j] == "发行对象" || HeaderRow[j] == "发行对象名称")
-                {
-                    var NumberRow = -1;   //股票数
-                    var MoneyRow = -1;    //金额数
-                    var FreezeRow = -1;  //禁售期  
-                    for (int NumberIndex = 0; NumberIndex < HeaderRow.Length; NumberIndex++)
-                    {
-                        if (HeaderRow[NumberIndex].Contains("配售股数") ||
-                            HeaderRow[NumberIndex].Contains("认购数量") ||
-                            HeaderRow[NumberIndex].Contains("认购股份数"))
-                        {
-                            NumberRow = NumberIndex + 1;    //Index从0开始
-                        }
-                    }
+        var x1 = Utility.GetStringAfter(orgString, "日起");
+        int x2;
+        if (int.TryParse(x1, out x2)) return x2.ToString();
+        x1 = Utility.GetStringBefore(orgString, "个月");
+        if (int.TryParse(x1, out x2)) return x2.ToString();
 
-                    for (int MoneyIndex = 0; MoneyIndex < HeaderRow.Length; MoneyIndex++)
-                    {
-                        if (HeaderRow[MoneyIndex].Contains("配售金额") || HeaderRow[MoneyIndex].Contains("认购金额"))
-                        {
-                            MoneyRow = MoneyIndex + 1;  //Index从0开始
-                        }
-                    }
+        x1 = RegularTool.GetValueBetweenString(orgString, "日起", "个月");
+        if (x1.Equals("十二")) return "12";
+        if (int.TryParse(x1, out x2)) return x2.ToString();
 
-                    for (int FreezeRowIndex = 0; FreezeRowIndex < HeaderRow.Length; FreezeRowIndex++)
-                    {
-                        if (HeaderRow[FreezeRowIndex].Contains("限售期") || HeaderRow[FreezeRowIndex].Contains("锁定期"))
-                        {
-                            FreezeRow = FreezeRowIndex + 1;  //Index从0开始
-                        }
-                    }
-
-                    pos = j + 1;    //Index从0开始
-                    var Buyer = new List<String>();
-                    for (int k = 2; k <= table.RowCount + 1; k++)
-                    {
-                        var target = table.CellValue(k, pos);
-                        if (table.IsTotalRow(k)) continue;
-                        if (target == "" || target == "<rowspan>" || target == "<colspan>" || target == "<null>") continue;
-
-                        struIncreaseStock increase;
-
-                        if (increaseStocklist.ContainsKey(target))
-                        {
-                            increase = increaseStocklist[target];
-                        }
-                        else
-                        {
-                            increase = new struIncreaseStock();
-                        }
-
-                        increase.PublishTarget = target;
-                        increase.id = SampleincreaseStock.id;
-                        increase.PublishMethod = SampleincreaseStock.PublishMethod;
-                        increase.BuyMethod = SampleincreaseStock.BuyMethod;
-
-                        Program.Logger.WriteLine("候补增发对象:" + target + " @TableIndex:" + tableIndex);
-                        //是否能提取其他信息：
-                        if (NumberRow != -1)
-                        {
-                            increase.IncreaseNumber = table.CellValue(k, NumberRow);
-                            Program.Logger.WriteLine("候补增发数量:" + table.CellValue(k, NumberRow) + " @TableIndex:" + tableIndex);
-                        }
-                        if (MoneyRow != -1)
-                        {
-                            increase.IncreaseMoney = table.CellValue(k, MoneyRow);
-                            Program.Logger.WriteLine("候补增发金额:" + table.CellValue(k, MoneyRow) + " @TableIndex:" + tableIndex);
-                        }
-                        if (FreezeRow != -1)
-                        {
-                            increase.FreezeYear = table.CellValue(k, FreezeRow);
-                            Program.Logger.WriteLine("候补锁定期:" + table.CellValue(k, FreezeRow) + " @TableIndex:" + tableIndex);
-                        }
-                        if (!increaseStocklist.ContainsKey(target))
-                        {
-                            increaseStocklist.Add(target, increase);
-                        }
-                        Buyer.Add(target);
-                    }
-                    Info.Add(tableIndex, Buyer);
-                    //可能出现同时含有认购对象和发行对象的表格14925945
-                    break;
-                }
-            }
-        }
-        return increaseStocklist.Values.ToList();
+        if (orgString.Equals("十二")) return "12";
+        if (orgString.Equals("十二个月")) return "12";
+        if (orgString.Equals("1年")) return "12";
+        if (orgString.Equals("3年")) return "36";
+        return orgString.Trim();
     }
-
 
     static string getPublishMethod(HTMLEngine.MyRootHtmlNode root)
     {
@@ -251,6 +181,13 @@ public class IncreaseStock
         var cnt = Extractor.FindWordCnt("询价发行", root);
         Program.Logger.WriteLine("询价发行(文本):" + cnt);
         if (cnt > 0) return "竞价";
+
+        cnt = Extractor.FindWordCnt("发行价格不低于", root);
+        if (cnt > 0) return "竞价";
+
+        cnt = Extractor.FindWordCnt("发行价格为", root);
+        if (cnt > 0) return "定价";
+
         return "";
     }
 

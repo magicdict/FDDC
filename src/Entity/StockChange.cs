@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using FDDC;
+using static HTMLTable;
 
 public class StockChange
 {
@@ -99,90 +101,59 @@ public class StockChange
         return list;
     }
 
-
     static List<struStockChange> ExtractFromTable(HTMLEngine.MyRootHtmlNode root, string id)
     {
-        //相同持股人，多次增减持日期不同，产生多条记录
-        var list = new List<struStockChange>();
-        for (int tableIndex = 0; tableIndex < root.TableList.Count; tableIndex++)
+        var StockHolderRule = new TableSearchRule();
+        StockHolderRule.Name = "股东全称";
+        StockHolderRule.Rule = new string[] { "股东名称" }.ToList();
+        StockHolderRule.IsEq = true;
+
+        var ChangeDateRule = new TableSearchRule();
+        ChangeDateRule.Name = "变动截止日期";
+        ChangeDateRule.Rule = new string[] { "减持期间", "增持期间" }.ToList();
+        ChangeDateRule.IsEq = false;
+        ChangeDateRule.Normalize = Normalizer.NormailizeDate;
+
+
+        var ChangePriceRule = new TableSearchRule();
+        ChangePriceRule.Name = "变动价格";
+        ChangePriceRule.Rule = new string[] { "减持均价", "增持均价" }.ToList();
+        ChangePriceRule.IsEq = false;
+        ChangePriceRule.Normalize = (x,y) =>
         {
-            //寻找表头是"发行对象" 或者 "发行对象名称" 的列号
-            var table = new HTMLTable(root.TableList[tableIndex + 1]);
-            var HeaderRow = table.GetHeaderRow();
-            var pos = -1;
-            for (int j = 0; j < HeaderRow.Length; j++)
-            {
-                //认购对象必须先于发行对象
-                if (HeaderRow[j] == "股东名称")
-                {
-                    pos = j + 1;          //Index从0开始
-                    var DateRow = -1;     //截止日期
-                    var NumberRow = -1;   //股票数
-                    var PriceRow = -1;    //金额数
-                    for (int DateIndex = 0; DateIndex < HeaderRow.Length; DateIndex++)
-                    {
-                        if (HeaderRow[DateIndex].Contains("减持期间") ||
-                            HeaderRow[DateIndex].Contains("增持期间"))
-                        {
-                            DateRow = DateIndex + 1;    //Index从0开始
-                        }
-                    }
-
-                    for (int NumberIndex = 0; NumberIndex < HeaderRow.Length; NumberIndex++)
-                    {
-                        if (HeaderRow[NumberIndex].Contains("减持股数") ||
-                            HeaderRow[NumberIndex].Contains("增持股数"))
-                        {
-                            NumberRow = NumberIndex + 1;    //Index从0开始
-                        }
-                    }
-
-
-                    for (int NumberIndex = 0; NumberIndex < HeaderRow.Length; NumberIndex++)
-                    {
-                        if (HeaderRow[NumberIndex].Contains("减持均价") ||
-                            HeaderRow[NumberIndex].Contains("增持均价"))
-                        {
-                            PriceRow = NumberIndex + 1;    //Index从0开始
-                        }
-                    }
-
-
-                    for (int k = 2; k <= table.RowCount + 1; k++)
-                    {
-                        var target = table.CellValue(k, pos);
-                        if (table.IsTotalRow(k)) continue;
-                        if (target == "" || target == "<rowspan>" || target == "<colspan>" || target == "<null>") continue;
-                        var stockchange = new struStockChange();
-                        stockchange.id = id;
-
-                        stockchange.HolderFullName = target;
-                        Program.Logger.WriteLine("候补增减持对象:" + target + " @TableIndex:" + tableIndex);
-                        //是否能提取其他信息：
-                        if (NumberRow != -1)
-                        {
-                            stockchange.ChangeNumber = table.CellValue(k, NumberRow);
-                            Program.Logger.WriteLine("候补增减持数量:" + table.CellValue(k, NumberRow) + " @TableIndex:" + tableIndex);
-                        }
-                        if (PriceRow != -1)
-                        {
-                            stockchange.ChangePrice = table.CellValue(k, PriceRow);
-                            Program.Logger.WriteLine("候补增减持金额:" + table.CellValue(k, PriceRow) + " @TableIndex:" + tableIndex);
-                        }
-                        if (DateRow != -1)
-                        {
-                            stockchange.ChangeEndDate = table.CellValue(k, DateRow);
-                            Program.Logger.WriteLine("候补截止期:" + table.CellValue(k, DateRow) + " @TableIndex:" + tableIndex);
-                        }
-                        list.Add(stockchange);
-
-                    }
-                }
+            if (x.Contains("元")){
+                return Utility.GetStringBefore(x,"元");
             }
-        }
-        return list;
-    }
+            return x;
+        };
 
+        var ChangeNumberRule = new TableSearchRule();
+        ChangeNumberRule.Name = "变动数量";
+        ChangeNumberRule.Rule = new string[] { "减持股数", "增持股数" }.ToList();
+        ChangeNumberRule.IsEq = false;
+        ChangeNumberRule.Normalize = Normalizer.NormalizerStockNumber;
+
+        var Rules = new List<TableSearchRule>();
+        Rules.Add(StockHolderRule);
+        Rules.Add(ChangeDateRule);
+        Rules.Add(ChangePriceRule);
+        Rules.Add(ChangeNumberRule);
+
+        var result = HTMLTable.GetMultiInfo(root, Rules, false);
+        var stockchangelist = new List<struStockChange>();
+        foreach (var item in result)
+        {
+            var stockchange = new struStockChange();
+            stockchange.id = id;
+            stockchange.HolderFullName = item[0].RawData;
+            stockchange.ChangeEndDate = item[1].RawData;
+            stockchange.ChangePrice = item[2].RawData;
+            stockchange.ChangeNumber = item[3].RawData;
+            stockchangelist.Add(stockchange);
+        }
+        return stockchangelist;
+
+    }
 
     static Tuple<String, String> GetHolderFullName(HTMLEngine.MyRootHtmlNode root)
     {
@@ -203,7 +174,6 @@ public class StockChange
         return Tuple.Create("", "");
     }
 
-
     //变动截止日期
     static string GetChangeEndDate(HTMLEngine.MyRootHtmlNode root)
     {
@@ -215,7 +185,7 @@ public class StockChange
         foreach (var item in Extractor.CandidateWord)
         {
             Program.Logger.WriteLine("候补变动截止日期：[" + item + "]");
-            return item;
+            return Normalizer.NormailizeDate(item + "日");
         }
         return "";
     }
