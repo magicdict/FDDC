@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using static Contract;
+using static IncreaseStock;
+using static StockChange;
 
 namespace FDDC
 {
@@ -14,9 +18,7 @@ namespace FDDC
         static void Main(string[] args)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            Traning.InitContract();
-            Traning.InitIncreaseStock();
-            Traning.InitStockChange();
+            BussinessLogic.LoadCompanyName(@"Resources\FDDC_announcements_company_name_20180531.json");
 
             //分词系统
             //WordAnlayze.CompanyAnlayze();
@@ -33,8 +35,8 @@ namespace FDDC
             var IsRunContract = false;
             var IsRunContract_TEST = false;
 
-            var IsRunStockChange = true;
-            var IsRunStockChange_TEST = true;
+            var IsRunStockChange = false;
+            var IsRunStockChange_TEST = false;
 
             var IsRunIncreaseStock = false;
             var IsRunIncreaseStock_TEST = false;
@@ -45,15 +47,18 @@ namespace FDDC
                 var ContractPath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
                 Console.WriteLine("Start To Extract Info Contract TRAIN");
                 StreamWriter ResultCSV = new StreamWriter("Result\\hetong_train.csv", false, Encoding.GetEncoding("gb2312"));
+                var StockChange_Result = new List<struContract>();
                 foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\html\"))
                 {
                     foreach (var item in Contract.Extract(filename))
                     {
+                        StockChange_Result.Add(item);
                         ResultCSV.WriteLine(Contract.ConvertToString(item));
                     }
                 }
                 ResultCSV.Close();
-                Console.WriteLine("标准主键数：" + Traning.ContractList.Count);
+                Traning.InitContract();
+                Evaluate.EvaluateContract(StockChange_Result);
                 Console.WriteLine("Complete Extract Info Contract");
             }
             if (IsRunContract_TEST)
@@ -79,15 +84,19 @@ namespace FDDC
                 Console.WriteLine("Start To Extract Info StockChange TRAIN");
                 StreamWriter ResultCSV = new StreamWriter("Result\\zengjianchi_Train.csv", false, Encoding.GetEncoding("gb2312"));
                 var StockChangePath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持";
+                var StockChange_Result = new List<struStockChange>();
                 foreach (var filename in System.IO.Directory.GetFiles(StockChangePath_TRAIN + @"\html\"))
                 {
                     foreach (var item in StockChange.Extract(filename))
                     {
+                        StockChange_Result.Add(item);
                         ResultCSV.WriteLine(StockChange.ConvertToString(item));
                     }
 
                 }
                 ResultCSV.Close();
+                Traning.InitStockChange();
+                Evaluate.EvaluateStockChange(StockChange_Result);
                 Console.WriteLine("Complete Extract Info StockChange");
             }
             if (IsRunStockChange_TEST)
@@ -114,15 +123,18 @@ namespace FDDC
                 StreamWriter ResultCSV = new StreamWriter("Result\\dingzeng_train.csv", false, Encoding.GetEncoding("gb2312"));
                 var IncreaseStockPath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增";
                 Console.WriteLine("Start To Extract Info IncreaseStock TRAIN");
-
+                var Increase_Result = new List<struIncreaseStock>();
                 foreach (var filename in System.IO.Directory.GetFiles(IncreaseStockPath_TRAIN + @"\html\"))
                 {
                     foreach (var item in IncreaseStock.Extract(filename))
                     {
+                        Increase_Result.Add(item);
                         ResultCSV.WriteLine(IncreaseStock.ConvertToString(item));
                     }
                 }
                 ResultCSV.Close();
+                Traning.InitIncreaseStock();
+                Evaluate.EvaluateIncreaseStock(Increase_Result);
                 Console.WriteLine("Complete Extract Info IncreaseStock");
             }
 

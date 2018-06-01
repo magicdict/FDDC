@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/金融数据整理大赛.csproj"
+                "${workspaceFolder}/FDDC.csproj"
             ],
             "problemMatcher": "$msCompile"
         }

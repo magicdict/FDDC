@@ -117,7 +117,7 @@ public class Contract
 
         contract.ContractMoneyDownLimit = contract.ContractMoneyUpLimit;
         //项目
-        contract.ContractName = GetProjectName(node);
+        contract.ProjectName = GetProjectName(node);
         //合同
         contract.ContractName = GetContractName(node);
         return contract;
@@ -230,7 +230,7 @@ public class Contract
         foreach (var item in Extractor.CandidateWord)
         {
             Program.Logger.WriteLine("乙方候补词(关键字)：[" + item + "有限公司]");
-            return item;
+            return item + "有限公司";
         }
         return "";
     }

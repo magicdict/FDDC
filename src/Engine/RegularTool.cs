@@ -5,6 +5,19 @@ using System.Text.RegularExpressions;
 
 public static class RegularTool
 {
+
+    public static List<string> GetNumberList(string str){
+        var strList = new List<string>();
+        Regex r = new Regex(@"\d+");
+        foreach (var item in r.Matches(str).ToList())
+        {
+            if (!string.IsNullOrEmpty(item.Value)) strList.Add(item.Value);
+        }
+        return strList;
+    }
+
+   
+
     //提取《XXX》文字
     public static string GetValueBetweenMark(string str, string s, string e)
     {

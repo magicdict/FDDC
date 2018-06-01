@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using FDDC;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 public class BussinessLogic
 {
@@ -58,4 +61,47 @@ public class BussinessLogic
         }
         return "";
     }
+
+
+    static Dictionary<string, struCompanyName> dictFullName = new Dictionary<string, struCompanyName>();
+
+    static Dictionary<string, struCompanyName> dictShortName = new Dictionary<string, struCompanyName>();
+
+    public struct struCompanyName
+    {
+        public string secShortName;
+        public string secFullName;
+        public string secShortNameChg;
+    }
+
+    public static void LoadCompanyName(string JSONfilename)
+    {
+        JObject o = JObject.Parse(File.ReadAllText(JSONfilename));
+        JArray list = (JArray)o["data"];
+        List<struCompanyName> company = list.ToObject<List<struCompanyName>>();
+        foreach (var item in company)
+        {
+            if (!dictFullName.ContainsKey(item.secFullName))
+            {
+                dictFullName.Add(item.secFullName, item);
+            }
+            if (!dictShortName.ContainsKey(item.secShortName))
+            {
+                dictShortName.Add(item.secShortName, item);
+            }
+        }
+    }
+
+    public static struCompanyName GetCompanyNameByFullName(string FullName)
+    {
+        if (dictFullName.ContainsKey(FullName)) return dictFullName[FullName];
+        return new struCompanyName();
+    }
+
+    public static struCompanyName GetCompanyNameByShortName(string ShortName)
+    {
+        if (dictShortName.ContainsKey(ShortName)) return dictShortName[ShortName];
+        return new struCompanyName();
+    }
+
 }

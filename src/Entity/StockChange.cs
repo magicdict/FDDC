@@ -32,6 +32,11 @@ public class StockChange
         //变动后持股比例
         public string HoldPercentAfterChange;
 
+        public string GetKey()
+        {
+            return id + ":" + HolderFullName + ":" + ChangeEndDate;
+        }
+
     }
 
     internal static struStockChange ConvertFromString(string str)
@@ -93,9 +98,18 @@ public class StockChange
         //公告ID
         stockchange.id = fi.Name.Replace(".html", "");
         Program.Logger.WriteLine("公告ID:" + stockchange.id);
-        var Name = GetHolderFullName(node);
+
+        var Name = NormalizeCompanyName(GetHolderFullName(node));
         stockchange.HolderFullName = Name.Item1;
-        stockchange.HolderName = Name.Item2;
+        if (Name.Item2 == "")
+        {
+            stockchange.HolderName = BussinessLogic.GetCompanyNameByFullName(stockchange.HolderFullName).secShortName;
+        }
+        else
+        {
+            stockchange.HolderName = Name.Item2;
+        }
+
         stockchange.ChangeEndDate = GetChangeEndDate(node);
         list.Add(stockchange);
         return list;
@@ -119,10 +133,11 @@ public class StockChange
         ChangePriceRule.Name = "变动价格";
         ChangePriceRule.Rule = new string[] { "减持均价", "增持均价" }.ToList();
         ChangePriceRule.IsEq = false;
-        ChangePriceRule.Normalize = (x,y) =>
+        ChangePriceRule.Normalize = (x, y) =>
         {
-            if (x.Contains("元")){
-                return Utility.GetStringBefore(x,"元");
+            if (x.Contains("元"))
+            {
+                return Utility.GetStringBefore(x, "元");
             }
             return x;
         };
@@ -145,7 +160,18 @@ public class StockChange
         {
             var stockchange = new struStockChange();
             stockchange.id = id;
-            stockchange.HolderFullName = item[0].RawData;
+
+            var Name = NormalizeCompanyName(item[0].RawData);
+            stockchange.HolderFullName = Name.Item1;
+            if (Name.Item2 == "")
+            {
+                stockchange.HolderName = BussinessLogic.GetCompanyNameByFullName(stockchange.HolderFullName).secShortName;
+            }
+            else
+            {
+                stockchange.HolderName = Name.Item2;
+            }
+
             stockchange.ChangeEndDate = item[1].RawData;
             stockchange.ChangePrice = item[2].RawData;
             stockchange.ChangeNumber = item[3].RawData;
@@ -155,20 +181,70 @@ public class StockChange
 
     }
 
-    static Tuple<String, String> GetHolderFullName(HTMLEngine.MyRootHtmlNode root)
+    static string GetHolderFullName(HTMLEngine.MyRootHtmlNode root)
     {
         var Extractor = new ExtractProperty();
         var StartArray = new string[] { "接到", "收到", "股东" };
         var EndArray = new string[] { "的", "通知", "告知函", "减持", "增持", "《" };
         Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
         Extractor.Extract(root);
-        foreach (var item in Extractor.CandidateWord)
+        foreach (var word in Extractor.CandidateWord)
         {
-            Program.Logger.WriteLine("候补股东全称：[" + item + "]");
-            var fullname = Utility.GetStringBefore(item, "（以下简称");
-            Program.Logger.WriteLine("候补股东全称修正：[" + fullname + "]");
-            var shortname = RegularTool.GetValueBetweenMark(Utility.GetStringAfter(item, "（以下简称"), "“", "”");
-            Program.Logger.WriteLine("候补股东简称：[" + shortname + "]");
+            Program.Logger.WriteLine("候补股东全称修正：[" + word + "]");
+            return word;
+        }
+        return "";
+    }
+
+    private static Tuple<String, String> NormalizeCompanyName(string word)
+    {
+        if (!String.IsNullOrEmpty(word))
+        {
+            var fullname = word;
+            var shortname = "";
+            var StdIdx = word.IndexOf("“");
+            var EndIdx = word.IndexOf("”");
+            if (StdIdx != -1 && EndIdx != -1)
+            {
+                shortname = word.Substring(StdIdx + 1, EndIdx - StdIdx - 1);
+            }
+
+            if (fullname.Contains("（以下简称"))
+            {
+                fullname = Utility.GetStringBefore(fullname, "（以下简称");
+            }
+            if (fullname.Contains("（下称"))
+            {
+                fullname = Utility.GetStringBefore(fullname, "（下称");
+            }
+            if (fullname.Contains("（简称"))
+            {
+                fullname = Utility.GetStringBefore(fullname, "（简称");
+            }
+
+            //暂时不做括号的正规化
+            if (fullname.Contains("(以下简称"))
+            {
+                fullname = Utility.GetStringBefore(fullname, "(以下简称");
+            }
+            if (fullname.Contains("(下称"))
+            {
+                fullname = Utility.GetStringBefore(fullname, "(下称");
+            }
+            if (fullname.Contains("(简称"))
+            {
+                fullname = Utility.GetStringBefore(fullname, "(简称");
+            }
+
+            if (fullname.Contains("股东"))
+            {
+                fullname = Utility.GetStringAfter(fullname, "股东");
+            }
+            if (!String.IsNullOrEmpty(BussinessLogic.GetCompanyNameByShortName(fullname).secFullName))
+            {
+                fullname = BussinessLogic.GetCompanyNameByShortName(fullname).secFullName;
+            }
+
             return Tuple.Create(fullname, shortname);
         }
         return Tuple.Create("", "");

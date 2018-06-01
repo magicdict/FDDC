@@ -30,7 +30,10 @@ public class IncreaseStock
 
         //认购方式（现金股票）
         public string BuyMethod;
-
+        public string GetKey()
+        {
+            return id + ":" + PublishTarget;
+        }
     }
 
     internal static struIncreaseStock ConvertFromString(string str)

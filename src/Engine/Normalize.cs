@@ -39,6 +39,38 @@ public static class Normalizer
     public static string NormailizeDate(string orgString, string keyword = "")
     {
         orgString = orgString.Trim().Replace(",", "");
+        var NumberList = RegularTool.GetNumberList(orgString);
+        if (NumberList.Count == 6)
+        {
+            String Year = NumberList[3];
+            String Month = NumberList[4];
+            String Day = NumberList[5];
+            int year; int month; int day;
+            if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
+            {
+                var d = new DateTime(year, month, day);
+                return d.ToString("yyyy-MM-dd");
+            }
+        }
+        if (NumberList.Count == 5)
+        {
+            if (orgString.IndexOf("年") != -1 && orgString.IndexOf("月") != -1 && orgString.IndexOf("日") != -1)
+            {
+                String Year = NumberList[0];
+                String Month = NumberList[3];
+                String Day = NumberList[4];
+                int year; int month; int day;
+                if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
+                {
+                    if (month <= 12 && day <= 31)
+                    {
+                        var d = new DateTime(year, month, day);
+                        return d.ToString("yyyy-MM-dd");
+                    }
+                }
+            }
+        }
+
         if (orgString.Contains("年") && orgString.Contains("月") && orgString.Contains("月"))
         {
             String Year = Utility.GetStringBefore(orgString, "年");
