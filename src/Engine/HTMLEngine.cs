@@ -74,6 +74,10 @@ public static class HTMLEngine
                 {
                     title = SecondLayerNode.Attributes["title"].Value;
                 }
+                else
+                {
+                    title = SecondLayerNode.InnerText;
+                }
                 var secondNode = new MyHtmlNode();
                 secondNode.Content = title;
                 AnlayzeParagraph(SecondLayerNode, secondNode);
@@ -164,13 +168,13 @@ public static class HTMLEngine
                                     //Content:<1>甲方：
                                     //Next Content Line:山东省临朐县人民政府地址：临朐县民主路102号
 
-                                    Console.WriteLine("Line Before:" + TxtLine);
-                                    Console.WriteLine("Content:" + contentNode.Content);
+                                    //Console.WriteLine("Line Before:" + TxtLine);
+                                    //Console.WriteLine("Content:" + contentNode.Content);
                                     if (contentNode.NextBrother != null &&
                                        !contentNode.NextBrother.Content.StartsWith("<"))
                                     {
                                         string NextContent = contentNode.NextBrother.Content;
-                                        Console.WriteLine("Next Content Line:" + NextContent);
+                                        //Console.WriteLine("Next Content Line:" + NextContent);
                                         var CombineLine = contentNode.Content + NextContent;
                                         if ((CombineLine).StartsWith(TxtLine))
                                         {
@@ -184,7 +188,7 @@ public static class HTMLEngine
                                         }
                                     }
                                     contentNode.Content = TxtLine;
-                                    Console.WriteLine("Line After:" + TxtLine);
+                                    //Console.WriteLine("Line After:" + TxtLine);
                                 }
                             }
                         }
@@ -247,6 +251,13 @@ public static class HTMLEngine
                         AnlayzeParagraph(node, root, title);
                     }
                 }
+            }
+            if (node.Name == "table")
+            {
+                var tablenode = new MyHtmlNode();
+                TableId++;
+                tablenode.TableId = TableId;
+                GetTable(node);
             }
         }
     }
@@ -386,7 +397,4 @@ public static class HTMLEngine
     }
 
     #endregion
-
-
-
 }

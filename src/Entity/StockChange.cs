@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using FDDC;
 using static BussinessLogic;
+using static HTMLEngine;
 using static HTMLTable;
 
 public class StockChange
@@ -16,7 +18,7 @@ public class StockChange
         public string HolderFullName;
 
         //股东简称
-        public string HolderName;
+        public string HolderShortName;
 
         //变动截止日期
         public string ChangeEndDate;
@@ -46,7 +48,7 @@ public class StockChange
         var c = new struStockChange();
         c.id = Array[0];
         c.HolderFullName = Array[1];
-        c.HolderName = Array[2];
+        c.HolderShortName = Array[2];
         if (Array.Length > 3)
         {
             c.ChangeEndDate = Array[3];
@@ -76,7 +78,7 @@ public class StockChange
     {
         var record = increaseStock.id + "," +
         increaseStock.HolderFullName + "," +
-        increaseStock.HolderName + "," +
+        increaseStock.HolderShortName + "," +
         increaseStock.ChangeEndDate + ",";
         record += Normalizer.NormalizeNumberResult(increaseStock.ChangePrice) + ",";
         record += Normalizer.NormalizeNumberResult(increaseStock.ChangeNumber) + ",";
@@ -105,7 +107,7 @@ public class StockChange
         Program.Logger.WriteLine("公告ID:" + stockchange.id);
         var Name = NormalizeCompanyName(GetHolderFullName(node));
         stockchange.HolderFullName = Name.Item1;
-        stockchange.HolderName = Name.Item2;
+        stockchange.HolderShortName = Name.Item2;
         stockchange.ChangeEndDate = GetChangeEndDate(node);
         list.Add(stockchange);
         return list;
@@ -120,7 +122,7 @@ public class StockChange
 
         var ChangeDateRule = new TableSearchRule();
         ChangeDateRule.Name = "变动截止日期";
-        ChangeDateRule.Rule = new string[] { "减持期间", "增持期间" }.ToList();
+        ChangeDateRule.Rule = new string[] { "减持期间", "增持期间", "减持时间", "增持时间" }.ToList();
         ChangeDateRule.IsEq = false;
         ChangeDateRule.Normalize = Normalizer.NormailizeDate;
 
@@ -151,21 +153,88 @@ public class StockChange
         Rules.Add(ChangeNumberRule);
 
         var result = HTMLTable.GetMultiInfo(root, Rules, false);
+        //只写在最后一条记录的地方,不过必须及时过滤掉不存在的记录
+        result.Reverse();
         var stockchangelist = new List<struStockChange>();
-        foreach (var item in result)
+        foreach (var rec in result)
         {
             var stockchange = new struStockChange();
             stockchange.id = id;
-            var Name = NormalizeCompanyName(item[0].RawData);
+            var Name = NormalizeCompanyName(rec[0].RawData);
             stockchange.HolderFullName = Name.Item1;
-            stockchange.HolderName = Name.Item2;
-            stockchange.ChangeEndDate = item[1].RawData;
-            stockchange.ChangePrice = item[2].RawData;
-            stockchange.ChangeNumber = item[3].RawData;
+            stockchange.HolderShortName = Name.Item2;
+            stockchange.ChangeEndDate = rec[1].RawData;
+            stockchange.ChangePrice = rec[2].RawData;
+            stockchange.ChangeNumber = rec[3].RawData;
+            var holderafterlist = GetHolderAfter(root);
+            for (int i = 0; i < holderafterlist.Count; i++){
+                var after = holderafterlist[i];
+                if (after.Used) continue;
+                if (after.Name == stockchange.HolderFullName || after.Name == stockchange.HolderShortName)
+                {
+                    stockchange.HoldNumberAfterChange = after.Count;
+                    stockchange.HoldPercentAfterChange = after.Percent;
+                    after.Used = true;
+                    break;
+                }
+            }
             stockchangelist.Add(stockchange);
         }
         return stockchangelist;
 
+    }
+    struct struHoldAfter
+    {
+        public String Name;
+
+        public String Count;
+
+        public string Percent;
+
+        public Boolean Used;
+    }
+    static List<struHoldAfter> GetHolderAfter(MyRootHtmlNode root)
+    {
+        var HoldList = new List<struHoldAfter>();
+        foreach (var table in root.TableList)
+        {
+            var mt = new HTMLTable(table.Value);
+            for (int RowIdx = 0; RowIdx < mt.ColumnCount; RowIdx++)
+            {
+                for (int ColIdx = 0; ColIdx < mt.ColumnCount; ColIdx++)
+                {
+                    if (mt.CellValue(RowIdx + 1, ColIdx + 1) == "合计持有股份")
+                    {
+                        var HolderName = mt.CellValue(RowIdx + 1, 1);
+                        Regex r = new Regex(@"\d+\.?\d*");
+
+                        var strHolderCnt = mt.CellValue(RowIdx + 1, 5);
+                        var HolderCnt = "";
+                        if (!String.IsNullOrEmpty(r.Match(strHolderCnt).Value))
+                        {
+                            if (mt.CellValue(2, 5).Contains("万"))
+                            {
+                                //是否要*10000
+                                HolderCnt = (double.Parse(r.Match(strHolderCnt).Value) * 10_000).ToString();
+                            }
+                            else
+                            {
+                                HolderCnt = r.Match(strHolderCnt).Value;
+                            }
+                        }
+
+                        var StrPercent = mt.CellValue(RowIdx + 1, 6);
+                        var HodlerPercent = "";
+                        if (!String.IsNullOrEmpty(r.Match(StrPercent).Value))
+                        {
+                            HodlerPercent = (double.Parse(r.Match(StrPercent).Value) * 0.01).ToString();
+                        }
+                        HoldList.Add(new struHoldAfter() { Name = HolderName, Count = HolderCnt, Percent = HodlerPercent, Used = false });
+                    }
+                }
+            }
+        }
+        return HoldList;
     }
 
     static string GetHolderFullName(HTMLEngine.MyRootHtmlNode root)

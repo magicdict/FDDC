@@ -17,11 +17,12 @@ namespace FDDC
 
         static void Main(string[] args)
         {
-
-
+            //初始化   
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             BussinessLogic.LoadCompanyName(@"Resources\FDDC_announcements_company_name_20180531.json");
 
+            //测试区
+            //生成PDF的TXT文件的批处理命令
             //PDFToTXT.GetBatchFile();    
             //分词系统
             //WordAnlayze.CompanyAnlayze();
@@ -31,20 +32,18 @@ namespace FDDC
             //UT.ContractTest();
             //UT.RegularExpress();
             //UT.JianchengTest();
-            //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20596890.html");
-            //IncreaseStock.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增\html\7880.html");
             //Logger.Close();
-            //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20526193.html");
+            //Traning.InitIncreaseStock();
+            //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\314146.html");
             //return;
-
 
             var IsRunContract = false;
             var IsRunContract_TEST = false;
 
-            var IsRunStockChange = true;
+            var IsRunStockChange = false;
             var IsRunStockChange_TEST = false;
 
-            var IsRunIncreaseStock = false;
+            var IsRunIncreaseStock = true;
             var IsRunIncreaseStock_TEST = false;
 
             if (IsRunContract)
@@ -98,7 +97,6 @@ namespace FDDC
                         StockChange_Result.Add(item);
                         ResultCSV.WriteLine(StockChange.ConvertToString(item));
                     }
-
                 }
                 ResultCSV.Close();
                 Traning.InitStockChange();

@@ -32,6 +32,11 @@ public static class Evaluate
         var ACT_FreezeYear = 0;
         var COR_FreezeYear = 0;
 
+        var POS_BuyMethod = 0;
+        var ACT_BuyMethod = 0;
+        var COR_BuyMethod = 0;
+
+
         foreach (var increase in Traning.IncreaseStockList)
         {
             if (!String.IsNullOrEmpty(increase.id)) POS_ID++;
@@ -39,6 +44,7 @@ public static class Evaluate
             if (!String.IsNullOrEmpty(increase.IncreaseNumber)) POS_IncreaseNumber++;
             if (!String.IsNullOrEmpty(increase.IncreaseMoney)) POS_IncreaseMoney++;
             if (!String.IsNullOrEmpty(increase.FreezeYear)) POS_FreezeYear++;
+            if (!String.IsNullOrEmpty(increase.BuyMethod)) POS_BuyMethod++;
         }
         foreach (var increase in result)
         {
@@ -47,6 +53,7 @@ public static class Evaluate
             if (!String.IsNullOrEmpty(increase.IncreaseNumber)) ACT_IncreaseNumber++;
             if (!String.IsNullOrEmpty(increase.IncreaseMoney)) ACT_IncreaseMoney++;
             if (!String.IsNullOrEmpty(increase.FreezeYear)) ACT_FreezeYear++;
+            if (!String.IsNullOrEmpty(increase.BuyMethod)) ACT_BuyMethod++;
         }
 
         foreach (var increase in Traning.IncreaseStockList)
@@ -79,6 +86,12 @@ public static class Evaluate
                     {
                         COR_FreezeYear++;
                     }
+                    if (!String.IsNullOrEmpty(increase.BuyMethod) &&
+                        !String.IsNullOrEmpty(increase_Result.BuyMethod) &&
+                        increase.BuyMethod.Equals(increase_Result.BuyMethod))
+                    {
+                        COR_BuyMethod++;
+                    }
                     break;  //按照道理开说，不应该主键重复
                 }
             }
@@ -88,7 +101,8 @@ public static class Evaluate
         var F1_IncreaseNumber = GetF1("增发数量", POS_IncreaseNumber, ACT_IncreaseNumber, COR_IncreaseNumber);
         var F1_IncreaseMoney = GetF1("增发金额", POS_IncreaseMoney, ACT_IncreaseMoney, COR_IncreaseMoney);
         var F1_FreezeYear = GetF1("锁定期", POS_FreezeYear, ACT_FreezeYear, COR_FreezeYear);
-        var score = (F1_ID + F1_PublishTarget + F1_IncreaseNumber + F1_IncreaseMoney + F1_FreezeYear) / 5;
+        var F1_BuyMethod = GetF1("认购方式", POS_BuyMethod, ACT_BuyMethod, COR_BuyMethod);
+        var score = (F1_ID + F1_PublishTarget + F1_IncreaseNumber + F1_IncreaseMoney + F1_FreezeYear + F1_BuyMethod) / 6;
         Console.WriteLine("定向增发score:" + score);
     }
 
@@ -106,9 +120,9 @@ public static class Evaluate
         var ACT_HolderFullName = 0;
         var COR_HolderFullName = 0;
 
-        var POS_HolderName = 0;
-        var ACT_HolderName = 0;
-        var COR_HolderName = 0;
+        var POS_HolderShortName = 0;
+        var ACT_HolderShortName = 0;
+        var COR_HolderShortName = 0;
 
         var POS_ChangeEndDate = 0;
         var ACT_ChangeEndDate = 0;
@@ -122,23 +136,39 @@ public static class Evaluate
         var ACT_ChangeNumber = 0;
         var COR_ChangeNumber = 0;
 
+        var POS_HoldNumberAfterChange = 0;
+        var ACT_HoldNumberAfterChange = 0;
+        var COR_HoldNumberAfterChange = 0;
+
+        var POS_HoldPercentAfterChange = 0;
+        var ACT_HoldPercentAfterChange = 0;
+        var COR_HoldPercentAfterChange = 0;
+
         foreach (var stockchange in Traning.StockChangeList)
         {
             if (!String.IsNullOrEmpty(stockchange.id)) POS_ID++;
             if (!String.IsNullOrEmpty(stockchange.HolderFullName)) POS_HolderFullName++;
-            if (!String.IsNullOrEmpty(stockchange.HolderName)) POS_HolderName++;
+            if (!String.IsNullOrEmpty(stockchange.HolderShortName)) POS_HolderShortName++;
             if (!String.IsNullOrEmpty(stockchange.ChangeEndDate)) POS_ChangeEndDate++;
             if (!String.IsNullOrEmpty(stockchange.ChangePrice)) POS_ChangePrice++;
             if (!String.IsNullOrEmpty(stockchange.ChangeNumber)) POS_ChangeNumber++;
+
+            if (!String.IsNullOrEmpty(stockchange.HoldNumberAfterChange)) POS_HoldNumberAfterChange++;
+            if (!String.IsNullOrEmpty(stockchange.HoldPercentAfterChange)) POS_HoldPercentAfterChange++;
+
         }
         foreach (var stockchange in result)
         {
             if (!String.IsNullOrEmpty(stockchange.id)) ACT_ID++;
             if (!String.IsNullOrEmpty(stockchange.HolderFullName)) ACT_HolderFullName++;
-            if (!String.IsNullOrEmpty(stockchange.HolderName)) ACT_HolderName++;
+            if (!String.IsNullOrEmpty(stockchange.HolderShortName)) ACT_HolderShortName++;
             if (!String.IsNullOrEmpty(stockchange.ChangeEndDate)) ACT_ChangeEndDate++;
             if (!String.IsNullOrEmpty(stockchange.ChangePrice)) ACT_ChangePrice++;
             if (!String.IsNullOrEmpty(stockchange.ChangeNumber)) ACT_ChangeNumber++;
+
+            if (!String.IsNullOrEmpty(stockchange.HoldNumberAfterChange)) ACT_HoldNumberAfterChange++;
+            if (!String.IsNullOrEmpty(stockchange.HoldPercentAfterChange)) ACT_HoldPercentAfterChange++;
+
         }
 
         foreach (var stockchange in Traning.StockChangeList)
@@ -152,11 +182,11 @@ public static class Evaluate
                     COR_ID++;
                     COR_HolderFullName++;
                     COR_ChangeEndDate++;
-                    if (!String.IsNullOrEmpty(stockchange.HolderName) &&
-                        !String.IsNullOrEmpty(increase_Result.HolderName) &&
-                        stockchange.HolderName.Equals(increase_Result.HolderName))
+                    if (!String.IsNullOrEmpty(stockchange.HolderShortName) &&
+                        !String.IsNullOrEmpty(increase_Result.HolderShortName) &&
+                        stockchange.HolderShortName.Equals(increase_Result.HolderShortName))
                     {
-                        COR_HolderName++;
+                        COR_HolderShortName++;
                     }
 
                     if (!String.IsNullOrEmpty(stockchange.ChangePrice) &&
@@ -172,17 +202,35 @@ public static class Evaluate
                     {
                         COR_ChangeNumber++;
                     }
+                    if (!String.IsNullOrEmpty(stockchange.HoldNumberAfterChange) &&
+                        !String.IsNullOrEmpty(increase_Result.HoldNumberAfterChange) &&
+                        stockchange.HoldNumberAfterChange.Equals(increase_Result.HoldNumberAfterChange))
+                    {
+                        COR_HoldNumberAfterChange++;
+                    }
+                    if (!String.IsNullOrEmpty(stockchange.HoldPercentAfterChange) &&
+                        !String.IsNullOrEmpty(increase_Result.HoldPercentAfterChange) &&
+                        stockchange.HoldPercentAfterChange.Equals(increase_Result.HoldPercentAfterChange))
+                    {
+                        COR_HoldPercentAfterChange++;
+                    }
                     break;  //按照道理开说，不应该主键重复
                 }
             }
         }
         var F1_ID = GetF1("公告ID", POS_ID, ACT_ID, COR_ID);
         var F1_HolderFullName = GetF1("股东全称", POS_HolderFullName, ACT_HolderFullName, COR_HolderFullName);
-        var F1_HolderName = GetF1("股东简称", POS_HolderName, ACT_HolderName, COR_HolderName);
+        var F1_HolderName = GetF1("股东简称", POS_HolderShortName, ACT_HolderShortName, COR_HolderShortName);
         var F1_ChangeEndDate = GetF1("变动截止日期", POS_ChangeEndDate, ACT_ChangeEndDate, COR_ChangeEndDate);
         var F1_ChangePrice = GetF1("变动价格", POS_ChangePrice, ACT_ChangePrice, COR_ChangePrice);
         var F1_ChangeNumber = GetF1("变动数量", POS_ChangeNumber, ACT_ChangeNumber, COR_ChangeNumber);
-        var score = (F1_ID + F1_HolderFullName + F1_HolderName + F1_ChangeEndDate + F1_ChangePrice + F1_ChangeNumber) / 6;
+
+        var F1_HoldNumberAfterChange = GetF1("变动后持股数", POS_HoldNumberAfterChange, ACT_HoldNumberAfterChange, COR_HoldNumberAfterChange);
+        var F1_HoldPercentAfterChange = GetF1("变动后持股比例", POS_HoldPercentAfterChange, ACT_HoldPercentAfterChange, COR_HoldPercentAfterChange);
+
+
+        var score = (F1_ID          + F1_HolderFullName + F1_HolderName            + F1_ChangeEndDate + 
+                     F1_ChangePrice + F1_ChangeNumber   + F1_HoldNumberAfterChange + F1_HoldPercentAfterChange ) / 8;
         Console.WriteLine("增减持score:" + score);
     }
 
@@ -290,7 +338,7 @@ public static class Evaluate
 
         var F1_ContractMoneyUpLimit = GetF1("金额上限", POS_ContractMoneyUpLimit, ACT_ContractMoneyUpLimit, COR_ContractMoneyUpLimit);
         var F1_ContractMoneyDownLimit = GetF1("金额下限", POS_ContractMoneyDownLimit, ACT_ContractMoneyDownLimit, COR_ContractMoneyDownLimit);
-        var score = (F1_ID + F1_JiaFang + F1_YiFang + F1_ProjectName + F1_ContractName + F1_ContractMoneyUpLimit +F1_ContractMoneyDownLimit ) / 7;
+        var score = (F1_ID + F1_JiaFang + F1_YiFang + F1_ProjectName + F1_ContractName + F1_ContractMoneyUpLimit + F1_ContractMoneyDownLimit) / 7;
         Console.WriteLine("合同score:" + score);
     }
 

@@ -80,7 +80,8 @@ public class BussinessLogic
                 {
                     var FullName = "";
                     var ShortName = "";
-                    if (words[baseInd].Word == "有限公司")
+                    if (words[baseInd].Word == "有限公司" ||
+                       (words[baseInd].Word == "有限" && baseInd != words.Count - 1 && words[baseInd + 1].Word == "合伙"))
                     {
                         //是否能够在前面找到地名
                         for (int NRIdx = baseInd; NRIdx > -1; NRIdx--)
@@ -92,6 +93,11 @@ public class BussinessLogic
                                 for (int companyFullNameInd = NRIdx; companyFullNameInd <= baseInd; companyFullNameInd++)
                                 {
                                     FullName += words[companyFullNameInd].Word;
+                                }
+                                if (words[baseInd].Word == "有限")
+                                {
+                                    FullName += words[baseInd + 1].Word;
+                                    FullName += words[baseInd + 2].Word;
                                 }
                                 break;  //不要继续寻找地名了
                             }

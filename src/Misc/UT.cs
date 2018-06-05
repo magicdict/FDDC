@@ -4,8 +4,6 @@ using FDDC;
 
 public static class UT
 {
-
-
     public static void JianchengTest()
     {
         BussinessLogic.GetCompanyNameByCutWord(HTMLEngine.Anlayze(FDDC.Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20526193.html"));
@@ -71,6 +69,7 @@ public static class UT
 
     public static void StockChangeTest()
     {
+        StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20526193.html");
         StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20596890.html");
         StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\1018217.html");
     }

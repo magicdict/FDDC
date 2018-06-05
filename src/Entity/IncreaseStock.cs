@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using FDDC;
 using static HTMLTable;
+using static HTMLEngine;
 
 public class IncreaseStock
 {
@@ -13,10 +14,6 @@ public class IncreaseStock
 
         //增发对象
         public string PublishTarget;
-
-
-        //发行方式(定价/竞价)
-        public string PublishMethod;
 
         //增发数量
         public string IncreaseNumber;
@@ -44,23 +41,19 @@ public class IncreaseStock
         c.PublishTarget = Array[1];
         if (Array.Length > 2)
         {
-            c.PublishMethod = Array[2];
+            c.IncreaseNumber = Array[2];
         }
         if (Array.Length > 3)
         {
-            c.IncreaseNumber = Array[3];
+            c.IncreaseMoney = Array[3];
         }
         if (Array.Length > 4)
         {
-            c.IncreaseMoney = Array[4];
+            c.FreezeYear = Array[4];
         }
         if (Array.Length > 5)
         {
-            c.FreezeYear = Array[5];
-        }
-        if (Array.Length == 7)
-        {
-            c.BuyMethod = Array[6];
+            c.BuyMethod = Array[5];
         }
         return c;
     }
@@ -69,8 +62,7 @@ public class IncreaseStock
     internal static string ConvertToString(struIncreaseStock increaseStock)
     {
         var record = increaseStock.id + "," +
-        increaseStock.PublishTarget + "," +
-        increaseStock.PublishMethod + ",";
+        increaseStock.PublishTarget + ",";
         record += Normalizer.NormalizeNumberResult(increaseStock.IncreaseNumber) + ",";
         record += Normalizer.NormalizeNumberResult(increaseStock.IncreaseMoney) + ",";
         if (!String.IsNullOrEmpty(increaseStock.FreezeYear) && increaseStock.FreezeYear.EndsWith("个月"))
@@ -86,21 +78,17 @@ public class IncreaseStock
     {
         var fi = new System.IO.FileInfo(htmlFileName);
         Program.Logger.WriteLine("Start FileName:[" + fi.Name + "]");
-        var node = HTMLEngine.Anlayze(htmlFileName);
+        var root = HTMLEngine.Anlayze(htmlFileName);
         //公告ID
         var id = fi.Name.Replace(".html", "");
         Program.Logger.WriteLine("公告ID:" + id);
-
-        //发行方式
-        var publishMethod = getPublishMethod(node);
         //认购方式
-        var buyMethod = getBuyMethod(node);
+        var buyMethod = getBuyMethod(root);
         //样本
         var increaseStock = new struIncreaseStock();
         increaseStock.id = id;
-        increaseStock.PublishMethod = publishMethod;
         increaseStock.BuyMethod = buyMethod;
-        var list = GetMultiTarget(node, increaseStock);
+        var list = GetMultiTarget(root, increaseStock);
         return list;
     }
 
@@ -135,7 +123,6 @@ public class IncreaseStock
         Rules.Add(BuyNumber);
         Rules.Add(BuyMoney);
         Rules.Add(FreezeYear);
-
         var result = HTMLTable.GetMultiInfo(root, Rules, true);
         var increaseStocklist = new List<struIncreaseStock>();
         foreach (var item in result)
@@ -143,7 +130,6 @@ public class IncreaseStock
             var increase = new struIncreaseStock();
             increase.id = SampleincreaseStock.id;
             increase.BuyMethod = SampleincreaseStock.BuyMethod;
-            increase.PublishMethod = SampleincreaseStock.PublishMethod;
             increase.PublishTarget = item[0].RawData;
             increase.IncreaseNumber = item[1].RawData;
             increase.IncreaseMoney = item[2].RawData;
@@ -152,7 +138,6 @@ public class IncreaseStock
         }
         return increaseStocklist;
     }
-
 
 
     static string NormalizerFreezeYear(string orgString, string TitleWord)
@@ -175,23 +160,6 @@ public class IncreaseStock
         if (orgString.Equals("1年")) return "12";
         if (orgString.Equals("3年")) return "36";
         return orgString.Trim();
-    }
-
-    static string getPublishMethod(HTMLEngine.MyRootHtmlNode root)
-    {
-        //是否包含关键字 "询价发行"
-        var Extractor = new ExtractProperty();
-        var cnt = Extractor.FindWordCnt("询价发行", root);
-        Program.Logger.WriteLine("询价发行(文本):" + cnt);
-        if (cnt > 0) return "竞价";
-
-        cnt = Extractor.FindWordCnt("发行价格不低于", root);
-        if (cnt > 0) return "竞价";
-
-        cnt = Extractor.FindWordCnt("发行价格为", root);
-        if (cnt > 0) return "定价";
-
-        return "";
     }
 
     static string getBuyMethod(HTMLEngine.MyRootHtmlNode root)

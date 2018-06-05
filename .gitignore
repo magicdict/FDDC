@@ -2,8 +2,11 @@ bin/*
 obj/*
 *.log
 *.txt
+*.train
+*.csv
+.DS_Store
 Resources/*
 Result/*
 Log.log
-*.csv
 Result.zip
+!score.txt

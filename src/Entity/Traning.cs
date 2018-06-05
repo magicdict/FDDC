@@ -6,9 +6,9 @@ using FDDC;
 
 public static class Traning
 {
-    static string ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\hetong.train";
-    static string StockChangePath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\zengjianchi.train";
-    static string IncreaseStockPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增\dingzeng.train";
+    static string ContractPath_TRAIN = Program.DocBase + @"\FDDC_SRC\Train\hetong.train";
+    static string StockChangePath_TRAIN = Program.DocBase + @"\FDDC_SRC\Train\zengjianchi.train";
+    static string IncreaseStockPath_TRAIN = Program.DocBase + @"\FDDC_SRC\Train\dingzeng.train";
 
 
 
@@ -28,8 +28,6 @@ public static class Traning
             ContractList.Add(c);
         }
         Console.WriteLine("合同标准结果数:" + ContractList.Count);
-        //Console.WriteLine("甲方最长字符数:" + MaxJiaFangLength);
-        //Console.WriteLine("乙方最长字符数:" + MaxYiFangLength);
         sr.Close();
     }
 
