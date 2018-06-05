@@ -67,6 +67,45 @@ public class BussinessLogic
 
 
     //词法分析
+
+    public static List<String> GetProjectName(HTMLEngine.MyRootHtmlNode root)
+    {
+        var posSeg = new PosSegmenter();
+        var namelist = new List<String>();
+        foreach (var paragrah in root.Children)
+        {
+            foreach (var sentence in paragrah.Children)
+            {
+                var words = posSeg.Cut(sentence.Content).ToList();
+                for (int baseInd = 0; baseInd < words.Count; baseInd++)
+                {
+                    if (words[baseInd].Word == "标段" || words[baseInd].Word == "标" || 
+                        words[baseInd].Word == "工程" || words[baseInd].Word == "项目")
+                    {
+                        var projectName = "";
+                        //是否能够在前面找到地名
+                        for (int NRIdx = baseInd; NRIdx > -1; NRIdx--)
+                        {
+                            //地理
+                            if (words[NRIdx].Flag == "ns")
+                            {
+                                projectName = "";
+                                for (int companyFullNameInd = NRIdx; companyFullNameInd <= baseInd; companyFullNameInd++)
+                                {
+                                    projectName += words[companyFullNameInd].Word;
+                                }
+                                namelist.Add(projectName);
+                                break;  //不要继续寻找地名了
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return namelist;
+    }
+
+
     public static List<struCompanyName> GetCompanyNameByCutWord(HTMLEngine.MyRootHtmlNode root)
     {
         var posSeg = new PosSegmenter();

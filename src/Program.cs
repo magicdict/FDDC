@@ -35,16 +35,21 @@ namespace FDDC
             //Logger.Close();
             //Traning.InitIncreaseStock();
             //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\314146.html");
+            //WordAnlayze.segmenter.LoadUserDict(@"Resources\dictAdjust.txt");
             //return;
 
-            var IsRunContract = false;
+            var IsRunContract = true;
             var IsRunContract_TEST = false;
 
             var IsRunStockChange = false;
             var IsRunStockChange_TEST = false;
 
-            var IsRunIncreaseStock = true;
+            var IsRunIncreaseStock = false;
             var IsRunIncreaseStock_TEST = false;
+
+            var IncreaseStockPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增";
+            var ContractPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\重大合同";
+            var StockChangePath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\增减持";
 
             if (IsRunContract)
             {
@@ -68,7 +73,6 @@ namespace FDDC
             }
             if (IsRunContract_TEST)
             {
-                var ContractPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180524\重大合同";
                 StreamWriter ResultCSV = new StreamWriter("Result\\hetong.csv", false, Encoding.GetEncoding("gb2312"));
                 Console.WriteLine("Start To Extract Info Contract TEST");
                 foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TEST + @"\html\"))
@@ -106,7 +110,6 @@ namespace FDDC
             if (IsRunStockChange_TEST)
             {
                 StreamWriter ResultCSV = new StreamWriter("Result\\zengjianchi.csv", false, Encoding.GetEncoding("gb2312"));
-                var StockChangePath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180524\增减持";
                 Console.WriteLine("Start To Extract Info StockChange TEST");
                 foreach (var filename in System.IO.Directory.GetFiles(StockChangePath_TEST + @"\html\"))
                 {
@@ -118,8 +121,6 @@ namespace FDDC
                 ResultCSV.Close();
                 Console.WriteLine("Complete Extract Info StockChange");
             }
-
-
 
             if (IsRunIncreaseStock)
             {
@@ -145,8 +146,7 @@ namespace FDDC
             if (IsRunIncreaseStock_TEST)
             {
                 StreamWriter ResultCSV = new StreamWriter("Result\\dingzeng.csv", false, Encoding.GetEncoding("gb2312"));
-                var IncreaseStockPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180524\定增";
-                Console.WriteLine("Start To Extract Info IncreaseStock TRAIN");
+                Console.WriteLine("Start To Extract Info IncreaseStock TEST");
                 foreach (var filename in System.IO.Directory.GetFiles(IncreaseStockPath_TEST + @"\html\"))
                 {
                     foreach (var item in IncreaseStock.Extract(filename))
@@ -157,8 +157,6 @@ namespace FDDC
                 ResultCSV.Close();
                 Console.WriteLine("Complete Extract Info IncreaseStock");
             }
-
-
             Logger.Close();
         }
     }

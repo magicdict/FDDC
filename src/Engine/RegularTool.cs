@@ -40,7 +40,7 @@ public static class RegularTool
     public static List<string> GetMultiValueBetweenMark(string str, string s, string e)
     {
         var strList = new List<string>();
-        Regex r = new Regex(@"(?<=\" + s + @")(\S+)(?=\" + e + ")");
+        Regex r = new Regex(@"(?<=\" + s + @")(\S+?)(?=\" + e + ")");
         foreach (var item in r.Matches(str).ToList())
         {
             if (!string.IsNullOrEmpty(item.Value)) strList.Add(item.Value);

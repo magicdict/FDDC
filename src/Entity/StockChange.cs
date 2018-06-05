@@ -167,7 +167,8 @@ public class StockChange
             stockchange.ChangePrice = rec[2].RawData;
             stockchange.ChangeNumber = rec[3].RawData;
             var holderafterlist = GetHolderAfter(root);
-            for (int i = 0; i < holderafterlist.Count; i++){
+            for (int i = 0; i < holderafterlist.Count; i++)
+            {
                 var after = holderafterlist[i];
                 if (after.Used) continue;
                 if (after.Name == stockchange.HolderFullName || after.Name == stockchange.HolderShortName)
@@ -266,31 +267,15 @@ public class StockChange
                 shortname = word.Substring(StdIdx + 1, EndIdx - StdIdx - 1);
             }
 
-            if (fullname.Contains("（以下简称"))
-            {
-                fullname = Utility.GetStringBefore(fullname, "（以下简称");
-            }
-            if (fullname.Contains("（下称"))
-            {
-                fullname = Utility.GetStringBefore(fullname, "（下称");
-            }
-            if (fullname.Contains("（简称"))
-            {
-                fullname = Utility.GetStringBefore(fullname, "（简称");
-            }
+            var trailingwords = new string[] { "（以下简称", "（下称", "（简称", "(以下简称", "(下称", "(简称" };
 
             //暂时不做括号的正规化
-            if (fullname.Contains("(以下简称"))
+            foreach (var trailin in trailingwords)
             {
-                fullname = Utility.GetStringBefore(fullname, "(以下简称");
-            }
-            if (fullname.Contains("(下称"))
-            {
-                fullname = Utility.GetStringBefore(fullname, "(下称");
-            }
-            if (fullname.Contains("(简称"))
-            {
-                fullname = Utility.GetStringBefore(fullname, "(简称");
+                if (fullname.Contains(trailin))
+                {
+                    fullname = Utility.GetStringBefore(fullname, trailin);
+                }
             }
 
             if (fullname.Contains("股东"))

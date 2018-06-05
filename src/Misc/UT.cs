@@ -107,6 +107,9 @@ public static class UT
     public static void RegularExpress()
     {
 
+        var d0 = "宏润建设集团股份有限公司(以下简称“公司”)于2014年1月7日收到西安市建设工程中标通知书，“西安市地铁四号线工程（航天东路站—北客站）土建施工D4TJSG-5标”项目由公司中标承建，工程中标价49,290万元。";
+        var x0 = RegularTool.GetMultiValueBetweenMark(d0,"“","”");
+
         var d1 = RegularTool.GetDate("河北先河环保科技股份有限公司董事会二○一二年十一月三十日");
         Console.WriteLine(d1);
 
