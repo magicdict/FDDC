@@ -56,7 +56,49 @@ public static class Utility
         return "";
     }
 
+    //将大写数字转小写（非金额数字）
+    public static string ConvertUpperDateToLittle(string OrgString)
+    {
+        //二○一二年十一月三十日
 
+        OrgString = OrgString.Replace("二十一", "21");
+        OrgString = OrgString.Replace("二十二", "22");
+        OrgString = OrgString.Replace("二十三", "23");
+        OrgString = OrgString.Replace("二十四", "24");
+        OrgString = OrgString.Replace("二十五", "25");
+        OrgString = OrgString.Replace("二十六", "26");
+        OrgString = OrgString.Replace("二十七", "27");
+        OrgString = OrgString.Replace("二十八", "28");
+        OrgString = OrgString.Replace("二十九", "29");
+        OrgString = OrgString.Replace("三十一", "31");
+
+        OrgString = OrgString.Replace("三十", "30");
+        OrgString = OrgString.Replace("十一", "11");
+        OrgString = OrgString.Replace("十二", "12");
+        OrgString = OrgString.Replace("十三", "13");
+        OrgString = OrgString.Replace("十四", "14");
+        OrgString = OrgString.Replace("十五", "15");
+        OrgString = OrgString.Replace("十六", "16");
+        OrgString = OrgString.Replace("十七", "17");
+        OrgString = OrgString.Replace("十八", "18");
+        OrgString = OrgString.Replace("十九", "19");
+        OrgString = OrgString.Replace("二十", "20");
+
+        OrgString = OrgString.Replace("〇", "0");
+        OrgString = OrgString.Replace("○", "0");    //本次HTML的特殊处理
+        OrgString = OrgString.Replace("一", "1");
+        OrgString = OrgString.Replace("二", "2");
+        OrgString = OrgString.Replace("三", "3");
+        OrgString = OrgString.Replace("四", "4");
+        OrgString = OrgString.Replace("五", "5");
+        OrgString = OrgString.Replace("六", "6");
+        OrgString = OrgString.Replace("七", "7");
+        OrgString = OrgString.Replace("八", "8");
+        OrgString = OrgString.Replace("九", "9");
+        OrgString = OrgString.Replace("十", "10");
+
+        return OrgString;
+    }
 
     //在某关键字之后寻找表示金额的阿拉伯数字
     public static string SeekMoney(string OrgString, string KeyWord)

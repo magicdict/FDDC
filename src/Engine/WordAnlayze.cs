@@ -10,6 +10,7 @@ public static class WordAnlayze
 {
     public static JiebaSegmenter segmenter = new JiebaSegmenter();
 
+
     public static void CompanyAnlayze()
     {
         var posSeg = new PosSegmenter();

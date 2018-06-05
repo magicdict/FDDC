@@ -78,7 +78,7 @@ public static class Evaluate
                         increase.FreezeYear.Equals(increase_Result.FreezeYear))
                     {
                         COR_FreezeYear++;
-                    }                    
+                    }
                     break;  //按照道理开说，不应该主键重复
                 }
             }
@@ -88,7 +88,7 @@ public static class Evaluate
         var F1_IncreaseNumber = GetF1("增发数量", POS_IncreaseNumber, ACT_IncreaseNumber, COR_IncreaseNumber);
         var F1_IncreaseMoney = GetF1("增发金额", POS_IncreaseMoney, ACT_IncreaseMoney, COR_IncreaseMoney);
         var F1_FreezeYear = GetF1("锁定期", POS_FreezeYear, ACT_FreezeYear, COR_FreezeYear);
-        var score = (F1_ID + F1_PublishTarget + F1_IncreaseNumber + F1_IncreaseMoney + F1_FreezeYear ) / 5;
+        var score = (F1_ID + F1_PublishTarget + F1_IncreaseNumber + F1_IncreaseMoney + F1_FreezeYear) / 5;
         Console.WriteLine("定向增发score:" + score);
     }
 
@@ -171,7 +171,7 @@ public static class Evaluate
                         stockchange.ChangeNumber.Equals(increase_Result.ChangeNumber))
                     {
                         COR_ChangeNumber++;
-                    }                    
+                    }
                     break;  //按照道理开说，不应该主键重复
                 }
             }
@@ -212,6 +212,14 @@ public static class Evaluate
         var ACT_ContractName = 0;
         var COR_ContractName = 0;
 
+        var POS_ContractMoneyUpLimit = 0;
+        var ACT_ContractMoneyUpLimit = 0;
+        var COR_ContractMoneyUpLimit = 0;
+
+        var POS_ContractMoneyDownLimit = 0;
+        var ACT_ContractMoneyDownLimit = 0;
+        var COR_ContractMoneyDownLimit = 0;
+
         foreach (var contract in Traning.ContractList)
         {
             if (!String.IsNullOrEmpty(contract.id)) POS_ID++;
@@ -219,6 +227,8 @@ public static class Evaluate
             if (!String.IsNullOrEmpty(contract.YiFang)) POS_YiFang++;
             if (!String.IsNullOrEmpty(contract.ProjectName)) POS_ProjectName++;
             if (!String.IsNullOrEmpty(contract.ContractName)) POS_ContractName++;
+            if (!String.IsNullOrEmpty(contract.ContractMoneyUpLimit)) POS_ContractMoneyUpLimit++;
+            if (!String.IsNullOrEmpty(contract.ContractMoneyDownLimit)) POS_ContractMoneyDownLimit++;
         }
         foreach (var contract in result)
         {
@@ -227,6 +237,8 @@ public static class Evaluate
             if (!String.IsNullOrEmpty(contract.YiFang)) ACT_YiFang++;
             if (!String.IsNullOrEmpty(contract.ProjectName)) ACT_ProjectName++;
             if (!String.IsNullOrEmpty(contract.ContractName)) ACT_ContractName++;
+            if (!String.IsNullOrEmpty(contract.ContractMoneyUpLimit)) ACT_ContractMoneyUpLimit++;
+            if (!String.IsNullOrEmpty(contract.ContractMoneyDownLimit)) ACT_ContractMoneyDownLimit++;
         }
 
         foreach (var stockchange in Traning.ContractList)
@@ -253,6 +265,19 @@ public static class Evaluate
                     {
                         COR_ContractName++;
                     }
+
+                    if (!String.IsNullOrEmpty(stockchange.ContractMoneyUpLimit) &&
+                        !String.IsNullOrEmpty(stockchange_Result.ContractMoneyUpLimit) &&
+                        stockchange.ContractMoneyUpLimit.Equals(stockchange_Result.ContractMoneyUpLimit))
+                    {
+                        COR_ContractMoneyUpLimit++;
+                    }
+                    if (!String.IsNullOrEmpty(stockchange.ContractMoneyDownLimit) &&
+                        !String.IsNullOrEmpty(stockchange_Result.ContractMoneyDownLimit) &&
+                        stockchange.ContractMoneyDownLimit.Equals(stockchange_Result.ContractMoneyDownLimit))
+                    {
+                        COR_ContractMoneyDownLimit++;
+                    }
                     break;  //按照道理开说，不应该主键重复
                 }
             }
@@ -262,7 +287,10 @@ public static class Evaluate
         var F1_YiFang = GetF1("乙方", POS_YiFang, ACT_YiFang, COR_YiFang);
         var F1_ProjectName = GetF1("项目名称", POS_ProjectName, ACT_ProjectName, COR_ProjectName);
         var F1_ContractName = GetF1("合同名称", POS_ContractName, ACT_ContractName, COR_ContractName);
-        var score = (F1_ID + F1_JiaFang + F1_YiFang + F1_ProjectName + F1_ContractName ) / 5;
+
+        var F1_ContractMoneyUpLimit = GetF1("金额上限", POS_ContractMoneyUpLimit, ACT_ContractMoneyUpLimit, COR_ContractMoneyUpLimit);
+        var F1_ContractMoneyDownLimit = GetF1("金额下限", POS_ContractMoneyDownLimit, ACT_ContractMoneyDownLimit, COR_ContractMoneyDownLimit);
+        var score = (F1_ID + F1_JiaFang + F1_YiFang + F1_ProjectName + F1_ContractName + F1_ContractMoneyUpLimit +F1_ContractMoneyDownLimit ) / 7;
         Console.WriteLine("合同score:" + score);
     }
 

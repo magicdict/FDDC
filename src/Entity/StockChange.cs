@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FDDC;
+using static BussinessLogic;
 using static HTMLTable;
 
 public class StockChange
@@ -84,12 +85,16 @@ public class StockChange
         return record;
     }
 
+
+    static List<struCompanyName> companynamelist;
+
     public static List<struStockChange> Extract(string htmlFileName)
     {
         var list = new List<struStockChange>();
         var fi = new System.IO.FileInfo(htmlFileName);
         Program.Logger.WriteLine("Start FileName:[" + fi.Name + "]");
         var node = HTMLEngine.Anlayze(htmlFileName);
+        companynamelist = BussinessLogic.GetCompanyNameByCutWord(node);
 
         list = ExtractFromTable(node, fi.Name.Replace(".html", ""));
         if (list.Count > 0) return list;
@@ -98,18 +103,9 @@ public class StockChange
         //公告ID
         stockchange.id = fi.Name.Replace(".html", "");
         Program.Logger.WriteLine("公告ID:" + stockchange.id);
-
         var Name = NormalizeCompanyName(GetHolderFullName(node));
         stockchange.HolderFullName = Name.Item1;
-        if (Name.Item2 == "")
-        {
-            stockchange.HolderName = BussinessLogic.GetCompanyNameByFullName(stockchange.HolderFullName).secShortName;
-        }
-        else
-        {
-            stockchange.HolderName = Name.Item2;
-        }
-
+        stockchange.HolderName = Name.Item2;
         stockchange.ChangeEndDate = GetChangeEndDate(node);
         list.Add(stockchange);
         return list;
@@ -160,18 +156,9 @@ public class StockChange
         {
             var stockchange = new struStockChange();
             stockchange.id = id;
-
             var Name = NormalizeCompanyName(item[0].RawData);
             stockchange.HolderFullName = Name.Item1;
-            if (Name.Item2 == "")
-            {
-                stockchange.HolderName = BussinessLogic.GetCompanyNameByFullName(stockchange.HolderFullName).secShortName;
-            }
-            else
-            {
-                stockchange.HolderName = Name.Item2;
-            }
-
+            stockchange.HolderName = Name.Item2;
             stockchange.ChangeEndDate = item[1].RawData;
             stockchange.ChangePrice = item[2].RawData;
             stockchange.ChangeNumber = item[3].RawData;
@@ -190,9 +177,10 @@ public class StockChange
         Extractor.Extract(root);
         foreach (var word in Extractor.CandidateWord)
         {
+            if (word.Contains("简称")) return word;
             Program.Logger.WriteLine("候补股东全称修正：[" + word + "]");
-            return word;
         }
+        if (Extractor.CandidateWord.Count > 0) return Extractor.CandidateWord[0];
         return "";
     }
 
@@ -245,7 +233,31 @@ public class StockChange
                 fullname = BussinessLogic.GetCompanyNameByShortName(fullname).secFullName;
             }
 
+
+            foreach (var companyname in companynamelist)
+            {
+                if (companyname.secFullName == fullname)
+                {
+                    if (shortname == "")
+                    {
+                        shortname = companyname.secShortName;
+                        break;
+                    }
+                }
+                if (companyname.secShortName == fullname)
+                {
+                    fullname = companyname.secFullName;
+                    shortname = companyname.secShortName;
+                    break;
+                }
+            }
+
+            if (shortname == "")
+            {
+                shortname = BussinessLogic.GetCompanyNameByFullName(fullname).secShortName;
+            }
             return Tuple.Create(fullname, shortname);
+
         }
         return Tuple.Create("", "");
     }

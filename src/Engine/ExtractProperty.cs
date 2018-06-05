@@ -151,14 +151,26 @@ public class ExtractProperty
 
     public struStartEndStringFeature[] StartEndFeature = new struStartEndStringFeature[] { };
 
+    public List<struStartEndResultDetail> StartEndResultList = new List<struStartEndResultDetail>();
+
+    public struct struStartEndResultDetail
+    {
+        public struStartEndStringFeature Feature;
+        public List<String> CandidateWord;
+    }
     //符号包裹
     void ExtractByStartEndStringFeature(MyRootHtmlNode root)
     {
+        StartEndResultList.Clear();
         foreach (var word in StartEndFeature)
         {
             Func<String, List<String>> ExtractMethod = (x) =>
             {
-                return RegularTool.GetMultiValueBetweenString(x, word.StartWith, word.EndWith);
+                var list = RegularTool.GetMultiValueBetweenString(x, word.StartWith, word.EndWith);
+                var detail = new struStartEndResultDetail();
+                detail.Feature = word;
+                detail.CandidateWord = list;
+                return list;
             };
             SearchNormalContent(root, ExtractMethod);
         }

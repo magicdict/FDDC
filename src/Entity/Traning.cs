@@ -28,8 +28,8 @@ public static class Traning
             ContractList.Add(c);
         }
         Console.WriteLine("合同标准结果数:" + ContractList.Count);
-        Console.WriteLine("甲方最长字符数:" + MaxJiaFangLength);
-        Console.WriteLine("乙方最长字符数:" + MaxYiFangLength);
+        //Console.WriteLine("甲方最长字符数:" + MaxJiaFangLength);
+        //Console.WriteLine("乙方最长字符数:" + MaxYiFangLength);
         sr.Close();
     }
 

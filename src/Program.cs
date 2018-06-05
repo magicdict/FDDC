@@ -13,13 +13,16 @@ namespace FDDC
 
         public static StreamWriter Logger = new StreamWriter("Log.log");
 
-        public static String DocBase = @"E:\金融数据整理大赛";
+        public static String DocBase = @"E:\FDDC";
 
         static void Main(string[] args)
         {
+
+
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             BussinessLogic.LoadCompanyName(@"Resources\FDDC_announcements_company_name_20180531.json");
 
+            //PDFToTXT.GetBatchFile();    
             //分词系统
             //WordAnlayze.CompanyAnlayze();
             //UT.RunWordAnlayze();
@@ -28,14 +31,17 @@ namespace FDDC
             //UT.ContractTest();
             //UT.RegularExpress();
             //UT.JianchengTest();
+            //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20596890.html");
             //IncreaseStock.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增\html\7880.html");
             //Logger.Close();
+            //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20526193.html");
             //return;
+
 
             var IsRunContract = false;
             var IsRunContract_TEST = false;
 
-            var IsRunStockChange = false;
+            var IsRunStockChange = true;
             var IsRunStockChange_TEST = false;
 
             var IsRunIncreaseStock = false;

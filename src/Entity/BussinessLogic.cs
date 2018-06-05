@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using FDDC;
+using JiebaNet.Segmenter.PosSeg;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Linq;
 
 public class BussinessLogic
 {
+    //固定搭配
     public static string GetCompanyShortName(HTMLEngine.MyRootHtmlNode root)
     {
         var companyList = new Dictionary<string, string>();
@@ -62,6 +65,81 @@ public class BussinessLogic
         return "";
     }
 
+
+    //词法分析
+    public static List<struCompanyName> GetCompanyNameByCutWord(HTMLEngine.MyRootHtmlNode root)
+    {
+        var posSeg = new PosSegmenter();
+        var namelist = new List<struCompanyName>();
+        foreach (var paragrah in root.Children)
+        {
+            foreach (var sentence in paragrah.Children)
+            {
+                var words = posSeg.Cut(sentence.Content).ToList();
+                for (int baseInd = 0; baseInd < words.Count; baseInd++)
+                {
+                    var FullName = "";
+                    var ShortName = "";
+                    if (words[baseInd].Word == "有限公司")
+                    {
+                        //是否能够在前面找到地名
+                        for (int NRIdx = baseInd; NRIdx > -1; NRIdx--)
+                        {
+                            //地理
+                            if (words[NRIdx].Flag == "ns")
+                            {
+                                FullName = "";
+                                for (int companyFullNameInd = NRIdx; companyFullNameInd <= baseInd; companyFullNameInd++)
+                                {
+                                    FullName += words[companyFullNameInd].Word;
+                                }
+                                break;  //不要继续寻找地名了
+                            }
+                        }
+                        //是否能够在后面找到简称
+                        for (int JCIdx = baseInd; JCIdx < words.Count; JCIdx++)
+                        {
+                            //地理
+                            if (words[JCIdx].Word.Equals("简称"))
+                            {
+                                var ShortNameStart = -1;
+                                var ShortNameEnd = -1;
+                                for (int ShortNameIdx = baseInd; ShortNameIdx < words.Count; ShortNameIdx++)
+                                {
+                                    if (words[ShortNameIdx].Word.Equals("“"))
+                                    {
+                                        ShortNameStart = ShortNameIdx + 1;
+                                    }
+                                    if (words[ShortNameIdx].Word.Equals("”"))
+                                    {
+                                        ShortNameEnd = ShortNameIdx - 1;
+                                        break;
+                                    }
+                                }
+                                if (ShortNameStart != -1 && ShortNameEnd != -1)
+                                {
+                                    ShortName = "";
+                                    for (int i = ShortNameStart; i <= ShortNameEnd; i++)
+                                    {
+                                        ShortName += words[i].Word;
+                                    }
+                                }
+                            }
+                        }
+                        if (FullName != "")
+                        {
+                            namelist.Add(new struCompanyName() { secFullName = FullName, secShortName = ShortName });
+                        }
+                    }
+
+                }
+            }
+        }
+        return namelist;
+    }
+
+
+    //JSON文件
 
     static Dictionary<string, struCompanyName> dictFullName = new Dictionary<string, struCompanyName>();
 

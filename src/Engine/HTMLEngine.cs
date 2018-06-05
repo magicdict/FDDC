@@ -1,6 +1,8 @@
 using HtmlAgilityPack;
 using System;
+using System.Linq;
 using System.Collections.Generic;
+using System.IO;
 
 public static class HTMLEngine
 {
@@ -24,7 +26,7 @@ public static class HTMLEngine
                 {
                     if (child.TableId == -1)
                     {
-                        if(child.Content.StartsWith("<")) strFull += System.Environment.NewLine;
+                        if (child.Content.StartsWith("<")) strFull += System.Environment.NewLine;
                         strFull += child.Content;
                     }
                 }
@@ -89,6 +91,27 @@ public static class HTMLEngine
             }
         }
 
+        //最后一个段落的检索
+        var LastParagrah = root.Children.Last();
+        if (LastParagrah.Children.Count > 0)
+        {
+            //重大合同:1232951  
+            var LastSentence = LastParagrah.Children.Last().Content;
+            var sentence = Utility.ConvertUpperDateToLittle(LastSentence);
+            var strDate = RegularTool.GetDate(sentence);
+            if (!String.IsNullOrEmpty(strDate))
+            {
+                var strBefore = Utility.GetStringBefore(sentence, strDate);
+                if (!String.IsNullOrEmpty(strBefore))
+                {
+                    //尾部除去
+                    LastParagrah.Children.RemoveAt(LastParagrah.Children.Count - 1);
+                    strBefore = LastSentence.Substring(0, LastSentence.LastIndexOf("年") - 4);
+                    LastParagrah.Children.Add(new MyHtmlNode() { Content = strBefore });
+                    LastParagrah.Children.Add(new MyHtmlNode() { Content = strDate });
+                }
+            }
+        }
         for (int i = 0; i < root.Children.Count - 1; i++)
         {
             root.Children[i].NextBrother = root.Children[i + 1];
@@ -98,10 +121,79 @@ public static class HTMLEngine
         {
             root.Children[i].PreviewBrother = root.Children[i - 1];
         }
-
         root.TableList = TableList;
         root.DetailItemList = DetailItemList;
+
+        var txtfilename = htmlfile.Replace("html", "txt");
+        if (File.Exists(txtfilename))
+        {
+            Adjust(root, txtfilename);
+        }
         return root;
+    }
+
+    private static void Adjust(MyRootHtmlNode root, string txtfilename)
+    {
+        var SR = new StreamReader(txtfilename);
+        var TxtList = new List<String>();
+        while (!SR.EndOfStream)
+        {
+            string TxtLine = Normalizer.NormalizeItemListNumber(SR.ReadLine().Trim());
+            TxtLine = TxtLine.Replace(" ", "");    //HTML是去空格的,PDF有空格
+            //通过TXT补偿列表分裂的情况
+            if (TxtLine.StartsWith("<"))
+            {
+                foreach (var paragrah in root.Children)
+                {
+                    //从各个段落的内容中取得：内容包含了内置列表，所以，这里不再重复
+                    foreach (var contentNode in paragrah.Children)
+                    {
+                        if (contentNode.TableId == -1)
+                        {
+                            //非表格
+                            if (TxtLine.StartsWith(contentNode.Content))
+                            {
+                                //重大合同：401597
+                                if (!contentNode.Content.Equals(TxtLine))
+                                {
+                                    //Line:<1>合同名称：天津市公安局南开分局南开区 2016 年视频监控网建设运维服
+                                    //Content:<1>合同名称：
+                                    //Next Content Line:天津市公安局南开分局南开区2016年视频监控网建设运维服务项目建设运维服务项目合同
+
+                                    //Line Before:<1>甲方：山东省临朐县人民政府
+                                    //Content:<1>甲方：
+                                    //Next Content Line:山东省临朐县人民政府地址：临朐县民主路102号
+
+                                    Console.WriteLine("Line Before:" + TxtLine);
+                                    Console.WriteLine("Content:" + contentNode.Content);
+                                    if (contentNode.NextBrother != null &&
+                                       !contentNode.NextBrother.Content.StartsWith("<"))
+                                    {
+                                        string NextContent = contentNode.NextBrother.Content;
+                                        Console.WriteLine("Next Content Line:" + NextContent);
+                                        var CombineLine = contentNode.Content + NextContent;
+                                        if ((CombineLine).StartsWith(TxtLine))
+                                        {
+                                            if (!NextContent.Contains("："))
+                                            {
+                                                //如果上一行和下一行的拼接体不包含：号
+                                                //则用拼接体，然后的话，用文本文件的结果
+                                                TxtLine = CombineLine;
+                                                contentNode.NextBrother.Content = "";
+                                            }
+                                        }
+                                    }
+                                    contentNode.Content = TxtLine;
+                                    Console.WriteLine("Line After:" + TxtLine);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            TxtList.Add(TxtLine);
+        }
+        SR.Close();
     }
 
     static void AnlayzeParagraph(HtmlNode paragraph, MyHtmlNode root, String subTitle = "")

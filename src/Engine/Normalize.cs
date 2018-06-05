@@ -177,6 +177,7 @@ public static class Normalizer
                 orgString = (x * 100_000_000).ToString();
             }
         }
+        if (orgString.EndsWith(".00")) orgString = orgString.Substring(0,orgString.Length -3);
         return orgString;
     }
 
@@ -193,6 +194,14 @@ public static class Normalizer
 
         //4 、   => [4]
         r = new Regex(@"(\d+)\ \、", ops);
+        if (r.IsMatch(orgString))
+        {
+            orgString = r.Replace(orgString, "<$1>");
+            return orgString;
+        }
+
+        //（1）、 => [4]
+       new Regex(@"\（(\d+)\）、", ops);
         if (r.IsMatch(orgString))
         {
             orgString = r.Replace(orgString, "<$1>");

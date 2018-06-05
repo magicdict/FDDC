@@ -4060,11 +4060,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\金融数据整理大赛\\FDDC\\FDDC.csproj",
+      "projectUniqueName": "e:\\FDDC\\FDDC_SRC\\FDDC.csproj",
       "projectName": "FDDC",
-      "projectPath": "E:\\金融数据整理大赛\\FDDC\\FDDC.csproj",
+      "projectPath": "e:\\FDDC\\FDDC_SRC\\FDDC.csproj",
       "packagesPath": "C:\\Users\\scs\\.nuget\\packages\\",
-      "outputPath": "E:\\金融数据整理大赛\\FDDC\\obj\\",
+      "outputPath": "e:\\FDDC\\FDDC_SRC\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Users\\scs\\.dotnet\\NuGetFallbackFolder",
