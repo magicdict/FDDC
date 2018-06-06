@@ -79,7 +79,7 @@ public class BussinessLogic
                 var words = posSeg.Cut(sentence.Content).ToList();
                 for (int baseInd = 0; baseInd < words.Count; baseInd++)
                 {
-                    if (words[baseInd].Word == "标段" || words[baseInd].Word == "标" || 
+                    if (words[baseInd].Word == "标段" || words[baseInd].Word == "标" ||
                         words[baseInd].Word == "工程" || words[baseInd].Word == "项目")
                     {
                         var projectName = "";
@@ -119,8 +119,13 @@ public class BussinessLogic
                 {
                     var FullName = "";
                     var ShortName = "";
-                    if (words[baseInd].Word == "有限公司" ||
-                       (words[baseInd].Word == "有限" && baseInd != words.Count - 1 && words[baseInd + 1].Word == "合伙"))
+                    var IsSubCompany = false;
+                    var StartIdx = -1;
+                    if (
+                         words[baseInd].Word == "有限公司" || 
+                        (words[baseInd].Word == "公司" && baseInd != 0 && words[baseInd - 1].Word == "承包")||
+                        (words[baseInd].Word == "有限" && baseInd != words.Count - 1 && words[baseInd + 1].Word == "合伙")
+                       )
                     {
                         //是否能够在前面找到地名
                         for (int NRIdx = baseInd; NRIdx > -1; NRIdx--)
@@ -133,14 +138,28 @@ public class BussinessLogic
                                 {
                                     FullName += words[companyFullNameInd].Word;
                                 }
+                                
+                                //承包公司
+                                if (words[baseInd].Word == "公司"){
+                                    //什么都不用做
+                                }
+                                
+                                //(有限合伙)
                                 if (words[baseInd].Word == "有限")
                                 {
                                     FullName += words[baseInd + 1].Word;
                                     FullName += words[baseInd + 2].Word;
                                 }
+                                //子公司判断
+                                if (NRIdx != 0 && words[NRIdx - 1].Word == "子公司")
+                                {
+                                    IsSubCompany = true;
+                                }
+                                StartIdx = NRIdx;
                                 break;  //不要继续寻找地名了
                             }
                         }
+
                         //是否能够在后面找到简称
                         for (int JCIdx = baseInd; JCIdx < words.Count; JCIdx++)
                         {
@@ -173,7 +192,14 @@ public class BussinessLogic
                         }
                         if (FullName != "")
                         {
-                            namelist.Add(new struCompanyName() { secFullName = FullName, secShortName = ShortName });
+                            namelist.Add(new struCompanyName()
+                            {
+                                secFullName = FullName,
+                                secShortName = ShortName,
+                                isSubCompany = IsSubCompany,
+                                paragrahId = paragrah.ParagrahId,
+                                WordIdx = StartIdx
+                            });
                         }
                     }
 
@@ -195,6 +221,12 @@ public class BussinessLogic
         public string secShortName;
         public string secFullName;
         public string secShortNameChg;
+        //是否为子公司
+        public bool isSubCompany;
+        //段落编号
+        public int paragrahId;
+        //词位置
+        public int WordIdx;
     }
 
     public static void LoadCompanyName(string JSONfilename)

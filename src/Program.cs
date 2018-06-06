@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Linq;
 using static Contract;
 using static IncreaseStock;
 using static StockChange;
@@ -36,15 +37,17 @@ namespace FDDC
             //Traning.InitIncreaseStock();
             //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\314146.html");
             //WordAnlayze.segmenter.LoadUserDict(@"Resources\dictAdjust.txt");
+            //Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1008828.html");
             //return;
 
-            var IsRunContract = true;
+            
+            var IsRunContract = false;
             var IsRunContract_TEST = false;
 
             var IsRunStockChange = false;
             var IsRunStockChange_TEST = false;
 
-            var IsRunIncreaseStock = false;
+            var IsRunIncreaseStock = true;
             var IsRunIncreaseStock_TEST = false;
 
             var IncreaseStockPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增";

@@ -35,7 +35,8 @@ public class Contract
 
         public string GetKey()
         {
-            return id + ":" + JiaFang + ":" + YiFang;
+            //去空格转小写
+            return id + ":" + JiaFang.NormalizeTextResult() + ":" + YiFang.NormalizeTextResult();
         }
     }
 
@@ -98,51 +99,48 @@ public class Contract
 
     static List<struCompanyName> companynamelist;
 
-    static struContract ExtractSingle(MyRootHtmlNode node, String Id)
+    static struContract ExtractSingle(MyRootHtmlNode root, String Id)
     {
         var contract = new struContract();
         //公告ID
         contract.id = Id;
         //甲方
-        contract.JiaFang = GetJiaFang(node);
-        var trailingwords = new string[] { "（以下简称", "（下称", "（简称", "(以下简称", "(下称", "(简称" };
+        contract.JiaFang = GetJiaFang(root);
         //暂时不做括号的正规化
-        foreach (var trailin in trailingwords)
+        foreach (var trailing in StockChange.CompanyNameTrailingwords)
         {
-            if (contract.JiaFang.Contains(trailin))
+            if (contract.JiaFang.Contains(trailing))
             {
-                contract.JiaFang = Utility.GetStringBefore(contract.JiaFang, trailin);
+                contract.JiaFang = Utility.GetStringBefore(contract.JiaFang, trailing);
             }
         }
-        contract.JiaFang = contract.JiaFang.Replace(" ", "");
 
         //乙方
-        contract.YiFang = GetYiFang(node);
+        contract.YiFang = GetYiFang(root);
         //暂时不做括号的正规化
-        foreach (var trailin in trailingwords)
+        foreach (var trailin in StockChange.CompanyNameTrailingwords)
         {
             if (contract.YiFang.Contains(trailin))
             {
                 contract.YiFang = Utility.GetStringBefore(contract.YiFang, trailin);
             }
         }
-        contract.YiFang = contract.YiFang.Replace(" ", "");
 
-        //金额
-        contract.ContractMoneyUpLimit = Normalizer.NormalizerMoney(GetMoney(node), "");
-
-        contract.ContractMoneyDownLimit = contract.ContractMoneyUpLimit;
         //合同
-        contract.ContractName = GetContractName(node);
-        contract.ContractName = contract.ContractName.Replace(" ", "").ToLower();
+        contract.ContractName = GetContractName(root);
         //项目
-        contract.ProjectName = GetProjectName(node);
+        contract.ProjectName = GetProjectName(root);
         if (contract.ProjectName == "" && contract.ContractName.EndsWith("项目合同"))
         {
             contract.ProjectName = contract.ContractName.Substring(0, contract.ContractName.Length - 2);
         }
-        contract.ProjectName = contract.ProjectName.Replace(" ", "").ToLower();
 
+        //金额
+        contract.ContractMoneyUpLimit = Normalizer.NormalizerMoney(GetMoney(root), "");
+        contract.ContractMoneyDownLimit = contract.ContractMoneyUpLimit;
+
+        //联合体
+        contract.UnionMember = GetUnionMember(root);
         return contract;
     }
 
@@ -156,7 +154,7 @@ public class Contract
         foreach (var item in Extractor.CandidateWord)
         {
             Program.Logger.WriteLine("甲方候补词(关键字)：[" + item + "]");
-            return item;
+            return item.Trim();
         }
 
         //招标
@@ -169,8 +167,8 @@ public class Contract
         {
             var JiaFang = item;
             JiaFang = JiaFang.Replace("业主", "");
-            Program.Logger.WriteLine("甲方候补词(招标)：[" + item + "]");
-            return item;
+            Program.Logger.WriteLine("甲方候补词(招标)：[" + JiaFang + "]");
+            return JiaFang.Trim();
         }
 
         //合同
@@ -181,8 +179,10 @@ public class Contract
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            Program.Logger.WriteLine("甲方候补词(合同)：[" + item + "]");
-            return item;
+            var JiaFang = item;
+            JiaFang = JiaFang.Replace("业主", "");
+            Program.Logger.WriteLine("甲方候补词(合同)：[" + JiaFang + "]");
+            return JiaFang.Trim();
         }
         return "";
     }
@@ -208,7 +208,7 @@ public class Contract
         foreach (var item in Extractor.CandidateWord)
         {
             Program.Logger.WriteLine("合同名称候补词（《XXX》）：[" + item + "]");
-            return item;
+            return item.Trim();
         }
 
         Extractor = new ExtractProperty();
@@ -218,7 +218,7 @@ public class Contract
         foreach (var item in Extractor.CandidateWord)
         {
             Program.Logger.WriteLine("合同名称候补词(关键字)：[" + item + "]");
-            return item;
+            return item.Trim();
         }
 
         //合同
@@ -230,7 +230,7 @@ public class Contract
         foreach (var item in Extractor.CandidateWord)
         {
             Program.Logger.WriteLine("合同候补词(合同)：[" + item + "]");
-            return item.Replace(" ", "");
+            return item.Trim();
         }
         return "";
     }
@@ -244,7 +244,7 @@ public class Contract
         foreach (var item in Extractor.CandidateWord)
         {
             Program.Logger.WriteLine("项目名称候补词(关键字)：[" + item + "]");
-            return item.Replace(" ", "");
+            return item.Trim();
         }
 
         var MarkFeature = new ExtractProperty.struMarkFeature();
@@ -262,7 +262,7 @@ public class Contract
         foreach (var item in Extractor.CandidateWord)
         {
             Program.Logger.WriteLine("工程名称候补词（《XXX》）：[" + item + "]");
-            return item;
+            return item.Trim();
         }
 
         var list = BussinessLogic.GetProjectName(root);
@@ -283,7 +283,7 @@ public class Contract
         foreach (var item in Extractor.CandidateWord)
         {
             Program.Logger.WriteLine("甲方候补词(关键字)：[" + item + "]");
-            return item;
+            return item.Trim();
         }
         //乙方:"有限公司"
 
@@ -294,8 +294,13 @@ public class Contract
         Extractor.CandidateWord.Reverse();
         foreach (var item in Extractor.CandidateWord)
         {
+            //如果有子公司的话，优先使用子公司
+            foreach (var c in companynamelist)
+            {
+                if (c.isSubCompany) return c.secFullName;
+            }
             Program.Logger.WriteLine("乙方候补词(关键字)：[" + item + "有限公司]");
-            return item + "有限公司";
+            return item.Trim() + "有限公司";
         }
 
         if (companynamelist.Count > 0)
@@ -306,16 +311,13 @@ public class Contract
         return "";
     }
 
-
-
-    #region  Money
-    static string GetMoney(HTMLEngine.MyRootHtmlNode node)
+    static string GetMoney(HTMLEngine.MyRootHtmlNode root)
     {
         var Money = "";
         var Extractor = new ExtractProperty();
         //这些关键字后面
         Extractor.LeadingWordList = new string[] { "中标金额", "中标价", "合同金额", "合同总价", "订单总金额" };
-        Extractor.Extract(node);
+        Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
             Money = Utility.SeekMoney(item, "");
@@ -323,5 +325,27 @@ public class Contract
         }
         return Money;
     }
-    #endregion
+
+    static string GetUnionMember(HTMLEngine.MyRootHtmlNode root)
+    {
+        var UnionMember = "";
+        var paragrahlist = ExtractProperty.FindWordCnt("联合体", root);
+        var Union = new List<String>();
+        foreach (var paragrahId in paragrahlist)
+        {
+            foreach (var comp in companynamelist)
+            {
+                if (comp.paragrahId == paragrahId)
+                {
+                    if (!Union.Contains(comp.secFullName)) Union.Add(comp.secFullName);
+                }
+            }
+        }
+        if (Union.Count > 0)
+        {
+            
+        }
+        return UnionMember;
+    }
+
 }

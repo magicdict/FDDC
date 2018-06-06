@@ -18,6 +18,40 @@ public static class PropertyWordAnlayze
         WordLength.Clear();
     }
 
+
+    public static void CompanyAnlayze()
+    {
+        var posSeg = new PosSegmenter();
+        //首单词统计
+        var FirstWordPos = new Dictionary<String, int>();
+        var WordLength = new Dictionary<int, int>();
+        FDDC.Program.Logger.WriteLine("甲方乙方统计：");
+        PropertyWordAnlayze.Init();
+        foreach (var contract in Traning.ContractList)
+        {
+            PropertyWordAnlayze.PutWord(contract.JiaFang);
+            PropertyWordAnlayze.PutWord(contract.YiFang);
+        }
+        PropertyWordAnlayze.WriteToLog();
+
+        FDDC.Program.Logger.WriteLine("合同统计：");
+        PropertyWordAnlayze.Init();
+        foreach (var contract in Traning.ContractList)
+        {
+            PropertyWordAnlayze.PutWord(contract.ContractName);
+        }
+        PropertyWordAnlayze.WriteToLog();
+
+        FDDC.Program.Logger.WriteLine("工程统计：");
+        PropertyWordAnlayze.Init();
+        foreach (var contract in Traning.ContractList)
+        {
+            PropertyWordAnlayze.PutWord(contract.ProjectName);
+        }
+        PropertyWordAnlayze.WriteToLog();
+
+    }
+
     public static void PutWord(string Word)
     {
         if (String.IsNullOrEmpty(Word)) return;

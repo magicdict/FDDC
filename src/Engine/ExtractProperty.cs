@@ -4,10 +4,9 @@ using static HTMLEngine;
 
 public class ExtractProperty
 {
-
-    public int FindWordCnt(string KeyWord, MyRootHtmlNode root)
+    public static List<int> FindWordCnt(string KeyWord, MyRootHtmlNode root)
     {
-        int cnt = 0;
+        var paragrahIdList = new List<int>();
         foreach (var paragrah in root.Children)
         {
             //从各个段落的内容中取得：内容包含了内置列表，所以，这里不再重复
@@ -15,14 +14,13 @@ public class ExtractProperty
             {
                 if (contentNode.TableId == -1)
                 {
-                    if (contentNode.Content.IndexOf(KeyWord) != -1) cnt++;
+                    if (contentNode.Content.IndexOf(KeyWord) != -1) paragrahIdList.Add(paragrah.ParagrahId);
                 }
             }
         }
-        return cnt;
+        return paragrahIdList;
     }
-
-
+    
     //候选词
     public List<String> CandidateWord = new List<string>();
 

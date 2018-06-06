@@ -17,12 +17,11 @@ public static class Normalizer
         return rtn;
     }
 
-    public static string NormalizeTextResult(string orgString)
+    public static string NormalizeTextResult(this string orgString)
     {
         if (!String.IsNullOrEmpty(orgString))
         {
-            orgString = orgString.Trim();
-            if (orgString.EndsWith("。")) orgString = orgString.TrimEnd("。".ToCharArray());
+            orgString = orgString.Trim().Replace(" ","").ToLower();
         }
         return orgString;
     }

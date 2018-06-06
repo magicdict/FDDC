@@ -37,7 +37,7 @@ public class StockChange
 
         public string GetKey()
         {
-            return id + ":" + HolderFullName + ":" + ChangeEndDate;
+            return id + ":" + HolderFullName.NormalizeTextResult() + ":" + ChangeEndDate;
         }
 
     }
@@ -254,6 +254,9 @@ public class StockChange
         return "";
     }
 
+    public static string[] CompanyNameTrailingwords = new string[] { "（以下简称", "（下称", "（以下称", "（简称", "(以下简称", "(下称", "(以下称", "(简称" };
+
+
     private static Tuple<String, String> NormalizeCompanyName(string word)
     {
         if (!String.IsNullOrEmpty(word))
@@ -267,14 +270,12 @@ public class StockChange
                 shortname = word.Substring(StdIdx + 1, EndIdx - StdIdx - 1);
             }
 
-            var trailingwords = new string[] { "（以下简称", "（下称", "（简称", "(以下简称", "(下称", "(简称" };
-
             //暂时不做括号的正规化
-            foreach (var trailin in trailingwords)
+            foreach (var trailing in CompanyNameTrailingwords)
             {
-                if (fullname.Contains(trailin))
+                if (fullname.Contains(trailing))
                 {
-                    fullname = Utility.GetStringBefore(fullname, trailin);
+                    fullname = Utility.GetStringBefore(fullname, trailing);
                 }
             }
 

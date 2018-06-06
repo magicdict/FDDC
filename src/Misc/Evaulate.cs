@@ -184,7 +184,7 @@ public static class Evaluate
                     COR_ChangeEndDate++;
                     if (!String.IsNullOrEmpty(stockchange.HolderShortName) &&
                         !String.IsNullOrEmpty(increase_Result.HolderShortName) &&
-                        stockchange.HolderShortName.Equals(increase_Result.HolderShortName))
+                        stockchange.HolderShortName.NormalizeTextResult().Equals(increase_Result.HolderShortName.NormalizeTextResult()))
                     {
                         COR_HolderShortName++;
                     }
@@ -229,8 +229,8 @@ public static class Evaluate
         var F1_HoldPercentAfterChange = GetF1("变动后持股比例", POS_HoldPercentAfterChange, ACT_HoldPercentAfterChange, COR_HoldPercentAfterChange);
 
 
-        var score = (F1_ID          + F1_HolderFullName + F1_HolderName            + F1_ChangeEndDate + 
-                     F1_ChangePrice + F1_ChangeNumber   + F1_HoldNumberAfterChange + F1_HoldPercentAfterChange ) / 8;
+        var score = (F1_ID + F1_HolderFullName + F1_HolderName + F1_ChangeEndDate +
+                     F1_ChangePrice + F1_ChangeNumber + F1_HoldNumberAfterChange + F1_HoldPercentAfterChange) / 8;
         Console.WriteLine("增减持score:" + score);
     }
 
@@ -268,6 +268,11 @@ public static class Evaluate
         var ACT_ContractMoneyDownLimit = 0;
         var COR_ContractMoneyDownLimit = 0;
 
+        var POS_UnionMember = 0;
+        var ACT_UnionMember = 0;
+        var COR_UnionMember = 0;
+
+
         foreach (var contract in Traning.ContractList)
         {
             if (!String.IsNullOrEmpty(contract.id)) POS_ID++;
@@ -277,6 +282,8 @@ public static class Evaluate
             if (!String.IsNullOrEmpty(contract.ContractName)) POS_ContractName++;
             if (!String.IsNullOrEmpty(contract.ContractMoneyUpLimit)) POS_ContractMoneyUpLimit++;
             if (!String.IsNullOrEmpty(contract.ContractMoneyDownLimit)) POS_ContractMoneyDownLimit++;
+            if (!String.IsNullOrEmpty(contract.UnionMember)) POS_UnionMember++;
+
         }
         foreach (var contract in result)
         {
@@ -287,44 +294,51 @@ public static class Evaluate
             if (!String.IsNullOrEmpty(contract.ContractName)) ACT_ContractName++;
             if (!String.IsNullOrEmpty(contract.ContractMoneyUpLimit)) ACT_ContractMoneyUpLimit++;
             if (!String.IsNullOrEmpty(contract.ContractMoneyDownLimit)) ACT_ContractMoneyDownLimit++;
+            if (!String.IsNullOrEmpty(contract.UnionMember)) ACT_UnionMember++;
         }
 
-        foreach (var stockchange in Traning.ContractList)
+        foreach (var contract in Traning.ContractList)
         {
-            var key = stockchange.GetKey();
-            foreach (var stockchange_Result in result)
+            var key = contract.GetKey();
+            foreach (var contract_Result in result)
             {
-                var key_Result = stockchange_Result.GetKey();
+                var key_Result = contract_Result.GetKey();
                 if (key.Equals(key_Result))
                 {
                     COR_ID++;
                     COR_JiaFang++;
                     COR_YiFang++;
-                    if (!String.IsNullOrEmpty(stockchange.ProjectName) &&
-                        !String.IsNullOrEmpty(stockchange_Result.ProjectName) &&
-                        stockchange.ProjectName.Equals(stockchange_Result.ProjectName))
+                    if (!String.IsNullOrEmpty(contract.ProjectName) &&
+                        !String.IsNullOrEmpty(contract_Result.ProjectName) &&
+                        contract.ProjectName.NormalizeTextResult().Equals(contract_Result.ProjectName.NormalizeTextResult()))
                     {
                         COR_ProjectName++;
                     }
 
-                    if (!String.IsNullOrEmpty(stockchange.ContractName) &&
-                        !String.IsNullOrEmpty(stockchange_Result.ContractName) &&
-                        stockchange.ContractName.Equals(stockchange_Result.ContractName))
+                    if (!String.IsNullOrEmpty(contract.ContractName) &&
+                        !String.IsNullOrEmpty(contract_Result.ContractName) &&
+                        contract.ContractName.NormalizeTextResult().Equals(contract_Result.ContractName.NormalizeTextResult()))
                     {
                         COR_ContractName++;
                     }
 
-                    if (!String.IsNullOrEmpty(stockchange.ContractMoneyUpLimit) &&
-                        !String.IsNullOrEmpty(stockchange_Result.ContractMoneyUpLimit) &&
-                        stockchange.ContractMoneyUpLimit.Equals(stockchange_Result.ContractMoneyUpLimit))
+                    if (!String.IsNullOrEmpty(contract.ContractMoneyUpLimit) &&
+                        !String.IsNullOrEmpty(contract_Result.ContractMoneyUpLimit) &&
+                        contract.ContractMoneyUpLimit.Equals(contract_Result.ContractMoneyUpLimit))
                     {
                         COR_ContractMoneyUpLimit++;
                     }
-                    if (!String.IsNullOrEmpty(stockchange.ContractMoneyDownLimit) &&
-                        !String.IsNullOrEmpty(stockchange_Result.ContractMoneyDownLimit) &&
-                        stockchange.ContractMoneyDownLimit.Equals(stockchange_Result.ContractMoneyDownLimit))
+                    if (!String.IsNullOrEmpty(contract.ContractMoneyDownLimit) &&
+                        !String.IsNullOrEmpty(contract_Result.ContractMoneyDownLimit) &&
+                        contract.ContractMoneyDownLimit.Equals(contract_Result.ContractMoneyDownLimit))
                     {
                         COR_ContractMoneyDownLimit++;
+                    }
+                    if (!String.IsNullOrEmpty(contract.UnionMember) &&
+                        !String.IsNullOrEmpty(contract_Result.UnionMember) &&
+                        contract.UnionMember.Equals(contract_Result.UnionMember))
+                    {
+                        COR_UnionMember++;
                     }
                     break;  //按照道理开说，不应该主键重复
                 }
@@ -335,10 +349,12 @@ public static class Evaluate
         var F1_YiFang = GetF1("乙方", POS_YiFang, ACT_YiFang, COR_YiFang);
         var F1_ProjectName = GetF1("项目名称", POS_ProjectName, ACT_ProjectName, COR_ProjectName);
         var F1_ContractName = GetF1("合同名称", POS_ContractName, ACT_ContractName, COR_ContractName);
-
         var F1_ContractMoneyUpLimit = GetF1("金额上限", POS_ContractMoneyUpLimit, ACT_ContractMoneyUpLimit, COR_ContractMoneyUpLimit);
         var F1_ContractMoneyDownLimit = GetF1("金额下限", POS_ContractMoneyDownLimit, ACT_ContractMoneyDownLimit, COR_ContractMoneyDownLimit);
-        var score = (F1_ID + F1_JiaFang + F1_YiFang + F1_ProjectName + F1_ContractName + F1_ContractMoneyUpLimit + F1_ContractMoneyDownLimit) / 7;
+        var F1_UnionMember = GetF1("联合体成员", POS_UnionMember, ACT_UnionMember, COR_UnionMember);
+
+        var score = (F1_ID + F1_JiaFang + F1_YiFang + F1_ProjectName +
+        F1_ContractName + F1_ContractMoneyUpLimit + F1_ContractMoneyDownLimit + F1_UnionMember) / 8;
         Console.WriteLine("合同score:" + score);
     }
 
@@ -350,6 +366,7 @@ public static class Evaluate
         double Recall = COR / POS;
         double Precision = COR / ACT;
         double F1 = 2 * Recall * Precision / (Recall + Precision);
+        if (POS == 0 || ACT == 0) F1 = 0;
         Console.WriteLine("Item:" + ItemName);
         Console.WriteLine("POS:" + POS.ToString());
         Console.WriteLine("ACT:" + ACT.ToString());

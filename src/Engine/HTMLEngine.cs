@@ -17,6 +17,7 @@ public static class HTMLEngine
         public MyHtmlNode NextBrother;
         public MyHtmlNode PreviewBrother;
 
+        public int ParagrahId = -1;
         public string FullText
         {
             get
@@ -125,6 +126,12 @@ public static class HTMLEngine
         {
             root.Children[i].PreviewBrother = root.Children[i - 1];
         }
+
+        for (int i = 0; i < root.Children.Count; i++)
+        {
+            root.Children[i].ParagrahId = i + 1;
+        }
+
         root.TableList = TableList;
         root.DetailItemList = DetailItemList;
 

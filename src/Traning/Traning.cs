@@ -6,11 +6,9 @@ using FDDC;
 
 public static class Traning
 {
-    static string ContractPath_TRAIN = Program.DocBase + @"\FDDC_SRC\Train\hetong.train";
-    static string StockChangePath_TRAIN = Program.DocBase + @"\FDDC_SRC\Train\zengjianchi.train";
-    static string IncreaseStockPath_TRAIN = Program.DocBase + @"\FDDC_SRC\Train\dingzeng.train";
-
-
+    static string ContractPath_TRAIN = Program.DocBase + @"\FDDC_SRC\Result\Train\hetong.train";
+    static string StockChangePath_TRAIN = Program.DocBase + @"\FDDC_SRC\Result\Train\zengjianchi.train";
+    static string IncreaseStockPath_TRAIN = Program.DocBase + @"\FDDC_SRC\Result\Train\dingzeng.train";
 
     public static List<Contract.struContract> ContractList = new List<Contract.struContract>();
 

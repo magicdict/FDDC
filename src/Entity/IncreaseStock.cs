@@ -29,7 +29,7 @@ public class IncreaseStock
         public string BuyMethod;
         public string GetKey()
         {
-            return id + ":" + PublishTarget;
+            return id + ":" + PublishTarget.NormalizeTextResult();
         }
     }
 
@@ -65,10 +65,6 @@ public class IncreaseStock
         increaseStock.PublishTarget + ",";
         record += Normalizer.NormalizeNumberResult(increaseStock.IncreaseNumber) + ",";
         record += Normalizer.NormalizeNumberResult(increaseStock.IncreaseMoney) + ",";
-        if (!String.IsNullOrEmpty(increaseStock.FreezeYear) && increaseStock.FreezeYear.EndsWith("个月"))
-        {
-            increaseStock.FreezeYear = increaseStock.FreezeYear.Replace("个月", "");
-        }
         record += increaseStock.FreezeYear + "," +
         increaseStock.BuyMethod;
         return record;
@@ -97,7 +93,8 @@ public class IncreaseStock
     {
         var BuyerRule = new TableSearchRule();
         BuyerRule.Name = "认购对象";
-        BuyerRule.Rule = new string[] { "认购对象", "发行对象", "发行对象名称" }.ToList();
+        //"投资者名称","股东名称"
+        BuyerRule.Rule = new string[] { "发行对象", "认购对象", "发行对象名称" }.ToList();
         BuyerRule.IsEq = true;
 
         var BuyNumber = new TableSearchRule();
@@ -131,9 +128,15 @@ public class IncreaseStock
             increase.id = SampleincreaseStock.id;
             increase.BuyMethod = SampleincreaseStock.BuyMethod;
             increase.PublishTarget = item[0].RawData;
+
             increase.IncreaseNumber = item[1].RawData;
             increase.IncreaseMoney = item[2].RawData;
             increase.FreezeYear = item[3].RawData;
+            /*
+            if (String.IsNullOrEmpty(increase.IncreaseNumber) &&
+                String.IsNullOrEmpty(increase.IncreaseMoney) &&
+                String.IsNullOrEmpty(increase.FreezeYear)) continue;
+            */    
             increaseStocklist.Add(increase);
         }
         return increaseStocklist;
@@ -144,17 +147,14 @@ public class IncreaseStock
     {
         orgString = orgString.Replace(" ", "");
         if (orgString.Equals("十二")) return "12";
-
         var x1 = Utility.GetStringAfter(orgString, "日起");
         int x2;
         if (int.TryParse(x1, out x2)) return x2.ToString();
         x1 = Utility.GetStringBefore(orgString, "个月");
         if (int.TryParse(x1, out x2)) return x2.ToString();
-
         x1 = RegularTool.GetValueBetweenString(orgString, "日起", "个月");
         if (x1.Equals("十二")) return "12";
         if (int.TryParse(x1, out x2)) return x2.ToString();
-
         if (orgString.Equals("十二")) return "12";
         if (orgString.Equals("十二个月")) return "12";
         if (orgString.Equals("1年")) return "12";
@@ -165,8 +165,7 @@ public class IncreaseStock
     static string getBuyMethod(HTMLEngine.MyRootHtmlNode root)
     {
         //是否包含关键字 "现金认购"
-        var Extractor = new ExtractProperty();
-        var cnt = Extractor.FindWordCnt("现金认购", root);
+        var cnt = ExtractProperty.FindWordCnt("现金认购", root).Count;
         Program.Logger.WriteLine("现金认购(文本):" + cnt);
         if (cnt > 0) return "现金";
         return "";
