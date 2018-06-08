@@ -83,13 +83,14 @@ public static class UT
 
     public static void ContractTest()
     {
+        var x1 = Normalizer.NormalizeItemListNumber("（4）2012 年 4 月，公司与中国华西企业股份");
+        var x2 = Normalizer.NormalizeItemListNumber("4 、承包方式： 从深化设计、制作、运输、");
+        var x3 = Normalizer.NormalizeItemListNumber("4、承包方式： 从深化设计、制作、运输、");
+        Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1153.html");
         Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1008828.html");
         Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\3620.html");
         Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1518.html");
         Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1120707.html");
-        var x1 = Normalizer.NormalizeItemListNumber("（4）2012 年 4 月，公司与中国华西企业股份");
-        var x2 = Normalizer.NormalizeItemListNumber("4 、承包方式： 从深化设计、制作、运输、");
-        var x3 = Normalizer.NormalizeItemListNumber("4、承包方式： 从深化设计、制作、运输、");
         Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1044779.html");
         Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1450.html");
         Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1042224.html");

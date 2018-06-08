@@ -28,23 +28,26 @@ public class ContractTraning
         AnlayzeEntitySurroundWords();
     }
 
+
+
     public static void AnlayzeEntitySurroundWords()
     {
         var ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
+        Console.WriteLine("前导词：YiFang");
         foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\html\"))
         {
             var fi = new System.IO.FileInfo(filename);
             var Id = fi.Name.Replace(".html", "");
             if (TraningDataset.GetContractById(Id).Count == 0) continue;
             var contract = TraningDataset.GetContractById(Id).First();
-            if (contract.ProjectName == "") continue;
+            if (contract.YiFang == "") continue;
             var root = HTMLEngine.Anlayze(filename);
-            EntityWordAnlayzeTool.AnlayzeEntitySurroundWords(root, contract.ProjectName);
+            EntityWordAnlayzeTool.AnlayzeEntitySurroundWords(root, contract.YiFang);
         }
     }
 
     //最大长度
-    static void TraningMaxLenth()
+    public static void TraningMaxLenth()
     {
         MaxJiaFangLength = 0;
         MaxYiFangLength = 0;
@@ -57,6 +60,7 @@ public class ContractTraning
                 MaxJiaFangLength = c.JiaFang.Length;
                 MaxJiaFang = c.JiaFang;
             }
+
             if (c.YiFang.Length > MaxYiFangLength)
             {
                 MaxYiFangLength = c.YiFang.Length;
@@ -97,7 +101,7 @@ public class ContractTraning
         //新建大塔至四眼井铁路吴四圪堵至四眼井段站前工程wssg-1标段
     }
 
-    static void FirstWordAndLength()
+    public static void FirstWordAndLength()
     {
         var posSeg = new PosSegmenter();
         //首单词统计

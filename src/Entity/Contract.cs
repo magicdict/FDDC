@@ -201,15 +201,16 @@ public class Contract
     {
         var Extractor = new ExtractProperty();
         //这些关键字后面
-        Extractor.LeadingWordList = new string[] { "供应商名称：" };
+        Extractor.LeadingWordList = new string[] { "供应商名称：", "乙方：" };
+        //,"中标单位：","中标人：","乙方（供方）：","承包人：","承包方：","中标方：","供应商名称：","中标人名称："
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            Program.Logger.WriteLine("甲方候补词(关键字)：[" + item + "]");
+            Program.Logger.WriteLine("乙方候补词(关键字)：[" + item + "]");
             return item.Trim();
         }
-        //乙方:"有限公司"
 
+        //乙方:"有限公司"
         Extractor = new ExtractProperty();
         //这些关键字后面
         Extractor.TrailingWordList = new string[] { "有限公司董事会" };
@@ -283,7 +284,7 @@ public class Contract
     {
         var Extractor = new ExtractProperty();
         //这些关键字后面
-        Extractor.LeadingWordList = new string[] { "项目名称：" };
+        Extractor.LeadingWordList = new string[] { "项目名称：", "工程名称：", "中标项目：", "合同标的：", "工程内容：" };
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {

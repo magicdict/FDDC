@@ -117,6 +117,14 @@ public static class HTMLEngine
                 }
             }
         }
+
+        var txtfilename = htmlfile.Replace("html", "txt");
+        if (File.Exists(txtfilename))
+        {
+            AdjustItemList(root, txtfilename);
+            AdjustTwoLine(root, txtfilename);
+        }
+
         for (int i = 0; i < root.Children.Count - 1; i++)
         {
             root.Children[i].NextBrother = root.Children[i + 1];
@@ -139,18 +147,13 @@ public static class HTMLEngine
         root.TableList = TableList;
         root.DetailItemList = DetailItemList;
 
-        var txtfilename = htmlfile.Replace("html", "txt");
-        if (File.Exists(txtfilename))
-        {
-            Adjust(root, txtfilename);
-        }
+
         return root;
     }
 
-    private static void Adjust(MyRootHtmlNode root, string txtfilename)
+    static void AdjustItemList(MyRootHtmlNode root, string txtfilename)
     {
         var SR = new StreamReader(txtfilename);
-        var TxtList = new List<String>();
         while (!SR.EndOfStream)
         {
             string TxtLine = Normalizer.NormalizeItemListNumber(SR.ReadLine().Trim());
@@ -206,7 +209,39 @@ public static class HTMLEngine
                     }
                 }
             }
-            TxtList.Add(TxtLine);
+        }
+        SR.Close();
+    }
+
+    static void AdjustTwoLine(MyRootHtmlNode root, string txtfilename)
+    {
+        //Line Before:招标人：国家电网公司
+        //Content: 招标人：国家电网公司注册资本：2000亿元
+        //如果出现行1 + 行2 == Content，则Content则变为行1，增加Content之后的项目
+        var SR = new StreamReader(txtfilename);
+        var TxtList = new List<String>();
+        while (!SR.EndOfStream)
+        {
+            string TxtLine = Normalizer.NormalizeItemListNumber(SR.ReadLine().Trim());
+            TxtLine = TxtLine.Replace(" ", "");    //HTML是去空格的,PDF有空格
+            if(!String.IsNullOrEmpty(TxtLine)) TxtList.Add(TxtLine);
+        }
+        for (int i = 1; i < TxtList.Count - 1; i++)
+        {
+            var CombineLine = TxtList[i] + TxtList[i + 1];
+            foreach (var paragrah in root.Children)
+            {
+                //从各个段落的内容中取得：内容包含了内置列表，所以，这里不再重复
+                for (int pid = 0; pid < paragrah.Children.Count; pid++)
+                {
+                    var contentNode = paragrah.Children[pid];
+                    if (contentNode.Content.Equals(CombineLine) && TxtList[i].Contains("：") && TxtList[i + 1].Contains("："))
+                    {
+                        contentNode.Content = TxtList[i];
+                        paragrah.Children.Add(new MyHtmlNode() { Content = TxtList[i + 1] });
+                    }
+                }
+            }
         }
         SR.Close();
     }

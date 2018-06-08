@@ -26,7 +26,9 @@ namespace FDDC
             TraningDataset.InitContract();
             TraningDataset.InitStockChange();
             TraningDataset.InitIncreaseStock();
-            Train();
+            ContractTraning.TraningMaxLenth();
+            //ContractTraning.AnlayzeEntitySurroundWords();
+            //Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1153.html");
             Extract();
             Logger.Close();
             Score.Close();
@@ -40,12 +42,12 @@ namespace FDDC
             var ContractPath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
             var ContractPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\重大合同";
 
-            var IsRunStockChange = true;
+            var IsRunStockChange = false;
             var IsRunStockChange_TEST = false;
             var StockChangePath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持";
             var StockChangePath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\增减持";
 
-            var IsRunIncreaseStock = true;
+            var IsRunIncreaseStock = false;
             var IsRunIncreaseStock_TEST = false;
             var IncreaseStockPath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增";
             var IncreaseStockPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增";
@@ -162,7 +164,7 @@ namespace FDDC
 
         private static void Train()
         {
-            ContractTraning.Train();
+            //ContractTraning.Train();
             //系统分析
             //WordAnlayze.TraningByWordAnlyaze();
             //PropertyWordAnlayze.EntityWordAnlayze();

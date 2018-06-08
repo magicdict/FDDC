@@ -75,7 +75,7 @@ public static class EntityWordAnlayzeTool
 
     public static void AnlayzeEntitySurroundWords(HTMLEngine.MyRootHtmlNode root, string KeyWord)
     {
-        Console.WriteLine("关键字：[" + KeyWord + "]");
+        Program.Training.WriteLine("关键字：[" + KeyWord + "]");
         JiebaSegmenter segmenter = new JiebaSegmenter();
         segmenter.AddWord(KeyWord);
         foreach (var paragrah in root.Children)
@@ -92,12 +92,21 @@ public static class EntityWordAnlayzeTool
                     var EndInx = Math.Min(i + 5, segments.Count);
                     for (int s = startInx; s < i; s++)
                     {
-                        Console.WriteLine("前导关键字：[" + segments[s] + "]");
+                        Program.Training.WriteLine("前导关键字：[" + segments[s] + "]");
+                        if (segments[s] == "：")
+                        {
+                            var leading = "";
+                            for (int l = startInx; l < s; l++)
+                            {
+                                leading += segments[l];
+                            }
+                            Console.WriteLine("冒号前导词：" + leading);
+                        }
                     }
-                    Console.WriteLine("关键字：[" + KeyWord + "]");
+                    Program.Training.WriteLine("关键字：[" + KeyWord + "]");
                     for (int s = i + 1; s < EndInx; s++)
                     {
-                        Console.WriteLine("后续关键字：[" + segments[s] + "]");
+                        Program.Training.WriteLine("后续关键字：[" + segments[s] + "]");
                     }
 
                 }
