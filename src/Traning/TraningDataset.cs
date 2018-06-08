@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using FDDC;
 
-public static class Traning
+public static class TraningDataset
 {
     static string ContractPath_TRAIN = Program.DocBase + @"\FDDC_SRC\Result\Train\hetong.train";
     static string StockChangePath_TRAIN = Program.DocBase + @"\FDDC_SRC\Result\Train\zengjianchi.train";
@@ -12,22 +12,15 @@ public static class Traning
 
     public static List<Contract.struContract> ContractList = new List<Contract.struContract>();
 
-    public static int MaxJiaFangLength = 0;
-    public static int MaxYiFangLength = 0;
-
     public static void InitContract()
     {
         var sr = new StreamReader(ContractPath_TRAIN);
         while (!sr.EndOfStream)
         {
             var c = Contract.ConvertFromString(sr.ReadLine());
-            if (c.JiaFang.Length > MaxJiaFangLength) MaxJiaFangLength = c.JiaFang.Length;
-            if (c.YiFang.Length > MaxYiFangLength) MaxYiFangLength = c.YiFang.Length;
             ContractList.Add(c);
         }
         Console.WriteLine("合同标准结果数:" + ContractList.Count);
-        Console.WriteLine("最大甲方长度:" + Math.Min(50,MaxJiaFangLength));
-        Console.WriteLine("最大乙方长度:" + Math.Min(50,MaxYiFangLength));
         sr.Close();
     }
 

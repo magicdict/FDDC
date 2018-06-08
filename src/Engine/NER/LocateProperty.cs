@@ -6,11 +6,13 @@ public static class LocateProperty
 
     public struct LocAndValue
     {
+        //位置
         public int Loc;
-
+        //值
         public string Value;
     }
 
+    //获得日期
     public static List<LocAndValue> LocateDate(HTMLEngine.MyRootHtmlNode root)
     {
         var list = new List<LocAndValue>();
@@ -29,6 +31,7 @@ public static class LocateProperty
         return list;
     }
 
+    //获得金额
     public static List<LocAndValue> LocateMoney(HTMLEngine.MyRootHtmlNode root)
     {
         var list = new List<LocAndValue>();

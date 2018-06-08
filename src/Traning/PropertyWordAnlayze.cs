@@ -1,3 +1,4 @@
+using FDDC;
 using JiebaNet.Analyser;
 using JiebaNet.Segmenter;
 using JiebaNet.Segmenter.PosSeg;
@@ -16,40 +17,6 @@ public static class PropertyWordAnlayze
     {
         FirstWordPos.Clear();
         WordLength.Clear();
-    }
-
-
-    public static void CompanyAnlayze()
-    {
-        var posSeg = new PosSegmenter();
-        //首单词统计
-        var FirstWordPos = new Dictionary<String, int>();
-        var WordLength = new Dictionary<int, int>();
-        FDDC.Program.Logger.WriteLine("甲方乙方统计：");
-        PropertyWordAnlayze.Init();
-        foreach (var contract in Traning.ContractList)
-        {
-            PropertyWordAnlayze.PutWord(contract.JiaFang);
-            PropertyWordAnlayze.PutWord(contract.YiFang);
-        }
-        PropertyWordAnlayze.WriteToLog();
-
-        FDDC.Program.Logger.WriteLine("合同统计：");
-        PropertyWordAnlayze.Init();
-        foreach (var contract in Traning.ContractList)
-        {
-            PropertyWordAnlayze.PutWord(contract.ContractName);
-        }
-        PropertyWordAnlayze.WriteToLog();
-
-        FDDC.Program.Logger.WriteLine("工程统计：");
-        PropertyWordAnlayze.Init();
-        foreach (var contract in Traning.ContractList)
-        {
-            PropertyWordAnlayze.PutWord(contract.ProjectName);
-        }
-        PropertyWordAnlayze.WriteToLog();
-
     }
 
     public static void PutWord(string Word)
@@ -93,7 +60,7 @@ public static class PropertyWordAnlayze
             if (dict[key] >= limit)
             {
                 var percent = (dict[key] * 100 / Total) + "%";
-                FDDC.Program.Logger.WriteLine(key + "(" + percent + ")");
+                Program.Training.WriteLine(key + "(" + percent + ")");
             }
         }
     }
@@ -101,9 +68,9 @@ public static class PropertyWordAnlayze
 
     public static void WriteToLog()
     {
-        FDDC.Program.Logger.WriteLine("首词词性统计：");
+        Program.Training.WriteLine("首词词性统计：");
         FindTop(5, FirstWordPos);
-        FDDC.Program.Logger.WriteLine("词长统计：");
+        Program.Training.WriteLine("词长统计：");
         FindTop(5, WordLength);
     }
 

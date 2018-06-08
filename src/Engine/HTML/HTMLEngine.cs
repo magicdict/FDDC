@@ -226,26 +226,28 @@ public static class HTMLEngine
                         if (node.ChildNodes.Count == 3 && node.ChildNodes[1].Name == "table")
                         {
                             var tablenode = new MyHtmlNode();
+                            tablenode.Content = "";
                             TableId++;
                             tablenode.TableId = TableId;
                             GetTable(node.ChildNodes[1]);
+                            root.Children.Add(tablenode);
                         }
                         else
                         {
                             var content = Normalizer.Normalize(node.InnerText);
                             if (!String.IsNullOrEmpty(content))
                             {
-                                var s = new MyHtmlNode();
-                                s.Content = subTitle + content;
-                                root.Children.Add(s);
+                                var contentnode = new MyHtmlNode();
+                                contentnode.Content = subTitle + content;
+                                root.Children.Add(contentnode);
                             }
                             else
                             {
                                 if (subTitle != "")
                                 {
-                                    var s = new MyHtmlNode();
-                                    s.Content = subTitle;
-                                    root.Children.Add(s);
+                                    var contentnode = new MyHtmlNode();
+                                    contentnode.Content = subTitle;
+                                    root.Children.Add(contentnode);
                                 }
                             }
                             subTitle = "";
@@ -266,9 +268,11 @@ public static class HTMLEngine
             if (node.Name == "table")
             {
                 var tablenode = new MyHtmlNode();
+                tablenode.Content = "";
                 TableId++;
                 tablenode.TableId = TableId;
                 GetTable(node);
+                root.Children.Add(tablenode);
             }
         }
     }

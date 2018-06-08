@@ -38,7 +38,7 @@ public static class Evaluate
         var COR_BuyMethod = 0;
 
 
-        foreach (var increase in Traning.IncreaseStockList)
+        foreach (var increase in TraningDataset.IncreaseStockList)
         {
             if (!String.IsNullOrEmpty(increase.id)) POS_ID++;
             if (!String.IsNullOrEmpty(increase.PublishTarget)) POS_PublishTarget++;
@@ -57,7 +57,7 @@ public static class Evaluate
             if (!String.IsNullOrEmpty(increase.BuyMethod)) ACT_BuyMethod++;
         }
 
-        foreach (var increase in Traning.IncreaseStockList)
+        foreach (var increase in TraningDataset.IncreaseStockList)
         {
             var key = increase.GetKey();
             foreach (var increase_Result in result)
@@ -146,7 +146,7 @@ public static class Evaluate
         var ACT_HoldPercentAfterChange = 0;
         var COR_HoldPercentAfterChange = 0;
 
-        foreach (var stockchange in Traning.StockChangeList)
+        foreach (var stockchange in TraningDataset.StockChangeList)
         {
             if (!String.IsNullOrEmpty(stockchange.id)) POS_ID++;
             if (!String.IsNullOrEmpty(stockchange.HolderFullName)) POS_HolderFullName++;
@@ -173,7 +173,7 @@ public static class Evaluate
 
         }
 
-        foreach (var stockchange in Traning.StockChangeList)
+        foreach (var stockchange in TraningDataset.StockChangeList)
         {
             var key = stockchange.GetKey();
             foreach (var increase_Result in result)
@@ -277,7 +277,7 @@ public static class Evaluate
         var COR_UnionMember = 0;
 
 
-        foreach (var contract in Traning.ContractList)
+        foreach (var contract in TraningDataset.ContractList)
         {
             if (!String.IsNullOrEmpty(contract.id)) POS_ID++;
             if (!String.IsNullOrEmpty(contract.JiaFang)) POS_JiaFang++;
@@ -301,7 +301,7 @@ public static class Evaluate
             if (!String.IsNullOrEmpty(contract.UnionMember)) ACT_UnionMember++;
         }
 
-        foreach (var contract in Traning.ContractList)
+        foreach (var contract in TraningDataset.ContractList)
         {
             var key = contract.GetKey();
             foreach (var contract_Result in result)

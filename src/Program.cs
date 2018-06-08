@@ -12,54 +12,42 @@ namespace FDDC
     class Program
     {
 
+        public static StreamWriter Training = new StreamWriter("Training.log");
         public static StreamWriter Logger = new StreamWriter("Log.log");
         public static StreamWriter Score = new StreamWriter(@"Result\Score\score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
 
         public static String DocBase = @"E:\FDDC";
-
         static void Main(string[] args)
         {
             //初始化   
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             BussinessLogic.LoadCompanyName(@"Resources\FDDC_announcements_company_name_20180531.json");
+            TraningDataset.InitContract();
+            TraningDataset.InitStockChange();
+            TraningDataset.InitIncreaseStock();
+            Train();
+            //Extract();
+            Logger.Close();
+            Score.Close();
+            Training.Close();
+        }
 
-            //测试区
-            //生成PDF的TXT文件的批处理命令
-            //PDFToTXT.GetBatchFile();    
-            //分词系统
-            //WordAnlayze.CompanyAnlayze();
-            //UT.RunWordAnlayze();
-            //UT.StockChangeTest();
-            //UT.IncreaseStockTest();
-            //UT.ContractTest();
-            //UT.RegularExpress();
-            //UT.JianchengTest();
-            //Logger.Close();
-            //Traning.InitIncreaseStock();
-            //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\314146.html");
-            //WordAnlayze.segmenter.LoadUserDict(@"Resources\dictAdjust.txt");
-            //Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1008828.html");
-            //return;
-
-
-            var IsRunContract = false;
-            var IsRunContract_TEST = true;
+        private static void Extract()
+        {
+            var IsRunContract = true;
+            var IsRunContract_TEST = false;
             var ContractPath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
             var ContractPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\重大合同";
 
-            var IsRunStockChange = false;
-            var IsRunStockChange_TEST = true;
+            var IsRunStockChange = true;
+            var IsRunStockChange_TEST = false;
             var StockChangePath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持";
             var StockChangePath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\增减持";
 
-            var IsRunIncreaseStock = false;
-            var IsRunIncreaseStock_TEST = true;
+            var IsRunIncreaseStock = true;
+            var IsRunIncreaseStock_TEST = false;
             var IncreaseStockPath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增";
             var IncreaseStockPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增";
-
-            Traning.InitContract();     //存在长度检查，所以必须先做
-            Traning.InitStockChange();
-            Traning.InitIncreaseStock();
 
             if (IsRunContract)
             {
@@ -169,8 +157,28 @@ namespace FDDC
                 ResultCSV.Close();
                 Console.WriteLine("Complete Extract Info IncreaseStock");
             }
-            Logger.Close();
-            Score.Close();
+        }
+
+        private static void Train()
+        {
+            ContractTraning.Train();
+            //生成PDF的TXT文件的批处理命令
+            //PDFToTXT.GetBatchFile();    
+            //系统分析
+            //WordAnlayze.TraningByWordAnlyaze();
+            //PropertyWordAnlayze.EntityWordAnlayze();
+            //测试区
+            //UT.RunWordAnlayze();
+            //UT.StockChangeTest();
+            //UT.IncreaseStockTest();
+            //UT.ContractTest();
+            //UT.RegularExpress();
+            //UT.JianchengTest();
+            //Traning.InitIncreaseStock();
+            //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\314146.html");
+            //WordAnlayze.segmenter.LoadUserDict(@"Resources\dictAdjust.txt");
+            //Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1008828.html");
+            //Logger.Close();
         }
     }
 }

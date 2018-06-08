@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using FDDC;
-using JiebaNet.Segmenter.PosSeg;
+using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Linq;
+using FDDC;
+using JiebaNet.Segmenter.PosSeg;
 
 public class BussinessLogic
 {
@@ -114,6 +114,7 @@ public class BussinessLogic
         {
             foreach (var sentence in paragrah.Children)
             {
+                if (string.IsNullOrEmpty(sentence.Content)) continue;
                 var words = posSeg.Cut(sentence.Content).ToList();
                 var PreviewEndIdx = -1;
                 for (int baseInd = 0; baseInd < words.Count; baseInd++)

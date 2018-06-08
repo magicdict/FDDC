@@ -161,7 +161,7 @@ public class Contract
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            if (item.Trim().Length > Traning.MaxJiaFangLength) continue;
+            if (item.Trim().Length > ContractTraning.MaxJiaFangLength) continue;
             Program.Logger.WriteLine("甲方候补词(关键字)：[" + item + "]");
             return item.Trim();
         }
@@ -176,7 +176,7 @@ public class Contract
         {
             var JiaFang = item;
             JiaFang = JiaFang.Replace("业主", "").Trim();
-            if (JiaFang.Length > Traning.MaxJiaFangLength) continue;
+            if (JiaFang.Length > ContractTraning.MaxJiaFangLength) continue;
             Program.Logger.WriteLine("甲方候补词(招标)：[" + JiaFang + "]");
             return JiaFang;
         }
@@ -191,13 +191,48 @@ public class Contract
         {
             var JiaFang = item;
             JiaFang = JiaFang.Replace("业主", "").Trim();
-            if (JiaFang.Length > Traning.MaxJiaFangLength) continue;
+            if (JiaFang.Length > ContractTraning.MaxJiaFangLength) continue;
             Program.Logger.WriteLine("甲方候补词(合同)：[" + JiaFang + "]");
             return JiaFang;
         }
         return "";
     }
+    static string GetYiFang(HTMLEngine.MyRootHtmlNode root)
+    {
+        var Extractor = new ExtractProperty();
+        //这些关键字后面
+        Extractor.LeadingWordList = new string[] { "供应商名称：" };
+        Extractor.Extract(root);
+        foreach (var item in Extractor.CandidateWord)
+        {
+            Program.Logger.WriteLine("甲方候补词(关键字)：[" + item + "]");
+            return item.Trim();
+        }
+        //乙方:"有限公司"
 
+        Extractor = new ExtractProperty();
+        //这些关键字后面
+        Extractor.TrailingWordList = new string[] { "有限公司董事会" };
+        Extractor.Extract(root);
+        Extractor.CandidateWord.Reverse();
+        foreach (var item in Extractor.CandidateWord)
+        {
+            //如果有子公司的话，优先使用子公司
+            foreach (var c in companynamelist)
+            {
+                if (c.isSubCompany) return c.secFullName;
+            }
+            Program.Logger.WriteLine("乙方候补词(关键字)：[" + item + "有限公司]");
+            return item.Trim() + "有限公司";
+        }
+
+        if (companynamelist.Count > 0)
+        {
+            return companynamelist[companynamelist.Count - 1].secFullName;
+        }
+
+        return "";
+    }
     static string GetContractName(MyRootHtmlNode root)
     {
         var Extractor = new ExtractProperty();
@@ -279,44 +314,6 @@ public class Contract
         {
             return list[0];
         }
-        return "";
-    }
-
-
-    static string GetYiFang(HTMLEngine.MyRootHtmlNode root)
-    {
-        var Extractor = new ExtractProperty();
-        //这些关键字后面
-        Extractor.LeadingWordList = new string[] { "供应商名称：" };
-        Extractor.Extract(root);
-        foreach (var item in Extractor.CandidateWord)
-        {
-            Program.Logger.WriteLine("甲方候补词(关键字)：[" + item + "]");
-            return item.Trim();
-        }
-        //乙方:"有限公司"
-
-        Extractor = new ExtractProperty();
-        //这些关键字后面
-        Extractor.TrailingWordList = new string[] { "有限公司董事会" };
-        Extractor.Extract(root);
-        Extractor.CandidateWord.Reverse();
-        foreach (var item in Extractor.CandidateWord)
-        {
-            //如果有子公司的话，优先使用子公司
-            foreach (var c in companynamelist)
-            {
-                if (c.isSubCompany) return c.secFullName;
-            }
-            Program.Logger.WriteLine("乙方候补词(关键字)：[" + item + "有限公司]");
-            return item.Trim() + "有限公司";
-        }
-
-        if (companynamelist.Count > 0)
-        {
-            return companynamelist[companynamelist.Count - 1].secFullName;
-        }
-
         return "";
     }
 

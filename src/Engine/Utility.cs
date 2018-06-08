@@ -59,6 +59,7 @@ public static class Utility
     //将大写数字转小写（非金额数字）
     public static string ConvertUpperDateToLittle(string OrgString)
     {
+        if (String.IsNullOrEmpty(OrgString)) return "";
         //二○一二年十一月三十日
 
         OrgString = OrgString.Replace("二十一", "21");

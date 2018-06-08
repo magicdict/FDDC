@@ -11,10 +11,10 @@ public static class TableHeaderTraning
     //定增对象
     public static void TrainingIncreaseTarget()
     {
-        Traning.InitIncreaseStock();
+        TraningDataset.InitIncreaseStock();
         var PreviewId = "";
         var PreviewRoot = new HTMLEngine.MyRootHtmlNode();
-        foreach (var increase in Traning.IncreaseStockList)
+        foreach (var increase in TraningDataset.IncreaseStockList)
         {
             if (PreviewId.Equals(increase.id))
             {
@@ -38,7 +38,7 @@ public static class TableHeaderTraning
         }
     }
 
-
+    //寻找同时含有关键字的列的表头
     public static void Training(HTMLEngine.MyRootHtmlNode root, string KeyWord)
     {
         foreach (var Table in root.TableList)
@@ -61,6 +61,7 @@ public static class TableHeaderTraning
                             TitleList[title]++;
                         }
                     }
+
                 }
             }
 

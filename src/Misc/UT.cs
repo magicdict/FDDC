@@ -49,19 +49,19 @@ public static class UT
     public static void RunWordAnlayze()
     {
         var root = HTMLEngine.Anlayze(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1044779.html");
-        var Contract = Traning.GetContractById("1044779")[0];
+        var Contract = TraningDataset.GetContractById("1044779")[0];
         WordAnlayze.Anlayze(root, Contract.ProjectName);
 
         root = HTMLEngine.Anlayze(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1450.html");
-        Contract = Traning.GetContractById("1450")[0];
+        Contract = TraningDataset.GetContractById("1450")[0];
         WordAnlayze.Anlayze(root, Contract.ProjectName);
 
         root = HTMLEngine.Anlayze(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1042224.html");
-        Contract = Traning.GetContractById("1042224")[0];
+        Contract = TraningDataset.GetContractById("1042224")[0];
         WordAnlayze.Anlayze(root, Contract.ProjectName);
 
         root = HTMLEngine.Anlayze(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\917362.html");
-        Contract = Traning.GetContractById("917362")[0];
+        Contract = TraningDataset.GetContractById("917362")[0];
         WordAnlayze.Anlayze(root, Contract.ProjectName);
 
     }
