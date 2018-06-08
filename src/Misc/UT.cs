@@ -50,19 +50,19 @@ public static class UT
     {
         var root = HTMLEngine.Anlayze(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1044779.html");
         var Contract = TraningDataset.GetContractById("1044779")[0];
-        WordAnlayze.Anlayze(root, Contract.ProjectName);
+        EntityWordAnlayzeTool.AnlayzeEntitySurroundWords(root, Contract.ProjectName);
 
         root = HTMLEngine.Anlayze(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1450.html");
         Contract = TraningDataset.GetContractById("1450")[0];
-        WordAnlayze.Anlayze(root, Contract.ProjectName);
+        EntityWordAnlayzeTool.AnlayzeEntitySurroundWords(root, Contract.ProjectName);
 
         root = HTMLEngine.Anlayze(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1042224.html");
         Contract = TraningDataset.GetContractById("1042224")[0];
-        WordAnlayze.Anlayze(root, Contract.ProjectName);
+        EntityWordAnlayzeTool.AnlayzeEntitySurroundWords(root, Contract.ProjectName);
 
         root = HTMLEngine.Anlayze(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\917362.html");
         Contract = TraningDataset.GetContractById("917362")[0];
-        WordAnlayze.Anlayze(root, Contract.ProjectName);
+        EntityWordAnlayzeTool.AnlayzeEntitySurroundWords(root, Contract.ProjectName);
 
     }
 
@@ -72,6 +72,8 @@ public static class UT
         StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20526193.html");
         StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20596890.html");
         StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\1018217.html");
+        StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\314146.html");
+
     }
 
     public static void IncreaseStockTest()
@@ -81,6 +83,7 @@ public static class UT
 
     public static void ContractTest()
     {
+        Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1008828.html");
         Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\3620.html");
         Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1518.html");
         Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1120707.html");
@@ -110,13 +113,13 @@ public static class UT
 
 
         var d0 = "宏润建设集团股份有限公司(以下简称“公司”)于2014年1月7日收到西安市建设工程中标通知书，“西安市地铁四号线工程（航天东路站—北客站）土建施工D4TJSG-5标”项目由公司中标承建，工程中标价49,290万元。";
-        var x0 = RegularTool.GetMultiValueBetweenMark(d0,"“","”");
+        var x0 = RegularTool.GetMultiValueBetweenMark(d0, "“", "”");
 
         var d1 = RegularTool.GetDate("河北先河环保科技股份有限公司董事会二○一二年十一月三十日");
         Console.WriteLine(d1);
 
         var d2 = "公司第五届董事会第七次会议审议通过了《关于公司与神华铁路货车运输有限责任公司签订企业自用货车购置供货合同的议案》，2014年1月20日，公司与神华铁路货车运输有限责任公司签署了《企业自用货车购置供货合同》。";
-        var x2 = RegularTool.GetValueBetweenString(d2,"与","签订");
+        var x2 = RegularTool.GetValueBetweenString(d2, "与", "签订");
 
         var s0 = "2010年12月3日，中工国际工程股份有限公司与委内瑞拉农业土地部下属的委内瑞拉农业公司签署了委内瑞拉农副产品加工设备制造厂工业园项目商务合同，与委内瑞拉农签署了委内瑞拉奥里合同。";
         var x = RegularTool.GetMultiValueBetweenString(s0, "与", "签署");

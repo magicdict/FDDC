@@ -15,10 +15,11 @@ namespace FDDC
         public static StreamWriter Training = new StreamWriter("Training.log");
         public static StreamWriter Logger = new StreamWriter("Log.log");
         public static StreamWriter Score = new StreamWriter(@"Result\Score\score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
-
         public static String DocBase = @"E:\FDDC";
         static void Main(string[] args)
         {
+            //生成PDF的TXT文件的批处理命令
+            //PDFToTXT.GetBatchFile();    
             //初始化   
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             BussinessLogic.LoadCompanyName(@"Resources\FDDC_announcements_company_name_20180531.json");
@@ -26,7 +27,7 @@ namespace FDDC
             TraningDataset.InitStockChange();
             TraningDataset.InitIncreaseStock();
             Train();
-            //Extract();
+            Extract();
             Logger.Close();
             Score.Close();
             Training.Close();
@@ -162,8 +163,6 @@ namespace FDDC
         private static void Train()
         {
             ContractTraning.Train();
-            //生成PDF的TXT文件的批处理命令
-            //PDFToTXT.GetBatchFile();    
             //系统分析
             //WordAnlayze.TraningByWordAnlyaze();
             //PropertyWordAnlayze.EntityWordAnlayze();
@@ -175,9 +174,7 @@ namespace FDDC
             //UT.RegularExpress();
             //UT.JianchengTest();
             //Traning.InitIncreaseStock();
-            //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\314146.html");
             //WordAnlayze.segmenter.LoadUserDict(@"Resources\dictAdjust.txt");
-            //Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1008828.html");
             //Logger.Close();
         }
     }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using FDDC;
 using JiebaNet.Segmenter.PosSeg;
 
@@ -23,9 +24,26 @@ public class ContractTraning
     public static void Train()
     {
         TraningMaxLenth();
-        EntityWordAnlayze();
+        FirstWordAndLength();
+        AnlayzeEntitySurroundWords();
     }
 
+    public static void AnlayzeEntitySurroundWords()
+    {
+        var ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
+        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\html\"))
+        {
+            var fi = new System.IO.FileInfo(filename);
+            var Id = fi.Name.Replace(".html", "");
+            if (TraningDataset.GetContractById(Id).Count == 0) continue;
+            var contract = TraningDataset.GetContractById(Id).First();
+            if (contract.ProjectName == "") continue;
+            var root = HTMLEngine.Anlayze(filename);
+            EntityWordAnlayzeTool.AnlayzeEntitySurroundWords(root, contract.ProjectName);
+        }
+    }
+
+    //最大长度
     static void TraningMaxLenth()
     {
         MaxJiaFangLength = 0;
@@ -79,7 +97,7 @@ public class ContractTraning
         //新建大塔至四眼井铁路吴四圪堵至四眼井段站前工程wssg-1标段
     }
 
-    static void EntityWordAnlayze()
+    static void FirstWordAndLength()
     {
         var posSeg = new PosSegmenter();
         //首单词统计
@@ -87,36 +105,36 @@ public class ContractTraning
         var WordLength = new Dictionary<int, int>();
 
         Program.Training.WriteLine("甲方统计：");
-        PropertyWordAnlayze.Init();
+        EntityWordAnlayzeTool.Init();
         foreach (var contract in TraningDataset.ContractList)
         {
-            PropertyWordAnlayze.PutWord(contract.JiaFang);
+            EntityWordAnlayzeTool.PutFirstAndLengthWord(contract.JiaFang);
         }
-        PropertyWordAnlayze.WriteToLog();
+        EntityWordAnlayzeTool.WriteFirstAndLengthWordToLog();
 
         Program.Training.WriteLine("乙方统计：");
-        PropertyWordAnlayze.Init();
+        EntityWordAnlayzeTool.Init();
         foreach (var contract in TraningDataset.ContractList)
         {
-            PropertyWordAnlayze.PutWord(contract.YiFang);
+            EntityWordAnlayzeTool.PutFirstAndLengthWord(contract.YiFang);
         }
-        PropertyWordAnlayze.WriteToLog();
+        EntityWordAnlayzeTool.WriteFirstAndLengthWordToLog();
 
 
         Program.Training.WriteLine("合同统计：");
-        PropertyWordAnlayze.Init();
+        EntityWordAnlayzeTool.Init();
         foreach (var contract in TraningDataset.ContractList)
         {
-            PropertyWordAnlayze.PutWord(contract.ContractName);
+            EntityWordAnlayzeTool.PutFirstAndLengthWord(contract.ContractName);
         }
-        PropertyWordAnlayze.WriteToLog();
+        EntityWordAnlayzeTool.WriteFirstAndLengthWordToLog();
 
         Program.Training.WriteLine("工程统计：");
-        PropertyWordAnlayze.Init();
+        EntityWordAnlayzeTool.Init();
         foreach (var contract in TraningDataset.ContractList)
         {
-            PropertyWordAnlayze.PutWord(contract.ProjectName);
+            EntityWordAnlayzeTool.PutFirstAndLengthWord(contract.ProjectName);
         }
-        PropertyWordAnlayze.WriteToLog();
+        EntityWordAnlayzeTool.WriteFirstAndLengthWordToLog();
     }
 }
