@@ -115,6 +115,7 @@ public class BussinessLogic
             foreach (var sentence in paragrah.Children)
             {
                 var words = posSeg.Cut(sentence.Content).ToList();
+                var PreviewEndIdx = -1;
                 for (int baseInd = 0; baseInd < words.Count; baseInd++)
                 {
                     var FullName = "";
@@ -122,13 +123,13 @@ public class BussinessLogic
                     var IsSubCompany = false;
                     var StartIdx = -1;
                     if (
-                         words[baseInd].Word == "有限公司" || 
-                        (words[baseInd].Word == "公司" && baseInd != 0 && words[baseInd - 1].Word == "承包")||
+                         words[baseInd].Word == "有限公司" ||
+                        (words[baseInd].Word == "公司" && baseInd != 0 && words[baseInd - 1].Word == "承包") ||
                         (words[baseInd].Word == "有限" && baseInd != words.Count - 1 && words[baseInd + 1].Word == "合伙")
                        )
                     {
                         //是否能够在前面找到地名
-                        for (int NRIdx = baseInd; NRIdx > -1; NRIdx--)
+                        for (int NRIdx = baseInd; NRIdx > PreviewEndIdx; NRIdx--)
                         {
                             //地理
                             if (words[NRIdx].Flag == "ns")
@@ -138,12 +139,13 @@ public class BussinessLogic
                                 {
                                     FullName += words[companyFullNameInd].Word;
                                 }
-                                
+
                                 //承包公司
-                                if (words[baseInd].Word == "公司"){
+                                if (words[baseInd].Word == "公司")
+                                {
                                     //什么都不用做
                                 }
-                                
+
                                 //(有限合伙)
                                 if (words[baseInd].Word == "有限")
                                 {
@@ -156,6 +158,7 @@ public class BussinessLogic
                                     IsSubCompany = true;
                                 }
                                 StartIdx = NRIdx;
+                                PreviewEndIdx = baseInd;
                                 break;  //不要继续寻找地名了
                             }
                         }
@@ -197,7 +200,7 @@ public class BussinessLogic
                                 secFullName = FullName,
                                 secShortName = ShortName,
                                 isSubCompany = IsSubCompany,
-                                paragrahId = paragrah.ParagrahId,
+                                positionId = sentence.PositionId,
                                 WordIdx = StartIdx
                             });
                         }
@@ -224,7 +227,7 @@ public class BussinessLogic
         //是否为子公司
         public bool isSubCompany;
         //段落编号
-        public int paragrahId;
+        public int positionId;
         //词位置
         public int WordIdx;
     }

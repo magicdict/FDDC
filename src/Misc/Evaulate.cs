@@ -3,6 +3,7 @@ using static IncreaseStock;
 using System;
 using static StockChange;
 using static Contract;
+using FDDC;
 
 public static class Evaluate
 {
@@ -103,7 +104,8 @@ public static class Evaluate
         var F1_FreezeYear = GetF1("锁定期", POS_FreezeYear, ACT_FreezeYear, COR_FreezeYear);
         var F1_BuyMethod = GetF1("认购方式", POS_BuyMethod, ACT_BuyMethod, COR_BuyMethod);
         var score = (F1_ID + F1_PublishTarget + F1_IncreaseNumber + F1_IncreaseMoney + F1_FreezeYear + F1_BuyMethod) / 6;
-        Console.WriteLine("定向增发score:" + score);
+        Program.Score.WriteLine("定向增发score:" + score);
+        Program.Score.Flush();
     }
 
     public static void EvaluateStockChange(List<struStockChange> result)
@@ -231,7 +233,9 @@ public static class Evaluate
 
         var score = (F1_ID + F1_HolderFullName + F1_HolderName + F1_ChangeEndDate +
                      F1_ChangePrice + F1_ChangeNumber + F1_HoldNumberAfterChange + F1_HoldPercentAfterChange) / 8;
-        Console.WriteLine("增减持score:" + score);
+        Program.Score.WriteLine("增减持score:" + score);
+        Program.Score.Flush();
+
     }
 
     public static void EvaluateContract(List<struContract> result)
@@ -355,7 +359,9 @@ public static class Evaluate
 
         var score = (F1_ID + F1_JiaFang + F1_YiFang + F1_ProjectName +
         F1_ContractName + F1_ContractMoneyUpLimit + F1_ContractMoneyDownLimit + F1_UnionMember) / 8;
-        Console.WriteLine("合同score:" + score);
+        Program.Score.WriteLine("合同score:" + score);
+        Program.Score.Flush();
+
     }
 
     static double GetF1(String ItemName, double POS, double ACT, double COR)
@@ -367,11 +373,11 @@ public static class Evaluate
         double Precision = COR / ACT;
         double F1 = 2 * Recall * Precision / (Recall + Precision);
         if (POS == 0 || ACT == 0) F1 = 0;
-        Console.WriteLine("Item:" + ItemName);
-        Console.WriteLine("POS:" + POS.ToString());
-        Console.WriteLine("ACT:" + ACT.ToString());
-        Console.WriteLine("COR:" + COR.ToString());
-        Console.WriteLine("F1:" + F1.ToString());
+        Program.Score.WriteLine("Item:" + ItemName);
+        Program.Score.WriteLine("POS:" + POS.ToString());
+        Program.Score.WriteLine("ACT:" + ACT.ToString());
+        Program.Score.WriteLine("COR:" + COR.ToString());
+        Program.Score.WriteLine("F1:" + F1.ToString());
         return F1;
     }
 }

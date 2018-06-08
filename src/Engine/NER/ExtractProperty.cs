@@ -14,7 +14,7 @@ public class ExtractProperty
             {
                 if (contentNode.TableId == -1)
                 {
-                    if (contentNode.Content.IndexOf(KeyWord) != -1) paragrahIdList.Add(paragrah.ParagrahId);
+                    if (contentNode.Content.IndexOf(KeyWord) != -1) paragrahIdList.Add(contentNode.PositionId);
                 }
             }
         }

@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using FDDC;
 using static BussinessLogic;
 using static HTMLEngine;
+using static LocateProperty;
 
 public class Contract
 {
@@ -78,6 +79,12 @@ public class Contract
         return record;
     }
 
+    //公司
+    static List<struCompanyName> companynamelist;
+    //日期
+    static List<LocAndValue> datelist;
+
+    static List<LocAndValue> moneylist;
 
     public static List<struContract> Extract(string htmlFileName)
     {
@@ -87,17 +94,18 @@ public class Contract
         var ContractList = new List<struContract>();
         var fi = new System.IO.FileInfo(htmlFileName);
         Program.Logger.WriteLine("Start FileName:[" + fi.Name + "]");
-        var node = HTMLEngine.Anlayze(htmlFileName);
-        companynamelist = BussinessLogic.GetCompanyNameByCutWord(node);
+        var root = HTMLEngine.Anlayze(htmlFileName);
+        companynamelist = BussinessLogic.GetCompanyNameByCutWord(root);
+        datelist = LocateProperty.LocateDate(root);
+        moneylist = LocateProperty.LocateMoney(root);
 
         var Id = fi.Name.Replace(".html", "");
         Program.Logger.WriteLine("公告ID:" + Id);
         //主合同的抽取
-        ContractList.Add(ExtractSingle(node, Id));
+        ContractList.Add(ExtractSingle(root, Id));
         return ContractList;
     }
 
-    static List<struCompanyName> companynamelist;
 
     static struContract ExtractSingle(MyRootHtmlNode root, String Id)
     {
@@ -140,7 +148,7 @@ public class Contract
         contract.ContractMoneyDownLimit = contract.ContractMoneyUpLimit;
 
         //联合体
-        contract.UnionMember = GetUnionMember(root);
+        contract.UnionMember = GetUnionMember(root, contract.YiFang);
         return contract;
     }
 
@@ -153,6 +161,7 @@ public class Contract
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
+            if (item.Trim().Length > Traning.MaxJiaFangLength) continue;
             Program.Logger.WriteLine("甲方候补词(关键字)：[" + item + "]");
             return item.Trim();
         }
@@ -166,9 +175,10 @@ public class Contract
         foreach (var item in Extractor.CandidateWord)
         {
             var JiaFang = item;
-            JiaFang = JiaFang.Replace("业主", "");
+            JiaFang = JiaFang.Replace("业主", "").Trim();
+            if (JiaFang.Length > Traning.MaxJiaFangLength) continue;
             Program.Logger.WriteLine("甲方候补词(招标)：[" + JiaFang + "]");
-            return JiaFang.Trim();
+            return JiaFang;
         }
 
         //合同
@@ -180,14 +190,13 @@ public class Contract
         foreach (var item in Extractor.CandidateWord)
         {
             var JiaFang = item;
-            JiaFang = JiaFang.Replace("业主", "");
+            JiaFang = JiaFang.Replace("业主", "").Trim();
+            if (JiaFang.Length > Traning.MaxJiaFangLength) continue;
             Program.Logger.WriteLine("甲方候补词(合同)：[" + JiaFang + "]");
-            return JiaFang.Trim();
+            return JiaFang;
         }
         return "";
     }
-
-
 
     static string GetContractName(MyRootHtmlNode root)
     {
@@ -320,32 +329,33 @@ public class Contract
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            Money = Utility.SeekMoney(item, "");
+            Money = Utility.SeekMoney(item);
             Program.Logger.WriteLine("金额候补词：[" + Money + "]");
         }
         return Money;
     }
 
-    static string GetUnionMember(HTMLEngine.MyRootHtmlNode root)
+    static string GetUnionMember(HTMLEngine.MyRootHtmlNode root, String YiFang)
     {
-        var UnionMember = "";
         var paragrahlist = ExtractProperty.FindWordCnt("联合体", root);
         var Union = new List<String>();
         foreach (var paragrahId in paragrahlist)
         {
             foreach (var comp in companynamelist)
             {
-                if (comp.paragrahId == paragrahId)
+                if (comp.positionId == paragrahId)
                 {
-                    if (!Union.Contains(comp.secFullName)) Union.Add(comp.secFullName);
+                    if (!Union.Contains(comp.secFullName))
+                    {
+                        if (!comp.secFullName.Equals(YiFang))
+                        {
+                            Union.Add(comp.secFullName);
+                        }
+                    }
                 }
             }
         }
-        if (Union.Count > 0)
-        {
-            
-        }
-        return UnionMember;
+        return String.Join("、", Union);
     }
 
 }

@@ -92,7 +92,7 @@ public static class PropertyWordAnlayze
         {
             if (dict[key] >= limit)
             {
-                var percent =  (dict[key] * 100 / Total) + "%";
+                var percent = (dict[key] * 100 / Total) + "%";
                 FDDC.Program.Logger.WriteLine(key + "(" + percent + ")");
             }
         }
@@ -102,9 +102,9 @@ public static class PropertyWordAnlayze
     public static void WriteToLog()
     {
         FDDC.Program.Logger.WriteLine("首词词性统计：");
-        FindTop(5,FirstWordPos);
+        FindTop(5, FirstWordPos);
         FDDC.Program.Logger.WriteLine("词长统计：");
-        FindTop(5,WordLength);
+        FindTop(5, WordLength);
     }
 
 }

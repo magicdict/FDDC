@@ -25,17 +25,6 @@ public static class RegularTool
 
    
 
-    //提取《XXX》文字
-    public static string GetValueBetweenMark(string str, string s, string e)
-    {
-        Regex r = new Regex(@"(?<=\" + s + @")(\S+)(?=\" + e + ")");
-        if (r.IsMatch(str))
-        {
-            str = r.Match(str).Value;
-            return str;
-        }
-        return "";
-    }
 
     public static List<string> GetMultiValueBetweenMark(string str, string s, string e)
     {

@@ -101,23 +101,21 @@ public static class Utility
     }
 
     //在某关键字之后寻找表示金额的阿拉伯数字
-    public static string SeekMoney(string OrgString, string KeyWord)
+    public static string SeekMoney(string OrgString)
     {
-        string RemainString = GetStringAfter(OrgString, KeyWord);
-        if (RemainString == "") return "";
         //寻找第一个阿拉伯数字，
         var NumberIndex = -1;
         Regex rex = new Regex(@"^\d+$");
 
-        for (int i = 0; i < RemainString.Length; i++)
+        for (int i = 0; i < OrgString.Length; i++)
         {
-            var s = RemainString.Substring(i, 1);
+            var s = OrgString.Substring(i, 1);
             if (NumberIndex != -1)
             {
                 //数字模式下
                 if (s == "元" || s == "美元" || s == "欧元")
                 {
-                    return RemainString.Substring(NumberIndex, i - NumberIndex) + s;
+                    return OrgString.Substring(NumberIndex, i - NumberIndex) + s;
                 }
                 if (s == "," || s == "万" || rex.IsMatch(s))
                 {

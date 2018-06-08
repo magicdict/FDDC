@@ -26,6 +26,8 @@ public static class Traning
             ContractList.Add(c);
         }
         Console.WriteLine("合同标准结果数:" + ContractList.Count);
+        Console.WriteLine("最大甲方长度:" + Math.Min(50,MaxJiaFangLength));
+        Console.WriteLine("最大乙方长度:" + Math.Min(50,MaxYiFangLength));
         sr.Close();
     }
 
