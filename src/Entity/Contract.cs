@@ -114,12 +114,24 @@ public class Contract
         contract.id = Id;
         //甲方
         contract.JiaFang = GetJiaFang(root);
+
         //暂时不做括号的正规化
         foreach (var trailing in StockChange.CompanyNameTrailingwords)
         {
             if (contract.JiaFang.Contains(trailing))
             {
                 contract.JiaFang = Utility.GetStringBefore(contract.JiaFang, trailing);
+            }
+        }
+
+        var st = contract.JiaFang.IndexOf("（");
+        var ed = contract.JiaFang.IndexOf("）");
+        if (st != -1 && ed != -1)
+        {
+            var InMarkString = contract.JiaFang.Substring(st, ed - st + 1);
+            if (InMarkString.Contains("简称"))
+            {
+                contract.JiaFang = contract.JiaFang.Substring(0, st) + contract.JiaFang.Substring(ed + 1);
             }
         }
 
@@ -157,18 +169,25 @@ public class Contract
     {
         var Extractor = new ExtractProperty();
         //这些关键字后面
-        Extractor.LeadingWordList = new string[] { "发包人：", "招标人：", "业主方：", "业主：", "甲方：", "采购人：", "采购人名称：" };
+        Extractor.LeadingWordList = new string[] { 
+            "甲方：", 
+            "发包人：","发包单位：","发包方：","发包机构：","发包人名称：", 
+            "招标人：","招标单位：","招标方：","招标机构：","招标人名称：",
+            "业主："  ,"业主单位：" ,"业主方：", "业主机构：","业主名称：",
+            "采购单位：","采购人：", "采购人名称：","采购方："
+        };
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
             if (item.Trim().Length > ContractTraning.MaxJiaFangLength) continue;
-            Program.Logger.WriteLine("甲方候补词(关键字)：[" + item + "]");
-            return item.Trim();
+            var JiaFang = item;
+            Program.Logger.WriteLine("甲方候补词(关键字)：[" + JiaFang + "]");
+            return JiaFang;
         }
 
         //招标
         Extractor = new ExtractProperty();
-        var StartArray = new string[] { "业主", "收到", "接到" };
+        var StartArray = new string[] { "招标单位","业主", "收到", "接到" };
         var EndArray = new string[] { "发来", "发出", "的中标" };
         Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
         Extractor.Extract(root);
@@ -202,7 +221,7 @@ public class Contract
         var Extractor = new ExtractProperty();
         //这些关键字后面
         Extractor.LeadingWordList = new string[] { "供应商名称：", "乙方：" };
-        //,"中标单位：","中标人：","乙方（供方）：","承包人：","承包方：","中标方：","供应商名称：","中标人名称："
+        //"中标单位：","中标人：","中标单位：","中标人：","乙方（供方）：","承包人：","承包方：","中标方：","供应商名称：","中标人名称："
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {

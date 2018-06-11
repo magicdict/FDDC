@@ -133,7 +133,7 @@ public class BussinessLogic
                         for (int NRIdx = baseInd; NRIdx > PreviewEndIdx; NRIdx--)
                         {
                             //地理
-                            if (words[NRIdx].Flag == "ns")
+                            if (words[NRIdx].Flag == EntityWordAnlayzeTool.地名)
                             {
                                 FullName = "";
                                 for (int companyFullNameInd = NRIdx; companyFullNameInd <= baseInd; companyFullNameInd++)

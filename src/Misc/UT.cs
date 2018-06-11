@@ -69,20 +69,28 @@ public static class UT
 
     public static void StockChangeTest()
     {
-        StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20526193.html");
-        StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20596890.html");
-        StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\1018217.html");
-        StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\314146.html");
-
     }
 
-    public static void IncreaseStockTest()
+    public static void WordAnlayzeTest()
     {
-        IncreaseStock.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增\html\7880.html");
+
+        var x0 = "在此之前，2003年6月30日，本公司曾与MICROS US和MICROS Singapore（以下简称 “MICROS”）签订了《技术许可与代理协议》，并分别于2005年11月、2006年12月和2007年 10月与MICROS相继签署了第一、二、三次补充协议。";
+        var pos = new JiebaNet.Segmenter.PosSeg.PosSegmenter();
+        var list = pos.Cut(x0);
+        foreach (var word in list)
+        {
+            Console.WriteLine(word.Word + ":" + word.Flag);
+        }
     }
 
     public static void ContractTest()
     {
+        StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20526193.html");
+        StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20596890.html");
+        StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\1018217.html");
+        StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\314146.html");
+        IncreaseStock.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增\html\7880.html");
+
         var x1 = Normalizer.NormalizeItemListNumber("（4）2012 年 4 月，公司与中国华西企业股份");
         var x2 = Normalizer.NormalizeItemListNumber("4 、承包方式： 从深化设计、制作、运输、");
         var x3 = Normalizer.NormalizeItemListNumber("4、承包方式： 从深化设计、制作、运输、");

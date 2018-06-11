@@ -27,6 +27,8 @@ namespace FDDC
             TraningDataset.InitStockChange();
             TraningDataset.InitIncreaseStock();
             ContractTraning.TraningMaxLenth();
+            //UT.WordAnlayzeTest();
+            //return;
             //ContractTraning.AnlayzeEntitySurroundWords();
             //Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1153.html");
             Extract();
@@ -42,12 +44,12 @@ namespace FDDC
             var ContractPath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
             var ContractPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\重大合同";
 
-            var IsRunStockChange = false;
+            var IsRunStockChange = true;
             var IsRunStockChange_TEST = false;
             var StockChangePath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持";
             var StockChangePath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\增减持";
 
-            var IsRunIncreaseStock = false;
+            var IsRunIncreaseStock = true;
             var IsRunIncreaseStock_TEST = false;
             var IncreaseStockPath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增";
             var IncreaseStockPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增";
@@ -93,7 +95,7 @@ namespace FDDC
             {
                 //增减持
                 Console.WriteLine("Start To Extract Info StockChange TRAIN");
-                StreamWriter ResultCSV = new StreamWriter("Result\\zengjianchi_Train.csv", false, Encoding.GetEncoding("gb2312"));
+                StreamWriter ResultCSV = new StreamWriter("Result\\zengjianchi_train.csv", false, Encoding.GetEncoding("gb2312"));
                 ResultCSV.WriteLine("公告id,股东全称,股东简称,变动截止日期,变动价格,变动数量,变动后持股数,变动后持股比例");
                 var StockChange_Result = new List<struStockChange>();
                 foreach (var filename in System.IO.Directory.GetFiles(StockChangePath_TRAIN + @"\html\"))

@@ -8,6 +8,11 @@ using System.Linq;
 using System.Text;
 public static class EntityWordAnlayzeTool
 {
+
+    public const string 地名 = "ns";
+    public const string 副词 = "d";
+    public const string 了 = "ul";
+
     static PosSegmenter posSeg = new PosSegmenter();
     //甲方乙方首单词统计
     static Dictionary<String, int> FirstWordPos = new Dictionary<String, int>();

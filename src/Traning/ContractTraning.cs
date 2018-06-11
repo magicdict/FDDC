@@ -33,16 +33,16 @@ public class ContractTraning
     public static void AnlayzeEntitySurroundWords()
     {
         var ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
-        Console.WriteLine("前导词：YiFang");
+        Console.WriteLine("前导词：甲方");
         foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\html\"))
         {
             var fi = new System.IO.FileInfo(filename);
             var Id = fi.Name.Replace(".html", "");
             if (TraningDataset.GetContractById(Id).Count == 0) continue;
             var contract = TraningDataset.GetContractById(Id).First();
-            if (contract.YiFang == "") continue;
+            if (contract.JiaFang == "") continue;
             var root = HTMLEngine.Anlayze(filename);
-            EntityWordAnlayzeTool.AnlayzeEntitySurroundWords(root, contract.YiFang);
+            EntityWordAnlayzeTool.AnlayzeEntitySurroundWords(root, contract.JiaFang);
         }
     }
 
