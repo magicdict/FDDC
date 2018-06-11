@@ -27,10 +27,12 @@ namespace FDDC
             TraningDataset.InitStockChange();
             TraningDataset.InitIncreaseStock();
             ContractTraning.TraningMaxLenth();
-            //UT.WordAnlayzeTest();
-            //return;
+            
+            //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\15486059.html");
             //ContractTraning.AnlayzeEntitySurroundWords();
-            //Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1153.html");
+            UT.WordAnlayzeTest();
+            return;
+
             Extract();
             Logger.Close();
             Score.Close();
@@ -40,17 +42,17 @@ namespace FDDC
         private static void Extract()
         {
             var IsRunContract = true;
-            var IsRunContract_TEST = false;
+            var IsRunContract_TEST = true;
             var ContractPath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
             var ContractPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\重大合同";
 
             var IsRunStockChange = true;
-            var IsRunStockChange_TEST = false;
+            var IsRunStockChange_TEST = true;
             var StockChangePath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持";
             var StockChangePath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\增减持";
 
             var IsRunIncreaseStock = true;
-            var IsRunIncreaseStock_TEST = false;
+            var IsRunIncreaseStock_TEST = true;
             var IncreaseStockPath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增";
             var IncreaseStockPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增";
 

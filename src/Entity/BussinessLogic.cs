@@ -16,7 +16,7 @@ public class BussinessLogic
         //从第一行开始找到  有限公司 有限责任公司, 如果有简称的话Value是简称
         //股票简称：东方电气
         //东方电气股份有限公司董事会
-        var Extractor = new ExtractProperty();
+        var Extractor = new EntityProperty();
         Extractor.LeadingWordList = new string[] { "股票简称", "证券简称" };
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
@@ -53,7 +53,7 @@ public class BussinessLogic
     }
     public static string GetCompanyFullName(HTMLEngine.MyRootHtmlNode root)
     {
-        var Extractor = new ExtractProperty();
+        var Extractor = new EntityProperty();
         Extractor.TrailingWordList = new string[] { "公司董事会" };
         Extractor.Extract(root);
         Extractor.CandidateWord.Reverse();

@@ -73,14 +73,20 @@ public static class UT
 
     public static void WordAnlayzeTest()
     {
-
         var x0 = "在此之前，2003年6月30日，本公司曾与MICROS US和MICROS Singapore（以下简称 “MICROS”）签订了《技术许可与代理协议》，并分别于2005年11月、2006年12月和2007年 10月与MICROS相继签署了第一、二、三次补充协议。";
         var pos = new JiebaNet.Segmenter.PosSeg.PosSegmenter();
         var list = pos.Cut(x0);
         foreach (var word in list)
         {
-            Console.WriteLine(word.Word + ":" + word.Flag);
+            //去除“副词”和“了”之后的句子
+            if (word.Flag != EntityWordAnlayzeTool.了 &&
+                word.Flag != EntityWordAnlayzeTool.副词)
+            {
+                Console.Write(word.Word);
+            }
         }
+        //在此之前，2003年6月30日，本公司曾与MICROS US和MICROS Singapore（以下简称 “MICROS”）签订了《技术许可与代理协议》，并分别于2005年11月、2006年12月和2007年 10月与MICROS相继签署了第一、二、三次补充协议。"
+        //在此之前，2003年6月30日，本公司  与MICROS US和MICROS Singapore（以下简称 “MICROS”）签订  《技术许可与代理协议》，并   于2005年11月、2006年12月和2007年 10月与MICROS    签署  第一、二、三次补充协议。
     }
 
     public static void ContractTest()

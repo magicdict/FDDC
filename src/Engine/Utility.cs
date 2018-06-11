@@ -3,7 +3,7 @@ using System.IO;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using static ExtractProperty;
+using static EntityProperty;
 
 public static class Utility
 {

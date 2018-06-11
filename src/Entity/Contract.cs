@@ -167,7 +167,7 @@ public class Contract
 
     static string GetJiaFang(MyRootHtmlNode root)
     {
-        var Extractor = new ExtractProperty();
+        var Extractor = new EntityProperty();
         //这些关键字后面
         Extractor.LeadingWordList = new string[] { 
             "甲方：", 
@@ -186,7 +186,7 @@ public class Contract
         }
 
         //招标
-        Extractor = new ExtractProperty();
+        Extractor = new EntityProperty();
         var StartArray = new string[] { "招标单位","业主", "收到", "接到" };
         var EndArray = new string[] { "发来", "发出", "的中标" };
         Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
@@ -201,7 +201,7 @@ public class Contract
         }
 
         //合同
-        Extractor = new ExtractProperty();
+        Extractor = new EntityProperty();
         StartArray = new string[] { "与", "与业主" };
         EndArray = new string[] { "签署", "签订" };
         Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
@@ -218,7 +218,7 @@ public class Contract
     }
     static string GetYiFang(HTMLEngine.MyRootHtmlNode root)
     {
-        var Extractor = new ExtractProperty();
+        var Extractor = new EntityProperty();
         //这些关键字后面
         Extractor.LeadingWordList = new string[] { "供应商名称：", "乙方：" };
         //"中标单位：","中标人：","中标单位：","中标人：","乙方（供方）：","承包人：","承包方：","中标方：","供应商名称：","中标人名称："
@@ -230,7 +230,7 @@ public class Contract
         }
 
         //乙方:"有限公司"
-        Extractor = new ExtractProperty();
+        Extractor = new EntityProperty();
         //这些关键字后面
         Extractor.TrailingWordList = new string[] { "有限公司董事会" };
         Extractor.Extract(root);
@@ -255,19 +255,19 @@ public class Contract
     }
     static string GetContractName(MyRootHtmlNode root)
     {
-        var Extractor = new ExtractProperty();
-        var MarkFeature = new ExtractProperty.struMarkFeature();
+        var Extractor = new EntityProperty();
+        var MarkFeature = new EntityProperty.struMarkFeature();
         MarkFeature.MarkStartWith = "《";
         MarkFeature.MarkEndWith = "》";
         MarkFeature.InnerEndWith = "合同";
 
-        var MarkFeatureConfirm = new ExtractProperty.struMarkFeature();
+        var MarkFeatureConfirm = new EntityProperty.struMarkFeature();
         MarkFeatureConfirm.MarkStartWith = "《";
         MarkFeatureConfirm.MarkEndWith = "》";
         MarkFeatureConfirm.InnerEndWith = "确认书";
 
 
-        Extractor.MarkFeature = new ExtractProperty.struMarkFeature[] { MarkFeature, MarkFeatureConfirm };
+        Extractor.MarkFeature = new EntityProperty.struMarkFeature[] { MarkFeature, MarkFeatureConfirm };
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
@@ -275,7 +275,7 @@ public class Contract
             return item.Trim();
         }
 
-        Extractor = new ExtractProperty();
+        Extractor = new EntityProperty();
         //这些关键字后面
         Extractor.LeadingWordList = new string[] { "合同名称：" };
         Extractor.Extract(root);
@@ -286,7 +286,7 @@ public class Contract
         }
 
         //合同
-        Extractor = new ExtractProperty();
+        Extractor = new EntityProperty();
         var StartArray = new string[] { "签署了" };
         var EndArray = new string[] { "合同" };
         Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
@@ -301,7 +301,7 @@ public class Contract
 
     static string GetProjectName(MyRootHtmlNode root)
     {
-        var Extractor = new ExtractProperty();
+        var Extractor = new EntityProperty();
         //这些关键字后面
         Extractor.LeadingWordList = new string[] { "项目名称：", "工程名称：", "中标项目：", "合同标的：", "工程内容：" };
         Extractor.Extract(root);
@@ -311,17 +311,17 @@ public class Contract
             return item.Trim();
         }
 
-        var MarkFeature = new ExtractProperty.struMarkFeature();
+        var MarkFeature = new EntityProperty.struMarkFeature();
         MarkFeature.MarkStartWith = "“";
         MarkFeature.MarkEndWith = "”";
         MarkFeature.InnerEndWith = "标段";
 
-        var MarkFeatureConfirm = new ExtractProperty.struMarkFeature();
+        var MarkFeatureConfirm = new EntityProperty.struMarkFeature();
         MarkFeatureConfirm.MarkStartWith = "“";
         MarkFeatureConfirm.MarkEndWith = "”";
         MarkFeatureConfirm.InnerEndWith = "标";
 
-        Extractor.MarkFeature = new ExtractProperty.struMarkFeature[] { MarkFeature, MarkFeatureConfirm };
+        Extractor.MarkFeature = new EntityProperty.struMarkFeature[] { MarkFeature, MarkFeatureConfirm };
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
@@ -340,7 +340,7 @@ public class Contract
     static string GetMoney(HTMLEngine.MyRootHtmlNode root)
     {
         var Money = "";
-        var Extractor = new ExtractProperty();
+        var Extractor = new EntityProperty();
         //这些关键字后面
         Extractor.LeadingWordList = new string[] { "中标金额", "中标价", "合同金额", "合同总价", "订单总金额" };
         Extractor.Extract(root);
@@ -354,7 +354,7 @@ public class Contract
 
     static string GetUnionMember(HTMLEngine.MyRootHtmlNode root, String YiFang)
     {
-        var paragrahlist = ExtractProperty.FindWordCnt("联合体", root);
+        var paragrahlist = EntityProperty.FindWordCnt("联合体", root);
         var Union = new List<String>();
         foreach (var paragrahId in paragrahlist)
         {

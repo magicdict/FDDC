@@ -97,7 +97,15 @@ public class StockChange
         Program.Logger.WriteLine("Start FileName:[" + fi.Name + "]");
         var node = HTMLEngine.Anlayze(htmlFileName);
         companynamelist = BussinessLogic.GetCompanyNameByCutWord(node);
-
+        var Name = NormalizeCompanyName(GetHolderFullName(node));
+        if (!String.IsNullOrEmpty(Name.Item1) && !String.IsNullOrEmpty(Name.Item2))
+        {
+            companynamelist.Add(new struCompanyName()
+            {
+                secFullName = Name.Item1,
+                secShortName = Name.Item2
+            });
+        }
         list = ExtractFromTable(node, fi.Name.Replace(".html", ""));
         if (list.Count > 0) return list;
 
@@ -105,7 +113,7 @@ public class StockChange
         //公告ID
         stockchange.id = fi.Name.Replace(".html", "");
         Program.Logger.WriteLine("公告ID:" + stockchange.id);
-        var Name = NormalizeCompanyName(GetHolderFullName(node));
+
         stockchange.HolderFullName = Name.Item1;
         stockchange.HolderShortName = Name.Item2;
         stockchange.ChangeEndDate = GetChangeEndDate(node);
@@ -179,10 +187,34 @@ public class StockChange
                     break;
                 }
             }
+            //基本上所有的有效记录都有股东名和截至日期，所以，这里这么做，可能对于极少数没有截至日期的数据有伤害，但是对于整体指标来说是好的
+            if (string.IsNullOrEmpty(stockchange.HolderFullName) || string.IsNullOrEmpty(stockchange.ChangeEndDate)) continue;
             stockchangelist.Add(stockchange);
         }
-        return stockchangelist;
 
+        //合并记录
+        for (int i = 0; i < stockchangelist.Count; i++)
+        {
+            var x = stockchangelist[i];
+            for (int j = i + 1; j < stockchangelist.Count; j++)
+            {
+                var y = stockchangelist[j];
+                if (x.GetKey() == y.GetKey())
+                {
+                    if (string.IsNullOrEmpty(x.HoldNumberAfterChange) &&
+                        !string.IsNullOrEmpty(y.HoldNumberAfterChange))
+                    {
+                        x.id = "";
+                    }
+                    if (!string.IsNullOrEmpty(x.HoldNumberAfterChange) &&
+                        string.IsNullOrEmpty(y.HoldNumberAfterChange))
+                    {
+                        y.id = "";
+                    }
+                }
+            }
+        }
+        return stockchangelist.Where((x) => { return !String.IsNullOrEmpty(x.id); }).ToList();
     }
     struct struHoldAfter
     {
@@ -200,7 +232,7 @@ public class StockChange
         foreach (var table in root.TableList)
         {
             var mt = new HTMLTable(table.Value);
-            for (int RowIdx = 0; RowIdx < mt.ColumnCount; RowIdx++)
+            for (int RowIdx = 0; RowIdx < mt.RowCount; RowIdx++)
             {
                 for (int ColIdx = 0; ColIdx < mt.ColumnCount; ColIdx++)
                 {
@@ -210,6 +242,7 @@ public class StockChange
                         Regex r = new Regex(@"\d+\.?\d*");
 
                         var strHolderCnt = mt.CellValue(RowIdx + 1, 5);
+                        strHolderCnt = Normalizer.NormalizeNumberResult(strHolderCnt);
                         var HolderCnt = "";
                         if (!String.IsNullOrEmpty(r.Match(strHolderCnt).Value))
                         {
@@ -240,15 +273,18 @@ public class StockChange
 
     static string GetHolderFullName(HTMLEngine.MyRootHtmlNode root)
     {
-        var Extractor = new ExtractProperty();
+        var Extractor = new EntityProperty();
         var StartArray = new string[] { "接到", "收到", "股东" };
         var EndArray = new string[] { "的", "通知", "告知函", "减持", "增持", "《" };
         Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
         Extractor.Extract(root);
         foreach (var word in Extractor.CandidateWord)
         {
-            if (word.Contains("简称")) return word;
-            Program.Logger.WriteLine("候补股东全称修正：[" + word + "]");
+            if (word.Contains("简称"))
+            {
+                Program.Logger.WriteLine("候补股东全称修正：[" + word + "]");
+                return word;
+            }
         }
         if (Extractor.CandidateWord.Count > 0) return Extractor.CandidateWord[0];
         return "";
@@ -265,6 +301,7 @@ public class StockChange
             var shortname = "";
             var StdIdx = word.IndexOf("“");
             var EndIdx = word.IndexOf("”");
+            if (EndIdx < StdIdx) return Tuple.Create("", ""); 
             if (StdIdx != -1 && EndIdx != -1)
             {
                 shortname = word.Substring(StdIdx + 1, EndIdx - StdIdx - 1);
@@ -320,7 +357,7 @@ public class StockChange
     //变动截止日期
     static string GetChangeEndDate(HTMLEngine.MyRootHtmlNode root)
     {
-        var Extractor = new ExtractProperty();
+        var Extractor = new EntityProperty();
         var StartArray = new string[] { "截止", "截至" };
         var EndArray = new string[] { "日" };
         Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);

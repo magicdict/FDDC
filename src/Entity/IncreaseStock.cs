@@ -89,7 +89,8 @@ public class IncreaseStock
     }
 
 
-    static List<struIncreaseStock> GetMultiTarget(HTMLEngine.MyRootHtmlNode root, struIncreaseStock SampleincreaseStock)
+    static List<struIncreaseStock> GetMultiTarget(HTMLEngine.MyRootHtmlNode root, 
+                                                  struIncreaseStock SampleincreaseStock)
     {
         var BuyerRule = new TableSearchRule();
         BuyerRule.Name = "认购对象";
@@ -128,15 +129,10 @@ public class IncreaseStock
             increase.id = SampleincreaseStock.id;
             increase.BuyMethod = SampleincreaseStock.BuyMethod;
             increase.PublishTarget = item[0].RawData;
-
+            if (String.IsNullOrEmpty(increase.PublishTarget)) continue;
             increase.IncreaseNumber = item[1].RawData;
             increase.IncreaseMoney = item[2].RawData;
             increase.FreezeYear = item[3].RawData;
-            /*
-            if (String.IsNullOrEmpty(increase.IncreaseNumber) &&
-                String.IsNullOrEmpty(increase.IncreaseMoney) &&
-                String.IsNullOrEmpty(increase.FreezeYear)) continue;
-            */    
             increaseStocklist.Add(increase);
         }
         return increaseStocklist;
@@ -165,7 +161,7 @@ public class IncreaseStock
     static string getBuyMethod(HTMLEngine.MyRootHtmlNode root)
     {
         //是否包含关键字 "现金认购"
-        var cnt = ExtractProperty.FindWordCnt("现金认购", root).Count;
+        var cnt = EntityProperty.FindWordCnt("现金认购", root).Count;
         Program.Logger.WriteLine("现金认购(文本):" + cnt);
         if (cnt > 0) return "现金";
         return "";
