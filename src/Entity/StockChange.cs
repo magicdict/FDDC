@@ -37,7 +37,7 @@ public class StockChange
 
         public string GetKey()
         {
-            return id + ":" + HolderFullName.NormalizeTextResult() + ":" + ChangeEndDate;
+            return id + ":" + HolderFullName.NormalizeKey() + ":" + ChangeEndDate;
         }
 
     }

@@ -29,7 +29,7 @@ public class IncreaseStock
         public string BuyMethod;
         public string GetKey()
         {
-            return id + ":" + PublishTarget.NormalizeTextResult();
+            return id + ":" + PublishTarget.NormalizeKey();
         }
     }
 

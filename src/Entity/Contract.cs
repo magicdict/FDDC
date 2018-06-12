@@ -37,7 +37,7 @@ public class Contract
         public string GetKey()
         {
             //去空格转小写
-            return id + ":" + JiaFang.NormalizeTextResult() + ":" + YiFang.NormalizeTextResult();
+            return id + ":" + JiaFang.NormalizeKey() + ":" + YiFang.NormalizeKey();
         }
     }
 
@@ -73,8 +73,8 @@ public class Contract
                      contract.YiFang + "," +
                      contract.ProjectName + "," +
                      contract.ContractName + ",";
-        record += Normalizer.NormalizeNumberResult(contract.ContractMoneyUpLimit) + ",";
-        record += Normalizer.NormalizeNumberResult(contract.ContractMoneyDownLimit) + ",";
+        record += contract.ContractMoneyUpLimit + ",";
+        record += contract.ContractMoneyDownLimit + ",";
         record += contract.UnionMember;
         return record;
     }
@@ -115,6 +115,7 @@ public class Contract
         //甲方
         contract.JiaFang = GetJiaFang(root);
         contract.JiaFang = AfterProcessJiaFang(contract.JiaFang);
+        contract.JiaFang = contract.JiaFang.NormalizeTextResult();
 
         //乙方
         contract.YiFang = GetYiFang(root);
@@ -126,15 +127,20 @@ public class Contract
                 contract.YiFang = Utility.GetStringBefore(contract.YiFang, trailin);
             }
         }
+        contract.YiFang = contract.YiFang.NormalizeTextResult();
 
         //合同
         contract.ContractName = GetContractName(root);
+        contract.ContractName = contract.ContractName.NormalizeTextResult();
+
         //项目
         contract.ProjectName = GetProjectName(root);
         if (contract.ProjectName == "" && contract.ContractName.EndsWith("项目合同"))
         {
             contract.ProjectName = contract.ContractName.Substring(0, contract.ContractName.Length - 2);
         }
+        contract.ProjectName = contract.ProjectName.NormalizeTextResult();
+
 
         //金额
         contract.ContractMoneyUpLimit = Normalizer.NormalizerMoney(GetMoney(root), "");

@@ -19,14 +19,37 @@ public static class Normalizer
 
     public static string NormalizeTextResult(this string orgString)
     {
+        //HTML符号的过滤
+        if (orgString.Contains("&amp;"))
+        {
+            orgString = orgString.Replace("&amp;", "&");
+        }
+        if (orgString.Contains("&nbsp;"))
+        {
+            orgString = orgString.Replace("&nbsp;", " ");
+        }
+        if (orgString.Contains("&lt;"))
+        {
+            orgString = orgString.Replace("&lt;", "<");
+        }
+        if (orgString.Contains("&gt;"))
+        {
+            orgString = orgString.Replace("&gt;", ">");
+        }
+        orgString = orgString.TrimEnd("。".ToCharArray());
+        return orgString;
+    }
+
+    public static string NormalizeKey(this string orgString)
+    {
         if (!String.IsNullOrEmpty(orgString))
         {
-            orgString = orgString.Trim().Replace(" ","").ToLower();
+            orgString = orgString.Trim().Replace(" ", "").ToLower();
         }
         return orgString;
     }
 
-    public static string NormalizeNumberResult(string orgString)
+    public static string NormalizeNumberResult(this string orgString)
     {
         if (!String.IsNullOrEmpty(orgString))
         {
@@ -176,7 +199,8 @@ public static class Normalizer
                 orgString = (x * 100_000_000).ToString();
             }
         }
-        if (orgString.EndsWith(".00")) orgString = orgString.Substring(0,orgString.Length -3);
+        if (orgString.EndsWith(".00")) orgString = orgString.Substring(0, orgString.Length - 3);
+        orgString = orgString.Trim();
         return orgString;
     }
 
@@ -200,7 +224,7 @@ public static class Normalizer
         }
 
         //（1）、 => [4]
-       new Regex(@"\（(\d+)\）、", ops);
+        new Regex(@"\（(\d+)\）、", ops);
         if (r.IsMatch(orgString))
         {
             orgString = r.Replace(orgString, "<$1>");

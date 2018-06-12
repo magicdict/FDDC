@@ -79,8 +79,9 @@ public class BussinessLogic
                 var words = posSeg.Cut(sentence.Content).ToList();
                 for (int baseInd = 0; baseInd < words.Count; baseInd++)
                 {
-                    if (words[baseInd].Word == "标段" || words[baseInd].Word == "标" ||
-                        words[baseInd].Word == "工程" || words[baseInd].Word == "项目")
+                    if (words[baseInd].Word == "标段" || 
+                        words[baseInd].Word == "工程" || 
+                        words[baseInd].Word == "项目")
                     {
                         var projectName = "";
                         //是否能够在前面找到地名

@@ -186,7 +186,7 @@ public static class Evaluate
                     COR_ChangeEndDate++;
                     if (!String.IsNullOrEmpty(stockchange.HolderShortName) &&
                         !String.IsNullOrEmpty(increase_Result.HolderShortName) &&
-                        stockchange.HolderShortName.NormalizeTextResult().Equals(increase_Result.HolderShortName.NormalizeTextResult()))
+                        stockchange.HolderShortName.NormalizeKey().Equals(increase_Result.HolderShortName.NormalizeKey()))
                     {
                         COR_HolderShortName++;
                     }
@@ -314,14 +314,14 @@ public static class Evaluate
                     COR_YiFang++;
                     if (!String.IsNullOrEmpty(contract.ProjectName) &&
                         !String.IsNullOrEmpty(contract_Result.ProjectName) &&
-                        contract.ProjectName.NormalizeTextResult().Equals(contract_Result.ProjectName.NormalizeTextResult()))
+                        contract.ProjectName.NormalizeKey().Equals(contract_Result.ProjectName.NormalizeKey()))
                     {
                         COR_ProjectName++;
                     }
 
                     if (!String.IsNullOrEmpty(contract.ContractName) &&
                         !String.IsNullOrEmpty(contract_Result.ContractName) &&
-                        contract.ContractName.NormalizeTextResult().Equals(contract_Result.ContractName.NormalizeTextResult()))
+                        contract.ContractName.NormalizeKey().Equals(contract_Result.ContractName.NormalizeKey()))
                     {
                         COR_ContractName++;
                     }

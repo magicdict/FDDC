@@ -11,52 +11,102 @@ public static class EntityWordAnlayzeTool
 
     public const string 地名 = "ns";
     public const string 副词 = "d";
-    public const string 了 = "ul";
+    public const string 助词 = "ul";
+    public const string 英语 = "eng";
 
     static PosSegmenter posSeg = new PosSegmenter();
     //甲方乙方首单词统计
-    static Dictionary<String, int> FirstWordPos = new Dictionary<String, int>();
-    static Dictionary<int, int> WordLength = new Dictionary<int, int>();
+    static Dictionary<String, int> FirstWordPosDict = new Dictionary<String, int>();
+    static Dictionary<int, int> WordLengthDict = new Dictionary<int, int>();
+    //词数
+    static Dictionary<int, int> WordCountDict = new Dictionary<int, int>();
+    static Dictionary<String, int> LastWordDict = new Dictionary<String, int>();
+    static Dictionary<String, int> WordFlgsDict = new Dictionary<String, int>();
 
     public static void Init()
     {
-        FirstWordPos.Clear();
-        WordLength.Clear();
+        FirstWordPosDict.Clear();
+        WordLengthDict.Clear();
+        LastWordDict.Clear();
+        WordCountDict.Clear();
+        WordFlgsDict.Clear();
     }
 
-    public static void PutFirstAndLengthWord(string Word)
+    public static void PutEntityWordPerperty(string Word)
     {
         if (String.IsNullOrEmpty(Word)) return;
         var words = posSeg.Cut(Word);
         if (words.Count() > 0)
         {
             var pos = words.First().Flag;
-            if (FirstWordPos.ContainsKey(pos))
+            if (FirstWordPosDict.ContainsKey(pos))
             {
-                FirstWordPos[pos] = FirstWordPos[pos] + 1;
+                FirstWordPosDict[pos] = FirstWordPosDict[pos] + 1;
             }
             else
             {
-                FirstWordPos.Add(pos, 1);
+                FirstWordPosDict.Add(pos, 1);
             }
+
             var wl = Word.Length;
-            if (WordLength.ContainsKey(wl))
+            if (WordLengthDict.ContainsKey(wl))
             {
-                WordLength[wl] = WordLength[wl] + 1;
+                WordLengthDict[wl] = WordLengthDict[wl] + 1;
             }
             else
             {
-                WordLength.Add(wl, 1);
+                WordLengthDict.Add(wl, 1);
             }
+
+            var wc = words.Count();
+            if (WordCountDict.ContainsKey(wc))
+            {
+                WordCountDict[wc] = WordCountDict[wc] + 1;
+            }
+            else
+            {
+                WordCountDict.Add(wc, 1);
+            }
+
+            var lastword = words.Last().Word;
+            if (LastWordDict.ContainsKey(lastword))
+            {
+                LastWordDict[lastword] = LastWordDict[lastword] + 1;
+            }
+            else
+            {
+                LastWordDict.Add(lastword, 1);
+            }
+
+            var wordflgs = "";
+            foreach (var item in words)
+            {
+                wordflgs += item.Flag + "/";
+            }
+            if (WordFlgsDict.ContainsKey(wordflgs))
+            {
+                WordFlgsDict[wordflgs] = WordFlgsDict[wordflgs] + 1;
+            }
+            else
+            {
+                WordFlgsDict.Add(wordflgs, 1);
+            }
+
         }
     }
 
     public static void WriteFirstAndLengthWordToLog()
     {
         Program.Training.WriteLine("首词词性统计：");
-        FindTop(5, FirstWordPos);
+        FindTop(5, FirstWordPosDict);
         Program.Training.WriteLine("词长统计：");
-        FindTop(5, WordLength);
+        FindTop(5, WordLengthDict);
+        Program.Training.WriteLine("词尾统计：");
+        FindTop(5, LastWordDict);
+        Program.Training.WriteLine("分词数统计：");
+        FindTop(5, WordCountDict);
+        Program.Training.WriteLine("词性统计：");
+        FindTop(5, WordFlgsDict);
     }
 
     //寻找Top5
@@ -85,7 +135,7 @@ public static class EntityWordAnlayzeTool
         segmenter.AddWord(KeyWord);
         foreach (var paragrah in root.Children)
         {
-            var segments = segmenter.Cut(paragrah.FullText.NormalizeTextResult()).ToList();  // 默认为精确模式
+            var segments = segmenter.Cut(paragrah.FullText.NormalizeKey()).ToList();  // 默认为精确模式
             //Console.WriteLine("【精确模式】：{0}", string.Join("/ ", segments));
             //寻找关键字的位置
             for (int i = 0; i < segments.Count; i++)
@@ -127,7 +177,7 @@ public static class EntityWordAnlayzeTool
         foreach (var word in list)
         {
             //去除“副词”和“了”之后的句子
-            if (word.Flag != EntityWordAnlayzeTool.了 &&
+            if (word.Flag != EntityWordAnlayzeTool.助词 &&
                 word.Flag != EntityWordAnlayzeTool.副词)
             {
                 MainWordSentence += word.Word;
@@ -136,19 +186,31 @@ public static class EntityWordAnlayzeTool
         return MainWordSentence;
     }
 
-    public static string TrimEnglish(string OrgString){
+    public static string TrimEnglish(string OrgString)
+    {
         var MainWordSentence = "";
         var pos = new JiebaNet.Segmenter.PosSeg.PosSegmenter();
         var list = pos.Cut(OrgString);
         foreach (var word in list)
         {
             //去除“副词”和“了”之后的句子
-            if (word.Flag != "eng")
+            if (word.Flag != 英语)
             {
                 MainWordSentence += word.Word;
             }
         }
         return MainWordSentence;
+    }
+
+
+    public static void ConsoleWritePos(string OrgString)
+    {
+        var pos = new JiebaNet.Segmenter.PosSeg.PosSegmenter();
+        var list = pos.Cut(OrgString);
+        foreach (var item in list)
+        {
+            Console.WriteLine(item.Word + ":" + item.Flag);
+        }
     }
 
 }

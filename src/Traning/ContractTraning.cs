@@ -24,7 +24,7 @@ public class ContractTraning
     public static void Train()
     {
         TraningMaxLenth();
-        FirstWordAndLength();
+        EntityWordPerperty();
         AnlayzeEntitySurroundWords();
     }
 
@@ -105,7 +105,8 @@ public class ContractTraning
         //新建大塔至四眼井铁路吴四圪堵至四眼井段站前工程wssg-1标段
     }
 
-    public static void FirstWordAndLength()
+    //实体自身特性分析
+    public static void EntityWordPerperty()
     {
         var posSeg = new PosSegmenter();
         //首单词统计
@@ -116,7 +117,7 @@ public class ContractTraning
         EntityWordAnlayzeTool.Init();
         foreach (var contract in TraningDataset.ContractList)
         {
-            EntityWordAnlayzeTool.PutFirstAndLengthWord(contract.JiaFang);
+            EntityWordAnlayzeTool.PutEntityWordPerperty(contract.JiaFang);
         }
         EntityWordAnlayzeTool.WriteFirstAndLengthWordToLog();
 
@@ -124,7 +125,7 @@ public class ContractTraning
         EntityWordAnlayzeTool.Init();
         foreach (var contract in TraningDataset.ContractList)
         {
-            EntityWordAnlayzeTool.PutFirstAndLengthWord(contract.YiFang);
+            EntityWordAnlayzeTool.PutEntityWordPerperty(contract.YiFang);
         }
         EntityWordAnlayzeTool.WriteFirstAndLengthWordToLog();
 
@@ -133,7 +134,7 @@ public class ContractTraning
         EntityWordAnlayzeTool.Init();
         foreach (var contract in TraningDataset.ContractList)
         {
-            EntityWordAnlayzeTool.PutFirstAndLengthWord(contract.ContractName);
+            EntityWordAnlayzeTool.PutEntityWordPerperty(contract.ContractName);
         }
         EntityWordAnlayzeTool.WriteFirstAndLengthWordToLog();
 
@@ -141,7 +142,7 @@ public class ContractTraning
         EntityWordAnlayzeTool.Init();
         foreach (var contract in TraningDataset.ContractList)
         {
-            EntityWordAnlayzeTool.PutFirstAndLengthWord(contract.ProjectName);
+            EntityWordAnlayzeTool.PutEntityWordPerperty(contract.ProjectName);
         }
         EntityWordAnlayzeTool.WriteFirstAndLengthWordToLog();
     }

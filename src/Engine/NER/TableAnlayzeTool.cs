@@ -20,7 +20,7 @@ public static class TableAnlayzeTool
                 //从第二行开始
                 for (int ColNo = 1; ColNo < t.ColumnCount; ColNo++)
                 {
-                    if (t.CellValue(RowNo, ColNo).NormalizeTextResult().Equals(KeyWord.NormalizeTextResult()))
+                    if (t.CellValue(RowNo, ColNo).NormalizeKey().Equals(KeyWord.NormalizeKey()))
                     {
                         var title = t.CellValue(1, ColNo);
                         if (!TrainingTitleResult.ContainsKey(title))
