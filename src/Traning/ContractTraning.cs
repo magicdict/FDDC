@@ -55,25 +55,28 @@ public class ContractTraning
         MaxProjectNameLength = 0;
         foreach (var c in TraningDataset.ContractList)
         {
-            if (c.JiaFang.Length > MaxJiaFangLength)
+            var TEJiaFang = EntityWordAnlayzeTool.TrimEnglish(c.JiaFang);
+            if (TEJiaFang.Length > MaxJiaFangLength)
             {
-                MaxJiaFangLength = c.JiaFang.Length;
-                MaxJiaFang = c.JiaFang;
+                MaxJiaFangLength = TEJiaFang.Length;
+                MaxJiaFang = TEJiaFang;
             }
 
-            if (c.YiFang.Length > MaxYiFangLength)
+            var TEYiFang = EntityWordAnlayzeTool.TrimEnglish(c.YiFang);
+            if (TEYiFang.Length > MaxYiFangLength)
             {
-                MaxYiFangLength = c.YiFang.Length;
-                MaxYiFang = c.YiFang;
+                MaxYiFangLength = TEYiFang.Length;
+                MaxYiFang = TEYiFang;
             }
 
             var ContractList = c.ContractName.Split("、");
             foreach (var cn in ContractList)
             {
-                if (cn.Length > MaxContractNameLength)
+                var TEContractName = EntityWordAnlayzeTool.TrimEnglish(cn);
+                if (TEContractName.Length > MaxContractNameLength)
                 {
-                    MaxContractNameLength = cn.Length;
-                    MaxContractName = cn;
+                    MaxContractNameLength = TEContractName.Length;
+                    MaxContractName = TEContractName;
                 }
             }
 
@@ -81,22 +84,23 @@ public class ContractTraning
             foreach (var jn in ProjectNameList)
             {
                 if (jn.Contains(",")) continue;
-                if (jn.Length > MaxContractNameLength)
+                var TEProjectName =  EntityWordAnlayzeTool.TrimEnglish(jn);
+                if (TEProjectName.Length > MaxContractNameLength)
                 {
-                    MaxProjectNameLength = jn.Length;
-                    MaxProjectName = jn;
+                    MaxProjectNameLength = TEProjectName.Length;
+                    MaxProjectName = TEProjectName;
                 }
             }
 
         }
-        Program.Training.WriteLine("最大甲方长度:" + MaxJiaFangLength);
-        Program.Training.WriteLine("最大甲方:" + MaxJiaFang);
-        Program.Training.WriteLine("最大乙方长度:" + MaxYiFangLength);
-        Program.Training.WriteLine("最大乙方:" + MaxYiFang);
-        Program.Training.WriteLine("最大合同长度:" + MaxContractNameLength);
-        Program.Training.WriteLine("最大合同:" + MaxContractName);
-        Program.Training.WriteLine("最大工程长度:" + MaxProjectNameLength);
-        Program.Training.WriteLine("最大工程:" + MaxProjectName);
+        Program.Training.WriteLine("最大甲方(除去英语)长度:" + MaxJiaFangLength);
+        Program.Training.WriteLine("最大甲方(除去英语):" + MaxJiaFang);
+        Program.Training.WriteLine("最大乙方(除去英语)长度:" + MaxYiFangLength);
+        Program.Training.WriteLine("最大乙方(除去英语):" + MaxYiFang);
+        Program.Training.WriteLine("最大合同(除去英语)长度:" + MaxContractNameLength);
+        Program.Training.WriteLine("最大合同(除去英语):" + MaxContractName);
+        Program.Training.WriteLine("最大工程(除去英语)长度:" + MaxProjectNameLength);
+        Program.Training.WriteLine("最大工程(除去英语):" + MaxProjectName);
         //新建北京至石家庄铁路客运专线石家庄枢纽(北京局代建部分)站场工程一个标段
         //新建大塔至四眼井铁路吴四圪堵至四眼井段站前工程wssg-1标段
     }

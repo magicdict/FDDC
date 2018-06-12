@@ -118,4 +118,37 @@ public static class EntityWordAnlayzeTool
             }
         }
     }
+
+    public static string GetMainWordSentence(string OrgString)
+    {
+        var MainWordSentence = "";
+        var pos = new JiebaNet.Segmenter.PosSeg.PosSegmenter();
+        var list = pos.Cut(OrgString);
+        foreach (var word in list)
+        {
+            //去除“副词”和“了”之后的句子
+            if (word.Flag != EntityWordAnlayzeTool.了 &&
+                word.Flag != EntityWordAnlayzeTool.副词)
+            {
+                MainWordSentence += word.Word;
+            }
+        }
+        return MainWordSentence;
+    }
+
+    public static string TrimEnglish(string OrgString){
+        var MainWordSentence = "";
+        var pos = new JiebaNet.Segmenter.PosSeg.PosSegmenter();
+        var list = pos.Cut(OrgString);
+        foreach (var word in list)
+        {
+            //去除“副词”和“了”之后的句子
+            if (word.Flag != "eng")
+            {
+                MainWordSentence += word.Word;
+            }
+        }
+        return MainWordSentence;
+    }
+
 }

@@ -27,12 +27,7 @@ namespace FDDC
             TraningDataset.InitStockChange();
             TraningDataset.InitIncreaseStock();
             ContractTraning.TraningMaxLenth();
-            
-            //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\15486059.html");
-            //ContractTraning.AnlayzeEntitySurroundWords();
-            UT.WordAnlayzeTest();
-            return;
-
+            UT();
             Extract();
             Logger.Close();
             Score.Close();
@@ -42,17 +37,17 @@ namespace FDDC
         private static void Extract()
         {
             var IsRunContract = true;
-            var IsRunContract_TEST = true;
+            var IsRunContract_TEST = false;
             var ContractPath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
             var ContractPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\重大合同";
 
-            var IsRunStockChange = true;
-            var IsRunStockChange_TEST = true;
+            var IsRunStockChange = false;
+            var IsRunStockChange_TEST = false;
             var StockChangePath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持";
             var StockChangePath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\增减持";
 
-            var IsRunIncreaseStock = true;
-            var IsRunIncreaseStock_TEST = true;
+            var IsRunIncreaseStock = false;
+            var IsRunIncreaseStock_TEST = false;
             var IncreaseStockPath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增";
             var IncreaseStockPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增";
 
@@ -166,8 +161,13 @@ namespace FDDC
             }
         }
 
-        private static void Train()
+        private static void UT()
         {
+            Console.WriteLine(EntityWordAnlayzeTool.TrimEnglish("CNOOC Iraq Limited（中海油伊拉克有限公司）"));
+            Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1106342.html");
+            //ContractTraning.AnlayzeEntitySurroundWords();
+            //UT.WordAnlayzeTest();
+            //return;
             //ContractTraning.Train();
             //系统分析
             //WordAnlayze.TraningByWordAnlyaze();
