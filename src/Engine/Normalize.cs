@@ -37,6 +37,7 @@ public static class Normalizer
             orgString = orgString.Replace("&gt;", ">");
         }
         orgString = orgString.TrimEnd("。".ToCharArray());
+        orgString = orgString.TrimEnd("；".ToCharArray());
         return orgString;
     }
 
