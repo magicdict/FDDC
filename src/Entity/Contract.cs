@@ -96,6 +96,11 @@ public class Contract
         Program.Logger.WriteLine("Start FileName:[" + fi.Name + "]");
         var root = HTMLEngine.Anlayze(htmlFileName);
         companynamelist = BussinessLogic.GetCompanyNameByCutWord(root);
+        foreach (var cn in companynamelist)
+        {
+            Program.Logger.WriteLine("公司名称：" + cn.secFullName);
+            Program.Logger.WriteLine("公司简称：" + cn.secShortName);
+        }
         datelist = LocateProperty.LocateDate(root);
         moneylist = LocateProperty.LocateMoney(root);
 

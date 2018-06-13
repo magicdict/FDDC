@@ -106,6 +106,14 @@ public class BussinessLogic
         return namelist;
     }
 
+    public static bool IsCompanyName(String companyName){
+         var posSeg = new PosSegmenter();
+         var list = posSeg.Cut(companyName);
+         var IsStartWithNS = list.First().Flag == EntityWordAnlayzeTool.地名;
+         var IsEndWithNS = companyName.EndsWith("有限公司");
+         var IsRange = companyName.Length <= ContractTraning.MaxJiaFangLength; 
+         return IsStartWithNS && IsEndWithNS && IsRange;
+    }
 
     public static List<struCompanyName> GetCompanyNameByCutWord(HTMLEngine.MyRootHtmlNode root)
     {

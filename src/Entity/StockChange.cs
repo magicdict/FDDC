@@ -95,9 +95,14 @@ public class StockChange
         var list = new List<struStockChange>();
         var fi = new System.IO.FileInfo(htmlFileName);
         Program.Logger.WriteLine("Start FileName:[" + fi.Name + "]");
-        var node = HTMLEngine.Anlayze(htmlFileName);
-        companynamelist = BussinessLogic.GetCompanyNameByCutWord(node);
-        var Name = NormalizeCompanyName(GetHolderFullName(node));
+        var root = HTMLEngine.Anlayze(htmlFileName);
+        companynamelist = BussinessLogic.GetCompanyNameByCutWord(root);
+        foreach (var cn in companynamelist)
+        {
+            Program.Logger.WriteLine("公司名称：" + cn.secFullName);
+            Program.Logger.WriteLine("公司简称：" + cn.secShortName);
+        }
+        var Name = GetHolderName(root);
         if (!String.IsNullOrEmpty(Name.Item1) && !String.IsNullOrEmpty(Name.Item2))
         {
             companynamelist.Add(new struCompanyName()
@@ -106,7 +111,7 @@ public class StockChange
                 secShortName = Name.Item2
             });
         }
-        list = ExtractFromTable(node, fi.Name.Replace(".html", ""));
+        list = ExtractFromTable(root, fi.Name.Replace(".html", ""));
         if (list.Count > 0) return list;
 
         var stockchange = new struStockChange();
@@ -116,7 +121,7 @@ public class StockChange
 
         stockchange.HolderFullName = Name.Item1;
         stockchange.HolderShortName = Name.Item2;
-        stockchange.ChangeEndDate = GetChangeEndDate(node);
+        stockchange.ChangeEndDate = GetChangeEndDate(root);
         list.Add(stockchange);
         return list;
     }
@@ -268,7 +273,7 @@ public class StockChange
         return HoldList;
     }
 
-    static string GetHolderFullName(HTMLEngine.MyRootHtmlNode root)
+    static Tuple<String, String> GetHolderName(HTMLEngine.MyRootHtmlNode root)
     {
         var Extractor = new EntityProperty();
         var StartArray = new string[] { "接到", "收到", "股东" };
@@ -277,14 +282,13 @@ public class StockChange
         Extractor.Extract(root);
         foreach (var word in Extractor.CandidateWord)
         {
-            if (word.Contains("简称"))
+            var name = NormalizeCompanyName(word);
+            if (BussinessLogic.IsCompanyName(name.Item1))
             {
-                Program.Logger.WriteLine("候补股东全称修正：[" + word + "]");
-                return word;
+                return name;
             }
         }
-        if (Extractor.CandidateWord.Count > 0) return Extractor.CandidateWord[0];
-        return "";
+        return Tuple.Create("", "");
     }
 
     public static string[] CompanyNameTrailingwords = new string[] { "（以下简称", "（下称", "（以下称", "（简称", "(以下简称", "(下称", "(以下称", "(简称" };
@@ -338,6 +342,14 @@ public class StockChange
                     fullname = companyname.secFullName;
                     shortname = companyname.secShortName;
                     break;
+                }
+                //如果进来的是简称，而提取的公司信息里面，只有全称，这里简单推断一下
+                //简称和全称的关系
+                if (companyname.secFullName.Contains(fullname) &&
+                    companyname.secFullName.Length > fullname.Length)
+                {
+                    fullname = companyname.secFullName;
+                    shortname = word;
                 }
             }
 

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using FDDC;
 using static HTMLTable;
 using static HTMLEngine;
+using static BussinessLogic;
 
 public class IncreaseStock
 {
@@ -69,12 +70,20 @@ public class IncreaseStock
         increaseStock.BuyMethod;
         return record;
     }
+    //公司
+    static List<struCompanyName> companynamelist;
 
     public static List<struIncreaseStock> Extract(string htmlFileName)
     {
         var fi = new System.IO.FileInfo(htmlFileName);
         Program.Logger.WriteLine("Start FileName:[" + fi.Name + "]");
         var root = HTMLEngine.Anlayze(htmlFileName);
+        companynamelist = BussinessLogic.GetCompanyNameByCutWord(root);
+        foreach (var cn in companynamelist)
+        {
+            Program.Logger.WriteLine("公司名称：" + cn.secFullName);
+            Program.Logger.WriteLine("公司简称：" + cn.secShortName);
+        }
         //公告ID
         var id = fi.Name.Replace(".html", "");
         Program.Logger.WriteLine("公告ID:" + id);
