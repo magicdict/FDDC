@@ -42,10 +42,6 @@ public static class LocateProperty
                 var OrgString = sentence.Content;
                 OrgString = Utility.ConvertUpperDateToLittle(OrgString).Replace(" ", "");
                 var Money = Utility.SeekMoney(OrgString);
-                if (!String.IsNullOrEmpty(Money))
-                {
-                    list.Add(new LocAndValue() { Loc = sentence.PositionId, Value = Money });
-                }
             }
         }
         return list;

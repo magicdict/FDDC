@@ -38,7 +38,7 @@ namespace FDDC
 
         private static void Extract()
         {
-            var IsRunContract = false;
+            var IsRunContract = true;
             var IsRunContract_TEST = true;
             var ContractPath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
             var ContractPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\重大合同";
@@ -167,7 +167,7 @@ namespace FDDC
         {
             //EntityWordAnlayzeTool.ConsoleWritePos("北京金泉广场和摩根中心项目的弱电系统总包工程框架协议》，确立由国电南瑞科技股份有限公司");
             //Console.WriteLine(EntityWordAnlayzeTool.TrimEnglish("CNOOC Iraq Limited（中海油伊拉克有限公司）"));
-            Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\10316.html");
+            //Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1132889.html");
             //ContractTraning.AnlayzeEntitySurroundWords();
             //UT.WordAnlayzeTest();
             //return;

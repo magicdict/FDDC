@@ -368,11 +368,27 @@ public class Contract
         //这些关键字后面
         Extractor.LeadingWordList = new string[] { "中标金额", "中标价", "合同金额", "合同总价", "订单总金额" };
         Extractor.Extract(root);
+        var AllMoneyList = new List<Tuple<String, String>>();
         foreach (var item in Extractor.CandidateWord)
         {
-            Money = Utility.SeekMoney(item);
-            Program.Logger.WriteLine("金额候补词：[" + Money + "]");
+            var ml = Utility.SeekMoney(item);
+            AllMoneyList.AddRange(ml);
         }
+        if (AllMoneyList.Count == 0) return "";
+        foreach (var m in AllMoneyList)
+        {
+            if (m.Item2 == "人民币" || m.Item2 == "元")
+            {
+                Money = m.Item1;
+                break;
+            }
+        }
+        if (Money == "")
+        {
+            Money = AllMoneyList[0].Item1;
+        }
+        Program.Logger.WriteLine("金额候补词：[" + Money + "]");
+
         return Money;
     }
 

@@ -101,33 +101,72 @@ public static class Utility
         return OrgString;
     }
 
-    //在某关键字之后寻找表示金额的阿拉伯数字
-    public static string SeekMoney(string OrgString)
+   
+    public static List<Tuple<String, String>> SeekMoney(string OrgString)
     {
-        //寻找第一个阿拉伯数字，
-        var NumberIndex = -1;
-        Regex rex = new Regex(@"^\d+$");
-
-        for (int i = 0; i < OrgString.Length; i++)
+        OrgString = OrgString.Replace(" ", "");
+        var MoneyList = new List<Tuple<String, String>>();
+        var LastIndex = 0;
+        var detectString = OrgString;
+        while (true)
         {
-            var s = OrgString.Substring(i, 1);
-            if (NumberIndex != -1)
+            detectString = detectString.Substring(LastIndex);
+            var MoneyCurrency = "";
+            //可能同时存在多个关键字，这里选择最前面一个关键字
+            var MinIdx = -1;
+            foreach (var Currency in Normalizer.CurrencyList)
             {
-                //数字模式下
-                if (s == "元" || s == "美元" || s == "欧元")
+                if (detectString.IndexOf(Currency) != -1)
                 {
-                    return OrgString.Substring(NumberIndex, i - NumberIndex) + s;
+                    if (MinIdx == -1)
+                    {
+                        MoneyCurrency = Currency;
+                        MinIdx = detectString.IndexOf(Currency);
+                    }
+                    else
+                    {
+                        if (MinIdx > detectString.IndexOf(Currency))
+                        {
+                            MoneyCurrency = Currency;
+                            MinIdx = detectString.IndexOf(Currency);
+                        }
+                    }
                 }
-                if (s == "," || s == "万" || rex.IsMatch(s))
+            }
+            if (MoneyCurrency == "") break;
+            LastIndex = detectString.IndexOf(MoneyCurrency);
+            Regex rex = new Regex(@"^\d+");
+            var MoneyAmount = "";
+            for (int i = LastIndex - 1; i >= 0; i--)
+            {
+                var SingleChar = detectString.Substring(i, 1);
+                //惩 本次特殊处理
+                if (SingleChar == "." || SingleChar == "," || SingleChar == "，" || SingleChar == "万" || SingleChar == "惩" || SingleChar == "亿" || rex.IsMatch(SingleChar))
                 {
+                    MoneyAmount = SingleChar + MoneyAmount;
                     continue;
                 }
+                else
+                {
+                    MoneyAmount = "";
+                    if (LastIndex == i + 1) break;
+                    MoneyAmount = detectString.Substring(i + 1, LastIndex - i - 1);
+                    MoneyAmount = Normalizer.NormalizeNumberResult(MoneyAmount);
+                    if (!rex.IsMatch(MoneyAmount))
+                    {
+                        MoneyAmount = "";
+                        break;  //暂时认为一定要有阿拉伯数字
+                    }
+                    MoneyList.Add(Tuple.Create(MoneyAmount, MoneyCurrency));
+                    MoneyAmount = "";
+                    break;
+                }
             }
-            else
-            {
-                if (rex.IsMatch(s)) NumberIndex = i;
-            }
+            if (MoneyAmount != "") MoneyList.Add(Tuple.Create(MoneyAmount, MoneyCurrency));
+            LastIndex += MoneyCurrency.Length;
         }
-        return "";
+
+
+        return MoneyList;
     }
 }

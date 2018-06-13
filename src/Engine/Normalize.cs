@@ -133,6 +133,7 @@ public static class Normalizer
         if (!String.IsNullOrEmpty(orgString))
         {
             orgString = orgString.Trim().Replace(",", "");
+            orgString = orgString.Trim().Replace("，", "");
         }
         orgString = orgString.Replace("不超过", "");
         orgString = orgString.Replace("不低于", "");
@@ -153,9 +154,10 @@ public static class Normalizer
                 orgString = (x * 10_000).ToString();
             }
         }
-        if (orgString.EndsWith("亿"))
+        if (orgString.EndsWith("亿") || orgString.EndsWith("惩"))  //惩 本次HTML特殊处理
         {
             orgString = orgString.Replace("亿", "");
+            orgString = orgString.Replace("惩", "");
             double x;
             if (double.TryParse(orgString, out x))
             {
@@ -165,21 +167,29 @@ public static class Normalizer
         return orgString;
     }
 
+
+    public static string[] CurrencyList = { "人民币","港币", "美元", "欧元", "元" };
+
     public static string NormalizerMoney(string orgString, string TitleWord)
     {
         if (!String.IsNullOrEmpty(orgString))
         {
             orgString = orgString.Trim().Replace(",", "");
+            orgString = orgString.Trim().Replace("，", "");
         }
         orgString = orgString.Replace("不超过", "");
         orgString = orgString.Replace("不低于", "");
         orgString = orgString.Replace("不多于", "");
         orgString = orgString.Replace("不少于", "");
 
-
-        if (orgString.EndsWith("元"))
+        foreach (var Currency in CurrencyList)
         {
-            orgString = orgString.Replace("元", "");
+            if (orgString.EndsWith(Currency))
+            {
+                orgString = orgString.Replace(Currency, "");
+                orgString = orgString.Trim();
+                break;
+            }
         }
         //对于【亿，万】的处理
         if (orgString.EndsWith("万") || TitleWord.Contains("万元"))
@@ -191,9 +201,10 @@ public static class Normalizer
                 orgString = (x * 10_000).ToString();
             }
         }
-        if (orgString.EndsWith("亿"))
+         if (orgString.EndsWith("亿") || orgString.EndsWith("惩"))  //惩 本次HTML特殊处理
         {
             orgString = orgString.Replace("亿", "");
+            orgString = orgString.Replace("惩", "");
             double x;
             if (double.TryParse(orgString, out x))
             {
