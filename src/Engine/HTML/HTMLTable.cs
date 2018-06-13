@@ -156,6 +156,8 @@ public class HTMLTable
 
         public bool IsEq;
 
+        public List<String> Exclude;
+
         public Func<String, String, String> Normalize;
 
     }
@@ -191,6 +193,19 @@ public class HTMLTable
                     {
                         //相等模式：规则里面没有该词语
                         if (!Rules[checkItemIdx].Rule.Contains(HeaderRow[ColIndex])) continue;
+                        if (Rules[checkItemIdx].Exclude != null)
+                        {
+                            var isOK = true;
+                            foreach (var word in Rules[checkItemIdx].Exclude)
+                            {
+                                if (HeaderRow[ColIndex].Contains(word))
+                                {
+                                    isOK = false;
+                                    break;
+                                }
+                            }
+                            if (!isOK) continue;
+                        }
                     }
                     else
                     {
@@ -205,6 +220,19 @@ public class HTMLTable
                             }
                         }
                         if (!IsMatch) continue;
+                        if (Rules[checkItemIdx].Exclude != null)
+                        {
+                            var isOK = true;
+                            foreach (var word in Rules[checkItemIdx].Exclude)
+                            {
+                                if (HeaderRow[ColIndex].Contains(word))
+                                {
+                                    isOK = false;
+                                    break;
+                                }
+                            }
+                            if (!isOK) continue;
+                        }
                     }
                     //找到列位置
                     checkResult[checkItemIdx] = ColIndex + 1;

@@ -28,7 +28,34 @@ public class ContractTraning
         AnlayzeEntitySurroundWords();
     }
 
-
+    public static void GetListLeadWords()
+    {
+        var ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
+        var dict = new Dictionary<String, int>();
+        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\txt\"))
+        {
+            var SR = new StreamReader(filename);
+            while (!SR.EndOfStream)
+            {
+                var line = SR.ReadLine();
+                var idx = line.IndexOf("：");
+                if (idx >= 1 && idx <= 7)
+                {
+                    var w = line.Substring(0, idx);
+                    if (dict.ContainsKey(w))
+                    {
+                        dict[w] = dict[w] + 1;
+                    }
+                    else
+                    {
+                        dict.Add(w, 1);
+                    }
+                }
+            }
+        }
+        Program.Training.WriteLine("列表前导词：");
+        EntityWordAnlayzeTool.FindTop(20, dict);
+    }
 
     public static void AnlayzeEntitySurroundWords()
     {
@@ -84,7 +111,7 @@ public class ContractTraning
             foreach (var jn in ProjectNameList)
             {
                 if (jn.Contains(",")) continue;
-                var TEProjectName =  EntityWordAnlayzeTool.TrimEnglish(jn);
+                var TEProjectName = EntityWordAnlayzeTool.TrimEnglish(jn);
                 if (TEProjectName.Length > MaxContractNameLength)
                 {
                     MaxProjectNameLength = TEProjectName.Length;

@@ -82,9 +82,9 @@ public class Contract
     //公司
     static List<struCompanyName> companynamelist;
     //日期
-    static List<LocAndValue> datelist;
+    static List<LocAndValue<String>> datelist;
 
-    static List<LocAndValue> moneylist;
+    static List<LocAndValue<Tuple<String, String>>> moneylist;
 
     public static List<struContract> Extract(string htmlFileName)
     {
@@ -174,7 +174,29 @@ public class Contract
             }
         }
 
+        //删除前导
+        JiaFang = EntityWordAnlayzeTool.TrimLeadingUL(JiaFang);
         return JiaFang;
+    }
+
+    //处理两行并作一行的问题
+    static string CutOtherLeadingWords(String OrgString)
+    {
+        var LeadingWords = new string[]
+        {
+            "证券代码","招标人","注册资本","注册地址","法定代表人","主营业务",
+            "项目名称","证券简称","住所","项目名称","股票代码",
+            "经营范围","公司名称","证券代码","注册地","备查文件",
+            "成立日期","名称","类型"
+        };
+        foreach (var lw in LeadingWords)
+        {
+            if (OrgString.IndexOf(lw + "：") != -1)
+            {
+                return OrgString.Substring(0, OrgString.IndexOf(lw + "："));
+            }
+        }
+        return OrgString;
     }
 
     static string GetJiaFang(MyRootHtmlNode root)
@@ -194,6 +216,7 @@ public class Contract
             var JiaFang = AfterProcessJiaFang(item.Trim());
             if (EntityWordAnlayzeTool.TrimEnglish(JiaFang).Length > ContractTraning.MaxJiaFangLength) continue;
             if (JiaFang.Length < 3) continue;     //使用实际长度排除全英文的情况
+            JiaFang = CutOtherLeadingWords(JiaFang);
             Program.Logger.WriteLine("甲方候补词(关键字)：[" + JiaFang + "]");
             return JiaFang;
         }
@@ -240,8 +263,10 @@ public class Contract
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
+            var YiFang = item.Trim();
+            YiFang = CutOtherLeadingWords(YiFang);
             Program.Logger.WriteLine("乙方候补词(关键字)：[" + item + "]");
-            return item.Trim();
+            return YiFang;
         }
 
         //乙方:"有限公司"

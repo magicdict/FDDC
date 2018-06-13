@@ -130,14 +130,14 @@ public class StockChange
 
         var ChangeDateRule = new TableSearchRule();
         ChangeDateRule.Name = "变动截止日期";
-        ChangeDateRule.Rule = new string[] { "减持期间", "增持期间", "减持时间", "增持时间" }.ToList();
+        ChangeDateRule.Rule = new string[] { "减持期间", "增持期间", "减持时间", "增持时间", "减持期间", "增持期间" }.ToList();
         ChangeDateRule.IsEq = false;
         ChangeDateRule.Normalize = Normalizer.NormailizeDate;
 
 
         var ChangePriceRule = new TableSearchRule();
         ChangePriceRule.Name = "变动价格";
-        ChangePriceRule.Rule = new string[] { "减持均价", "增持均价" }.ToList();
+        ChangePriceRule.Rule = new string[] { "减持均价", "增持均价", "减持价格", "增持价格" }.ToList();
         ChangePriceRule.IsEq = false;
         ChangePriceRule.Normalize = (x, y) =>
         {
@@ -150,7 +150,7 @@ public class StockChange
 
         var ChangeNumberRule = new TableSearchRule();
         ChangeNumberRule.Name = "变动数量";
-        ChangeNumberRule.Rule = new string[] { "减持股数", "增持股数" }.ToList();
+        ChangeNumberRule.Rule = new string[] { "减持股数", "增持股数", "减持数量", "增持数量" }.ToList();
         ChangeNumberRule.IsEq = false;
         ChangeNumberRule.Normalize = Normalizer.NormalizerStockNumber;
 
@@ -172,49 +172,46 @@ public class StockChange
             stockchange.HolderFullName = Name.Item1;
             stockchange.HolderShortName = Name.Item2;
             stockchange.ChangeEndDate = rec[1].RawData;
-            stockchange.ChangePrice = rec[2].RawData;
-            stockchange.ChangeNumber = rec[3].RawData;
-            var holderafterlist = GetHolderAfter(root);
-            for (int i = 0; i < holderafterlist.Count; i++)
+
+            if (!String.IsNullOrEmpty(rec[2].RawData) &&
+                !(rec[2].RawData.Contains("-") || rec[2].RawData.Contains("至")))
             {
-                var after = holderafterlist[i];
-                if (after.Used) continue;
-                if (after.Name == stockchange.HolderFullName || after.Name == stockchange.HolderShortName)
-                {
-                    stockchange.HoldNumberAfterChange = after.Count;
-                    stockchange.HoldPercentAfterChange = after.Percent;
-                    after.Used = true;
-                    break;
-                }
+                //股价区间化的去除
+                stockchange.ChangePrice = rec[2].RawData;
+                stockchange.ChangePrice = stockchange.ChangePrice.NormalizeNumberResult();
             }
+
+            stockchange.ChangeNumber = rec[3].RawData;
+            stockchange.ChangeNumber = stockchange.ChangeNumber.NormalizeNumberResult();
             //基本上所有的有效记录都有股东名和截至日期，所以，这里这么做，可能对于极少数没有截至日期的数据有伤害，但是对于整体指标来说是好的
             if (string.IsNullOrEmpty(stockchange.HolderFullName) || string.IsNullOrEmpty(stockchange.ChangeEndDate)) continue;
             stockchangelist.Add(stockchange);
         }
 
-        //合并记录
-        for (int i = 0; i < stockchangelist.Count; i++)
+        var holderafterlist = GetHolderAfter(root);
+
+        //寻找所有的股东全称
+        var namelist = stockchangelist.Select(x => x.HolderFullName).Distinct().ToList();
+        var newRec = new List<struStockChange>();
+        foreach (var name in namelist)
         {
-            var x = stockchangelist[i];
-            for (int j = i + 1; j < stockchangelist.Count; j++)
+            var sl = stockchangelist.Where((x) => { return x.HolderFullName == name; }).ToList();
+            sl.Sort((x, y) => { return x.ChangeEndDate.CompareTo(y.ChangeEndDate); });
+            var last = sl.Last();
+            for (int i = 0; i < holderafterlist.Count; i++)
             {
-                var y = stockchangelist[j];
-                if (x.GetKey() == y.GetKey())
+                var after = holderafterlist[i];
+                if (after.Name == last.HolderFullName || after.Name == last.HolderShortName)
                 {
-                    if (string.IsNullOrEmpty(x.HoldNumberAfterChange) &&
-                        !string.IsNullOrEmpty(y.HoldNumberAfterChange))
-                    {
-                        x.id = "";
-                    }
-                    if (!string.IsNullOrEmpty(x.HoldNumberAfterChange) &&
-                        string.IsNullOrEmpty(y.HoldNumberAfterChange))
-                    {
-                        y.id = "";
-                    }
+                    stockchangelist.Remove(last);   //结构体，无法直接修改！！使用删除，增加的方法
+                    last.HoldNumberAfterChange = after.Count;
+                    last.HoldPercentAfterChange = after.Percent;
+                    newRec.Add(last);
                 }
             }
         }
-        return stockchangelist.Where((x) => { return !String.IsNullOrEmpty(x.id); }).ToList();
+        stockchangelist.AddRange(newRec);
+        return stockchangelist;
     }
     struct struHoldAfter
     {
@@ -297,11 +294,11 @@ public class StockChange
     {
         if (!String.IsNullOrEmpty(word))
         {
-            var fullname = word;
+            var fullname = word.Replace(" ", "");
             var shortname = "";
             var StdIdx = word.IndexOf("“");
             var EndIdx = word.IndexOf("”");
-            if (EndIdx < StdIdx) return Tuple.Create("", ""); 
+            if (EndIdx < StdIdx) return Tuple.Create("", "");
             if (StdIdx != -1 && EndIdx != -1)
             {
                 shortname = word.Substring(StdIdx + 1, EndIdx - StdIdx - 1);

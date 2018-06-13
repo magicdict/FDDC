@@ -4,18 +4,18 @@ using System.Collections.Generic;
 public static class LocateProperty
 {
 
-    public struct LocAndValue
+    public struct LocAndValue<T>
     {
         //位置
         public int Loc;
         //值
-        public string Value;
+        public T Value;
     }
 
     //获得日期
-    public static List<LocAndValue> LocateDate(HTMLEngine.MyRootHtmlNode root)
+    public static List<LocAndValue<String>> LocateDate(HTMLEngine.MyRootHtmlNode root)
     {
-        var list = new List<LocAndValue>();
+        var list = new List<LocAndValue<String>>();
         foreach (var paragrah in root.Children)
         {
             foreach (var sentence in paragrah.Children)
@@ -24,7 +24,7 @@ public static class LocateProperty
                 OrgString = Utility.ConvertUpperDateToLittle(OrgString).Replace(" ", "");
                 if (!String.IsNullOrEmpty(RegularTool.GetDate(OrgString)))
                 {
-                    list.Add(new LocAndValue() { Loc = sentence.PositionId, Value = RegularTool.GetDate(OrgString) });
+                    list.Add(new LocAndValue<String>() { Loc = sentence.PositionId, Value = RegularTool.GetDate(OrgString) });
                 }
             }
         }
@@ -32,9 +32,9 @@ public static class LocateProperty
     }
 
     //获得金额
-    public static List<LocAndValue> LocateMoney(HTMLEngine.MyRootHtmlNode root)
+    public static List<LocAndValue<Tuple<String,String>>> LocateMoney(HTMLEngine.MyRootHtmlNode root)
     {
-        var list = new List<LocAndValue>();
+        var list = new List<LocAndValue<Tuple<String,String>>>();
         foreach (var paragrah in root.Children)
         {
             foreach (var sentence in paragrah.Children)

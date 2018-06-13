@@ -110,7 +110,7 @@ public static class EntityWordAnlayzeTool
     }
 
     //寻找Top5
-    static void FindTop<T>(int n, Dictionary<T, int> dict)
+    public static void FindTop<T>(int n, Dictionary<T, int> dict)
     {
         var Rank = dict.Values.ToList();
         Rank.Sort();
@@ -196,6 +196,23 @@ public static class EntityWordAnlayzeTool
             //去除“副词”和“了”之后的句子
             if (word.Flag != 英语)
             {
+                MainWordSentence += word.Word;
+            }
+        }
+        return MainWordSentence;
+    }
+
+    public static string TrimLeadingUL(string OrgString)
+    {
+        var MainWordSentence = "";
+        var pos = new JiebaNet.Segmenter.PosSeg.PosSegmenter();
+        var list = pos.Cut(OrgString);
+        var HasStart = false;
+        foreach (var word in list)
+        {
+            if (HasStart || (word.Flag != EntityWordAnlayzeTool.助词))
+            {
+                HasStart = true;
                 MainWordSentence += word.Word;
             }
         }

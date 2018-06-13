@@ -55,6 +55,7 @@ public static class Normalizer
         if (!String.IsNullOrEmpty(orgString))
         {
             orgString = orgString.Trim().Replace(",", "");
+            orgString = orgString.Trim().Replace(" ", "");
         }
         return orgString;
     }
@@ -168,7 +169,7 @@ public static class Normalizer
     }
 
 
-    public static string[] CurrencyList = { "人民币","港币", "美元", "欧元", "元" };
+    public static string[] CurrencyList = { "人民币", "港币", "美元", "欧元", "元" };
 
     public static string NormalizerMoney(string orgString, string TitleWord)
     {
@@ -201,7 +202,7 @@ public static class Normalizer
                 orgString = (x * 10_000).ToString();
             }
         }
-         if (orgString.EndsWith("亿") || orgString.EndsWith("惩"))  //惩 本次HTML特殊处理
+        if (orgString.EndsWith("亿") || orgString.EndsWith("惩"))  //惩 本次HTML特殊处理
         {
             orgString = orgString.Replace("亿", "");
             orgString = orgString.Replace("惩", "");
