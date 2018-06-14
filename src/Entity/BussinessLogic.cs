@@ -79,8 +79,8 @@ public class BussinessLogic
                 var words = posSeg.Cut(sentence.Content).ToList();
                 for (int baseInd = 0; baseInd < words.Count; baseInd++)
                 {
-                    if (words[baseInd].Word == "标段" || 
-                        words[baseInd].Word == "工程" || 
+                    if (words[baseInd].Word == "标段" ||
+                        words[baseInd].Word == "工程" ||
                         words[baseInd].Word == "项目")
                     {
                         var projectName = "";
@@ -106,13 +106,14 @@ public class BussinessLogic
         return namelist;
     }
 
-    public static bool IsCompanyName(String companyName){
-         var posSeg = new PosSegmenter();
-         var list = posSeg.Cut(companyName);
-         var IsStartWithNS = list.First().Flag == EntityWordAnlayzeTool.地名;
-         var IsEndWithNS = companyName.EndsWith("有限公司");
-         var IsRange = companyName.Length <= ContractTraning.MaxJiaFangLength; 
-         return IsStartWithNS && IsEndWithNS && IsRange;
+    public static bool IsCompanyName(String companyName)
+    {
+        var posSeg = new PosSegmenter();
+        var list = posSeg.Cut(companyName);
+        var IsStartWithNS = list.First().Flag == EntityWordAnlayzeTool.地名;
+        var IsEndWithNS = companyName.EndsWith("有限公司");
+        var IsRange = companyName.Length <= ContractTraning.MaxJiaFangLength;
+        return IsStartWithNS && IsEndWithNS && IsRange;
     }
 
     public static List<struCompanyName> GetCompanyNameByCutWord(HTMLEngine.MyRootHtmlNode root)
@@ -141,9 +142,11 @@ public class BussinessLogic
                         //是否能够在前面找到地名
                         for (int NRIdx = baseInd; NRIdx > PreviewEndIdx; NRIdx--)
                         {
-                            //地理
+                            //寻找地名?words[NRIdx].Flag == EntityWordAnlayzeTool.机构团体
                             if (words[NRIdx].Flag == EntityWordAnlayzeTool.地名)
                             {
+                                //注意，地名可能相连，例如：上海 嘉定
+                                if (NRIdx != 0 && words[NRIdx - 1].Flag == EntityWordAnlayzeTool.地名) continue;
                                 FullName = "";
                                 for (int companyFullNameInd = NRIdx; companyFullNameInd <= baseInd; companyFullNameInd++)
                                 {
@@ -171,8 +174,12 @@ public class BussinessLogic
                                 PreviewEndIdx = baseInd;
                                 break;  //不要继续寻找地名了
                             }
+                            if (words[NRIdx].Flag == EntityWordAnlayzeTool.标点)
+                            {
+                                if (words[NRIdx].Word != "（" && words[NRIdx].Word != "）") break;
+                            }
                         }
-
+                        if (StartIdx == -1) continue;
                         //是否能够在后面找到简称
                         for (int JCIdx = baseInd; JCIdx < words.Count; JCIdx++)
                         {
@@ -181,7 +188,7 @@ public class BussinessLogic
                             {
                                 var ShortNameStart = -1;
                                 var ShortNameEnd = -1;
-                                for (int ShortNameIdx = baseInd; ShortNameIdx < words.Count; ShortNameIdx++)
+                                for (int ShortNameIdx = JCIdx; ShortNameIdx < words.Count; ShortNameIdx++)
                                 {
                                     if (words[ShortNameIdx].Word.Equals("“"))
                                     {
@@ -201,10 +208,14 @@ public class BussinessLogic
                                         ShortName += words[i].Word;
                                     }
                                 }
+                                break;
                             }
                         }
                         if (FullName != "")
                         {
+                            FullName = FullName.Replace(" ", "").Trim();
+                            ShortName = ShortName.Replace(" ", "").Trim();
+                            if (ShortName == "公司" || ShortName == "本公司") ShortName = "";
                             namelist.Add(new struCompanyName()
                             {
                                 secFullName = FullName,

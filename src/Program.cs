@@ -25,15 +25,11 @@ namespace FDDC
             BussinessLogic.LoadCompanyName(@"Resources\FDDC_announcements_company_name_20180531.json");
 
             TraningDataset.InitStockChange();
-            StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\7350.html");
-            
             TraningDataset.InitContract();
             ContractTraning.TraningMaxLenth();
             ContractTraning.EntityWordPerperty();
             ContractTraning.GetListLeadWords();
-
             TraningDataset.InitIncreaseStock();
-
             Training.Close();
             UT();
             Extract();
@@ -50,7 +46,7 @@ namespace FDDC
             var ContractPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\重大合同";
 
             var IsRunStockChange = true;
-            var IsRunStockChange_TEST = false;
+            var IsRunStockChange_TEST = true;
             var StockChangePath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持";
             var StockChangePath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\增减持";
 
@@ -171,6 +167,14 @@ namespace FDDC
 
         private static void UT()
         {
+            var TestString = "安，徽盛《运环保（集团）股份有限公司";
+            var pos = new JiebaNet.Segmenter.PosSeg.PosSegmenter();
+            foreach (var item in pos.Cut(TestString))
+            {
+                Console.WriteLine(item.Word + ":" + item.Flag);
+            }
+            StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\17968257.html");
+
             //EntityWordAnlayzeTool.ConsoleWritePos("北京金泉广场和摩根中心项目的弱电系统总包工程框架协议》，确立由国电南瑞科技股份有限公司");
             //Console.WriteLine(EntityWordAnlayzeTool.TrimEnglish("CNOOC Iraq Limited（中海油伊拉克有限公司）"));
             //Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\2259816.html");

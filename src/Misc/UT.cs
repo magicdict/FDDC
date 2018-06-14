@@ -48,6 +48,7 @@ public static class UT
 
     public static void RunWordAnlayze()
     {
+
         var root = HTMLEngine.Anlayze(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1044779.html");
         var Contract = TraningDataset.GetContractById("1044779")[0];
         EntityWordAnlayzeTool.AnlayzeEntitySurroundWords(root, Contract.ProjectName);

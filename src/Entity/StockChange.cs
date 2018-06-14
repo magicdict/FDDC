@@ -119,7 +119,7 @@ public class StockChange
         stockchange.id = fi.Name.Replace(".html", "");
         Program.Logger.WriteLine("公告ID:" + stockchange.id);
 
-        stockchange.HolderFullName = Name.Item1;
+        stockchange.HolderFullName = Name.Item1.TrimStart("—".ToCharArray()).TrimStart("-".ToCharArray());
         stockchange.HolderShortName = Name.Item2;
         stockchange.ChangeEndDate = GetChangeEndDate(root);
         list.Add(stockchange);
@@ -174,7 +174,7 @@ public class StockChange
             var stockchange = new struStockChange();
             stockchange.id = id;
             var Name = NormalizeCompanyName(rec[0].RawData);
-            stockchange.HolderFullName = Name.Item1;
+            stockchange.HolderFullName = Name.Item1.TrimStart("—".ToCharArray()).TrimStart("-".ToCharArray());
             stockchange.HolderShortName = Name.Item2;
             stockchange.ChangeEndDate = rec[1].RawData;
 
@@ -283,7 +283,15 @@ public class StockChange
         foreach (var word in Extractor.CandidateWord)
         {
             var name = NormalizeCompanyName(word);
-            if (BussinessLogic.IsCompanyName(name.Item1))
+            if (!String.IsNullOrEmpty(name.Item1) && !String.IsNullOrEmpty(name.Item2))
+            {
+                return name;
+            }
+        }
+        foreach (var word in Extractor.CandidateWord)
+        {
+            var name = NormalizeCompanyName(word);
+            if (!String.IsNullOrEmpty(name.Item1))
             {
                 return name;
             }
@@ -373,6 +381,7 @@ public class StockChange
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
+            if (item.Length >20) continue;
             Program.Logger.WriteLine("候补变动截止日期：[" + item + "]");
             return Normalizer.NormailizeDate(item + "日");
         }

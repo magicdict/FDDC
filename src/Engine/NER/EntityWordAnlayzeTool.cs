@@ -10,9 +10,13 @@ public static class EntityWordAnlayzeTool
 {
 
     public const string 地名 = "ns";
+    public const string 机构团体 = "nt";
     public const string 副词 = "d";
     public const string 助词 = "ul";
     public const string 英语 = "eng";
+    public const string 标点 = "x";
+
+
 
     static PosSegmenter posSeg = new PosSegmenter();
     //甲方乙方首单词统计
