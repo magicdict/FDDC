@@ -184,7 +184,7 @@ public class BussinessLogic
                         for (int JCIdx = baseInd; JCIdx < words.Count; JCIdx++)
                         {
                             //地理
-                            if (words[JCIdx].Word.Equals("简称"))
+                            if (words[JCIdx].Word.Equals("简称") || words[JCIdx].Word.Equals("称"))
                             {
                                 var ShortNameStart = -1;
                                 var ShortNameEnd = -1;

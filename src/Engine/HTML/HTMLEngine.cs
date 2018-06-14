@@ -224,7 +224,7 @@ public static class HTMLEngine
         {
             string TxtLine = Normalizer.NormalizeItemListNumber(SR.ReadLine().Trim());
             TxtLine = TxtLine.Replace(" ", "");    //HTML是去空格的,PDF有空格
-            if(!String.IsNullOrEmpty(TxtLine)) TxtList.Add(TxtLine);
+            if (!String.IsNullOrEmpty(TxtLine)) TxtList.Add(TxtLine);
         }
         for (int i = 1; i < TxtList.Count - 1; i++)
         {
@@ -368,7 +368,14 @@ public static class HTMLEngine
                     {
                         if (tableData.Name == "td")
                         {
-                            xc++;
+                            if (tableData.Attributes["colspan"] != null)
+                            {
+                                xc += int.Parse(tableData.Attributes["colspan"].Value);
+                            }
+                            else
+                            {
+                                xc++;
+                            }
                         }
                     }
                     if (xc > MaxColumn) MaxColumn = xc;
@@ -438,6 +445,25 @@ public static class HTMLEngine
                 }
             }
         }
+
+        //表格分页的修正
+        var NeedToModify = "";
+        foreach (var item in dict)
+        {
+            if (item.Value == "<null>")
+            {
+                var Row = int.Parse(item.Key.Split(",")[0]) - 1;
+                var Column = item.Key.Split(",")[1];
+                if (Row == 0) continue;
+                if (dict[Row + "," + Column] == "<rowspan>")
+                {
+                    NeedToModify = item.Key;
+                }
+            }
+        }
+
+        if (NeedToModify != "") dict[NeedToModify] = "<rowspan>";
+
         foreach (var item in dict)
         {
             tablecontentlist.Add(TableId + "," + item.Key + "|" + item.Value);

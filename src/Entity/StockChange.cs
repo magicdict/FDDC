@@ -89,7 +89,7 @@ public class StockChange
 
 
     static List<struCompanyName> companynamelist;
-
+    static Char[] trimChar = new Char[] { '—', '-', ']' };
     public static List<struStockChange> Extract(string htmlFileName)
     {
         var list = new List<struStockChange>();
@@ -112,14 +112,13 @@ public class StockChange
             });
         }
         list = ExtractFromTable(root, fi.Name.Replace(".html", ""));
-        if (list.Count > 0) return list;
+        if (list.Count > 0) return list;    //如果这里直接返回，由于召回率等因素，可以细微提高成绩
 
         var stockchange = new struStockChange();
         //公告ID
         stockchange.id = fi.Name.Replace(".html", "");
-        Program.Logger.WriteLine("公告ID:" + stockchange.id);
-
-        stockchange.HolderFullName = Name.Item1.TrimStart("—".ToCharArray()).TrimStart("-".ToCharArray());
+        //Program.Logger.WriteLine("公告ID:" + stockchange.id);
+        stockchange.HolderFullName = Name.Item1.TrimStart(trimChar);
         stockchange.HolderShortName = Name.Item2;
         stockchange.ChangeEndDate = GetChangeEndDate(root);
         list.Add(stockchange);
@@ -135,7 +134,8 @@ public class StockChange
 
         var ChangeDateRule = new TableSearchRule();
         ChangeDateRule.Name = "变动截止日期";
-        ChangeDateRule.Rule = new string[] { "减持期间", "增持期间", "减持时间", "增持时间", "减持期间", "增持期间" }.ToList();
+        ChangeDateRule.Rule = new string[] { "减持期间", "增持期间", "减持股份期间", "增持股份期间",
+                                             "减持时间", "增持时间", "减持股份时间", "增持股份时间" }.ToList();
         ChangeDateRule.IsEq = false;
         ChangeDateRule.Normalize = Normalizer.NormailizeDate;
 
@@ -174,7 +174,7 @@ public class StockChange
             var stockchange = new struStockChange();
             stockchange.id = id;
             var Name = NormalizeCompanyName(rec[0].RawData);
-            stockchange.HolderFullName = Name.Item1.TrimStart("—".ToCharArray()).TrimStart("-".ToCharArray());
+            stockchange.HolderFullName = Name.Item1.TrimStart(trimChar);
             stockchange.HolderShortName = Name.Item2;
             stockchange.ChangeEndDate = rec[1].RawData;
 
@@ -215,6 +215,12 @@ public class StockChange
                 }
             }
         }
+
+        if (holderafterlist.Count != namelist.Count)
+        {
+            Program.Logger.WriteLine("增持者数量确认！");
+        }
+
         stockchangelist.AddRange(newRec);
         return stockchangelist;
     }
@@ -243,7 +249,7 @@ public class StockChange
                         var HolderName = mt.CellValue(RowIdx + 1, 1);
                         Regex r = new Regex(@"\d+\.?\d*");
 
-                        var strHolderCnt = mt.CellValue(RowIdx + 1, 5);
+                        var strHolderCnt = mt.CellValue(RowIdx + 1, mt.ColumnCount - 1);
                         strHolderCnt = Normalizer.NormalizeNumberResult(strHolderCnt);
                         var HolderCnt = "";
                         if (!String.IsNullOrEmpty(r.Match(strHolderCnt).Value))
@@ -259,7 +265,7 @@ public class StockChange
                             }
                         }
 
-                        var StrPercent = mt.CellValue(RowIdx + 1, 6);
+                        var StrPercent = mt.CellValue(RowIdx + 1, mt.ColumnCount);
                         var HodlerPercent = "";
                         if (!String.IsNullOrEmpty(r.Match(StrPercent).Value))
                         {
@@ -381,7 +387,7 @@ public class StockChange
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            if (item.Length >20) continue;
+            if (item.Length > 20) continue;
             Program.Logger.WriteLine("候补变动截止日期：[" + item + "]");
             return Normalizer.NormailizeDate(item + "日");
         }
