@@ -132,58 +132,17 @@ public class BussinessLogic
                     var FullName = "";
                     var ShortName = "";
                     var IsSubCompany = false;
-                    var StartIdx = -1;
+
                     if (
                          words[baseInd].Word == "有限公司" ||
                         (words[baseInd].Word == "公司" && baseInd != 0 && words[baseInd - 1].Word == "承包") ||
                         (words[baseInd].Word == "有限" && baseInd != words.Count - 1 && words[baseInd + 1].Word == "合伙")
                        )
                     {
-                        //是否能够在前面找到地名
-                        for (int NRIdx = baseInd; NRIdx > PreviewEndIdx; NRIdx--)
-                        {
-                            //寻找地名?words[NRIdx].Flag == EntityWordAnlayzeTool.机构团体
-                            if (words[NRIdx].Flag == EntityWordAnlayzeTool.地名)
-                            {
-                                //注意，地名可能相连，例如：上海 嘉定
-                                if (NRIdx != 0 && words[NRIdx - 1].Flag == EntityWordAnlayzeTool.地名) continue;
-                                FullName = "";
-                                for (int companyFullNameInd = NRIdx; companyFullNameInd <= baseInd; companyFullNameInd++)
-                                {
-                                    FullName += words[companyFullNameInd].Word;
-                                }
-
-                                //承包公司
-                                if (words[baseInd].Word == "公司")
-                                {
-                                    //什么都不用做
-                                }
-
-                                //(有限合伙)
-                                if (words[baseInd].Word == "有限")
-                                {
-                                    FullName += words[baseInd + 1].Word;
-                                    FullName += words[baseInd + 2].Word;
-                                }
-                                //子公司判断
-                                if (NRIdx != 0 && words[NRIdx - 1].Word == "子公司")
-                                {
-                                    IsSubCompany = true;
-                                }
-                                StartIdx = NRIdx;
-                                PreviewEndIdx = baseInd;
-                                break;  //不要继续寻找地名了
-                            }
-                            if (words[NRIdx].Flag == EntityWordAnlayzeTool.标点)
-                            {
-                                if (words[NRIdx].Word != "（" && words[NRIdx].Word != "）") break;
-                            }
-                        }
-                        if (StartIdx == -1) continue;
                         //是否能够在后面找到简称
                         for (int JCIdx = baseInd; JCIdx < words.Count; JCIdx++)
                         {
-                            //地理
+                            //简称关键字
                             if (words[JCIdx].Word.Equals("简称") || words[JCIdx].Word.Equals("称"))
                             {
                                 var ShortNameStart = -1;
@@ -211,6 +170,82 @@ public class BussinessLogic
                                 break;
                             }
                         }
+
+                        var FirstShortNameWord = "";
+                        if (ShortName.Length == 4)
+                        {
+                            FirstShortNameWord = ShortName.Substring(0, 2);
+                        }
+                        var IsMarkClosed = true;
+                        var CompanyStartIdx = -1;
+                        var FirstShortNameIdx = -1; //包含简称的位置
+                        //是否能够在前面找到地名
+                        for (int NRIdx = baseInd; NRIdx > PreviewEndIdx; NRIdx--)
+                        {
+                            if (words[NRIdx].Word == FirstShortNameWord)
+                            {
+                                FirstShortNameIdx = NRIdx;   //备用
+                            }
+                            //寻找地名?words[NRIdx].Flag == EntityWordAnlayzeTool.机构团体
+                            //posSeg.Cut(words[NRIdx].Word + "市").First().Flag == EntityWordAnlayzeTool.地名
+                            if (words[NRIdx].Flag == EntityWordAnlayzeTool.地名)
+                            {
+                                //注意，地名可能相连，例如：上海市嘉定
+                                if (NRIdx != 0 && (words[NRIdx - 1].Flag == EntityWordAnlayzeTool.地名)) continue;
+                                FullName = "";
+                                for (int companyFullNameInd = NRIdx; companyFullNameInd <= baseInd; companyFullNameInd++)
+                                {
+                                    FullName += words[companyFullNameInd].Word;
+                                }
+                                //(有限合伙)
+                                if (words[baseInd].Word == "有限")
+                                {
+                                    FullName += words[baseInd + 1].Word;
+                                    FullName += words[baseInd + 2].Word;
+                                }
+                                //子公司判断
+                                if (NRIdx != 0 && words[NRIdx - 1].Word == "子公司")
+                                {
+                                    IsSubCompany = true;
+                                }
+                                if (IsMarkClosed)
+                                {
+                                    //皆大欢喜的局面
+                                    CompanyStartIdx = NRIdx;
+                                    PreviewEndIdx = baseInd;
+                                    break;  //不要继续寻找地名了
+                                }
+                            }
+                            if (words[NRIdx].Flag == EntityWordAnlayzeTool.标点)
+                            {
+                                if (words[NRIdx].Word != "（" && words[NRIdx].Word != "）") break;
+                                if (words[NRIdx].Word == "）") IsMarkClosed = false;    //打开
+                                if (words[NRIdx].Word == "（") IsMarkClosed = true;     //关闭
+                            }
+                        }
+
+                        if (CompanyStartIdx == -1)
+                        {
+                            if (FirstShortNameIdx == -1) continue;
+                            if (posSeg.Cut(ShortName).First().Flag == EntityWordAnlayzeTool.地名) continue;
+                            FullName = "";
+                            for (int NRIdx = FirstShortNameIdx; NRIdx <= baseInd; NRIdx++)
+                            {
+                                FullName += words[NRIdx].Word;
+                            }
+                            //(有限合伙)
+                            if (words[baseInd].Word == "有限")
+                            {
+                                FullName += words[baseInd + 1].Word;
+                                FullName += words[baseInd + 2].Word;
+                            }
+                            //子公司判断
+                            if (FirstShortNameIdx != 0 && words[FirstShortNameIdx - 1].Word == "子公司")
+                            {
+                                IsSubCompany = true;
+                            }
+                        }
+
                         if (FullName != "")
                         {
                             FullName = FullName.Replace(" ", "").Trim();
@@ -222,7 +257,7 @@ public class BussinessLogic
                                 secShortName = ShortName,
                                 isSubCompany = IsSubCompany,
                                 positionId = sentence.PositionId,
-                                WordIdx = StartIdx
+                                WordIdx = CompanyStartIdx
                             });
                         }
                     }

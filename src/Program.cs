@@ -31,7 +31,7 @@ namespace FDDC
             ContractTraning.GetListLeadWords();
             TraningDataset.InitIncreaseStock();
             Training.Close();
-            //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\16407027.html");
+            StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\14469374.html");
             UT();
             Extract();
             Logger.Close();
@@ -168,7 +168,7 @@ namespace FDDC
 
         private static void UT()
         {
-            var TestString = "近日公司收到盈联控股有限公司（以下简称“盈联控股”）《股东减持公司股份实施情况告知函》";
+            var TestString = "承运市";
             var pos = new JiebaNet.Segmenter.PosSeg.PosSegmenter();
             foreach (var item in pos.Cut(TestString))
             {
