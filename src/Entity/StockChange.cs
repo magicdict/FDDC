@@ -121,7 +121,11 @@ public class StockChange
         stockchange.HolderFullName = Name.Item1.TrimStart(trimChar);
         stockchange.HolderShortName = Name.Item2;
         stockchange.ChangeEndDate = GetChangeEndDate(root);
-        list.Add(stockchange);
+        if (!string.IsNullOrEmpty(stockchange.HolderFullName) && !string.IsNullOrEmpty(stockchange.ChangeEndDate))
+        {
+            list.Add(stockchange);
+        }
+
         return list;
     }
 
@@ -177,6 +181,12 @@ public class StockChange
             stockchange.HolderFullName = Name.Item1.TrimStart(trimChar);
             stockchange.HolderShortName = Name.Item2;
             stockchange.ChangeEndDate = rec[1].RawData;
+
+            DateTime x;
+            if (!DateTime.TryParse(stockchange.ChangeEndDate, out x))
+            {
+                stockchange.ChangeEndDate = "";
+            }
 
             if (!String.IsNullOrEmpty(rec[2].RawData) &&
                 !(rec[2].RawData.Contains("-") || rec[2].RawData.Contains("至")))

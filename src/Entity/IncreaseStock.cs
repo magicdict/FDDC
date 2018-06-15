@@ -98,7 +98,7 @@ public class IncreaseStock
     }
 
 
-    static List<struIncreaseStock> GetMultiTarget(HTMLEngine.MyRootHtmlNode root, 
+    static List<struIncreaseStock> GetMultiTarget(HTMLEngine.MyRootHtmlNode root,
                                                   struIncreaseStock SampleincreaseStock)
     {
         var BuyerRule = new TableSearchRule();
@@ -140,7 +140,15 @@ public class IncreaseStock
             increase.PublishTarget = item[0].RawData;
             if (String.IsNullOrEmpty(increase.PublishTarget)) continue;
             increase.IncreaseNumber = item[1].RawData;
+            if (!String.IsNullOrEmpty(increase.IncreaseNumber) && increase.IncreaseNumber.Contains("|"))
+            {
+                increase.IncreaseNumber = "";
+            }
             increase.IncreaseMoney = item[2].RawData;
+            if (!String.IsNullOrEmpty(increase.IncreaseMoney) && increase.IncreaseMoney.Contains("|"))
+            {
+                increase.IncreaseMoney = "";
+            }
             increase.FreezeYear = item[3].RawData;
             increaseStocklist.Add(increase);
         }

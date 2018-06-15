@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HtmlAgilityPack;
 using static HTMLEngine;
 
 public class HTMLTable
@@ -9,6 +10,132 @@ public class HTMLTable
     public int ColumnCount = 0;
 
     Dictionary<String, string> dict = new Dictionary<String, string>();
+
+    public static List<String> GetTable(HtmlNode table, int TableId)
+    {
+        var tablecontentlist = new List<String>();
+        var dict = new Dictionary<String, String>();
+
+        //表格处理：
+        foreach (var tablebody in table.ChildNodes)
+        {
+            //整理出最大行列数
+            int MaxRow = 0;
+            int MaxColumn = 0;
+
+            foreach (var tableRows in tablebody.ChildNodes)
+            {
+                if (tableRows.ChildNodes.Count != 0)
+                {
+                    int xc = 0;
+                    foreach (var tableData in tableRows.ChildNodes)
+                    {
+                        if (tableData.Name == "td")
+                        {
+                            if (tableData.Attributes["colspan"] != null)
+                            {
+                                xc += int.Parse(tableData.Attributes["colspan"].Value);
+                            }
+                            else
+                            {
+                                xc++;
+                            }
+                        }
+                    }
+                    if (xc > MaxColumn) MaxColumn = xc;
+                    MaxRow++;
+                }
+            }
+
+
+            //准备Cell内容字典
+            for (int Row = 1; Row < MaxRow + 1; Row++)
+            {
+                for (int Col = 1; Col < MaxColumn + 1; Col++)
+                {
+                    dict.Add(Row + "," + Col, "");
+                }
+            }
+
+            int CurrentRow = 1;
+            int NextNeedToFillColumn = 1;
+
+            foreach (var tableRows in tablebody.ChildNodes)
+            {
+                if (tableRows.ChildNodes.Count != 0)
+                {
+                    foreach (var tableData in tableRows.ChildNodes)
+                    {
+                        //对于#text的过滤
+                        if (tableData.Name == "td")
+                        {
+
+                            //寻找该行下一个需要填充的格子的列号
+                            for (int Col = 1; Col < MaxColumn + 1; Col++)
+                            {
+                                if (dict[CurrentRow + "," + Col] == "")
+                                {
+                                    NextNeedToFillColumn = Col;
+                                    break;
+                                }
+                            }
+
+                            var cellvalue = Normalizer.Normalize(tableData.InnerText);
+                            var cellpos = CurrentRow + "," + NextNeedToFillColumn;
+                            if (cellvalue == "")
+                            {
+                                cellvalue = "<null>";
+                            }
+                            dict[CurrentRow + "," + NextNeedToFillColumn] = cellvalue;
+                            if (tableData.Attributes["rowspan"] != null)
+                            {
+                                //具有RowSpan特性的情况
+                                for (int i = 1; i < int.Parse(tableData.Attributes["rowspan"].Value); i++)
+                                {
+                                    dict[(CurrentRow + i) + "," + NextNeedToFillColumn] = "<rowspan>";
+                                }
+                            }
+                            if (tableData.Attributes["colspan"] != null)
+                            {
+                                //具有RowSpan特性的情况
+                                for (int i = 1; i < int.Parse(tableData.Attributes["colspan"].Value); i++)
+                                {
+                                    dict[CurrentRow + "," + (NextNeedToFillColumn + i)] = "<colspan>";
+                                }
+                            }
+                        }
+                    }
+                    CurrentRow++;
+                }
+            }
+        }
+
+        //表格分页的修正
+        var NeedToModify = "";
+        foreach (var item in dict)
+        {
+            if (item.Value == "<null>")
+            {
+                var Row = int.Parse(item.Key.Split(",")[0]) - 1;
+                var Column = item.Key.Split(",")[1];
+                if (Row == 0) continue;
+                if (dict[Row + "," + Column] == "<rowspan>")
+                {
+                    NeedToModify = item.Key;
+                }
+            }
+        }
+
+        if (NeedToModify != "") dict[NeedToModify] = "<rowspan>";
+
+        foreach (var item in dict)
+        {
+            tablecontentlist.Add(TableId + "," + item.Key + "|" + item.Value);
+        }
+
+        return tablecontentlist;
+    }
+
 
     public HTMLTable(List<String> TableContent)
     {
@@ -66,14 +193,13 @@ public class HTMLTable
         return "";
     }
 
-    public String[] GetHeaderRow()
+    public String[] GetHeaderRow(int RowNo = 1)
     {
         var Header = new String[ColumnCount];
         for (int i = 1; i < ColumnCount + 1; i++)
         {
-            Header[i - 1] = CellValue(1, i);
+            Header[i - 1] = CellValue(RowNo, i);
         }
-
         return Header;
     }
 
@@ -181,72 +307,104 @@ public class HTMLTable
         for (int tableIndex = 0; tableIndex < root.TableList.Count; tableIndex++)
         {
             var table = new HTMLTable(root.TableList[tableIndex + 1]);
-            var HeaderRow = table.GetHeaderRow();
-
             var checkResult = new int[Rules.Count];
-            for (int checkItemIdx = 0; checkItemIdx < Rules.Count; checkItemIdx++)
+            var HeaderRowNo = -1;
+            String[] HeaderRow = null;
+            for (int TestRowHeader = 1; TestRowHeader < table.RowCount; TestRowHeader++)
             {
-                //在每个行首单元格检索
-                for (int ColIndex = 0; ColIndex < HeaderRow.Length; ColIndex++)
+                checkResult = new int[Rules.Count];
+                HeaderRow = table.GetHeaderRow(TestRowHeader);
+                for (int checkItemIdx = 0; checkItemIdx < Rules.Count; checkItemIdx++)
                 {
-                    if (Rules[checkItemIdx].IsEq)
+                    //在每个行首单元格检索
+                    for (int ColIndex = 0; ColIndex < HeaderRow.Length; ColIndex++)
                     {
-                        //相等模式：规则里面没有该词语
-                        if (!Rules[checkItemIdx].Rule.Contains(HeaderRow[ColIndex])) continue;
-                        if (Rules[checkItemIdx].Exclude != null)
+                        if (Rules[checkItemIdx].IsEq)
                         {
-                            var isOK = true;
-                            foreach (var word in Rules[checkItemIdx].Exclude)
+                            //相等模式：规则里面没有该词语
+                            if (!Rules[checkItemIdx].Rule.Contains(HeaderRow[ColIndex])) continue;
+                            if (Rules[checkItemIdx].Exclude != null)
                             {
-                                if (HeaderRow[ColIndex].Contains(word))
+                                var isOK = true;
+                                foreach (var word in Rules[checkItemIdx].Exclude)
                                 {
-                                    isOK = false;
+                                    if (HeaderRow[ColIndex].Contains(word))
+                                    {
+                                        isOK = false;
+                                        break;
+                                    }
+                                }
+                                if (!isOK) continue;
+                            }
+                        }
+                        else
+                        {
+                            bool IsMatch = false;
+                            //包含模式
+                            foreach (var r in Rules[checkItemIdx].Rule)
+                            {
+                                if (HeaderRow[ColIndex].Contains(r))
+                                {
+                                    IsMatch = true;
                                     break;
                                 }
                             }
-                            if (!isOK) continue;
+                            if (!IsMatch) continue;
+                            if (Rules[checkItemIdx].Exclude != null)
+                            {
+                                var isOK = true;
+                                foreach (var word in Rules[checkItemIdx].Exclude)
+                                {
+                                    if (HeaderRow[ColIndex].Contains(word))
+                                    {
+                                        isOK = false;
+                                        break;
+                                    }
+                                }
+                                if (!isOK) continue;
+                            }
                         }
+                        //找到列位置
+                        checkResult[checkItemIdx] = ColIndex + 1;
+                        break;
+                    }
+                    //主字段没有找到，其他不用找了
+                    if (checkResult[0] == 0) break;
+                }
+                if (checkResult[0] != 0)
+                {
+                    if (TestRowHeader == 1)
+                    {
+                        HeaderRowNo = TestRowHeader;
+                        break;
                     }
                     else
                     {
-                        bool IsMatch = false;
-                        //包含模式
-                        foreach (var r in Rules[checkItemIdx].Rule)
+                        //对于非首行的时候，进行严格的检查,暂时要求全匹配
+                        var IsOK = true;
+                        for (int i = 0; i < Rules.Count; i++)
                         {
-                            if (HeaderRow[ColIndex].Contains(r))
+                            if (checkResult[i] == 0)
                             {
-                                IsMatch = true;
+                                IsOK = false;
                                 break;
                             }
                         }
-                        if (!IsMatch) continue;
-                        if (Rules[checkItemIdx].Exclude != null)
+                        if (IsOK)
                         {
-                            var isOK = true;
-                            foreach (var word in Rules[checkItemIdx].Exclude)
-                            {
-                                if (HeaderRow[ColIndex].Contains(word))
-                                {
-                                    isOK = false;
-                                    break;
-                                }
-                            }
-                            if (!isOK) continue;
+                            HeaderRowNo = TestRowHeader;
+                            break;
                         }
                     }
-                    //找到列位置
-                    checkResult[checkItemIdx] = ColIndex + 1;
-                    break;
                 }
-                //主字段没有找到，其他不用找了
-                if (checkResult[0] == 0) break;
             }
 
             //主字段没有找到，下一张表
-            if (checkResult[0] == 0) continue;
+            if (HeaderRowNo == -1) continue;
 
-            for (int RowNo = 2; RowNo <= table.RowCount; RowNo++)
+            for (int RowNo = 1; RowNo <= table.RowCount; RowNo++)
             {
+                if (RowNo == HeaderRowNo) continue;
                 if (table.IsTotalRow(RowNo)) continue;          //非合计行
                 var target = table.CellValue(RowNo, checkResult[0]);    //主字段非空
                 if (target == "" || target == "<rowspan>" || target == "<colspan>" || target == "<null>") continue;

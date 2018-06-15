@@ -65,6 +65,12 @@ public static class UT
         Contract = TraningDataset.GetContractById("917362")[0];
         EntityWordAnlayzeTool.AnlayzeEntitySurroundWords(root, Contract.ProjectName);
 
+        var TestString = "承运市";
+        var pos = new JiebaNet.Segmenter.PosSeg.PosSegmenter();
+        foreach (var item in pos.Cut(TestString))
+        {
+            Console.WriteLine(item.Word + ":" + item.Flag);
+        }
     }
 
     public static void ContractTest()

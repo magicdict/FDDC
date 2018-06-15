@@ -264,7 +264,8 @@ public static class HTMLEngine
                             tablenode.Content = "";
                             TableId++;
                             tablenode.TableId = TableId;
-                            GetTable(node.ChildNodes[1]);
+                            var tablecontentlist = HTMLTable.GetTable(node.ChildNodes[1], TableId);
+                            TableList.Add(TableId, tablecontentlist);
                             root.Children.Add(tablenode);
                         }
                         else
@@ -306,7 +307,8 @@ public static class HTMLEngine
                 tablenode.Content = "";
                 TableId++;
                 tablenode.TableId = TableId;
-                GetTable(node);
+                var tablecontentlist = HTMLTable.GetTable(node, TableId);
+                TableList.Add(TableId, tablecontentlist);
                 root.Children.Add(tablenode);
             }
         }
@@ -344,133 +346,5 @@ public static class HTMLEngine
             DetailItemList.Add(DetailItemId, lst);
         }
     }
-
-
-
-    public static List<String> GetTable(HtmlNode table)
-    {
-        var tablecontentlist = new List<String>();
-        var dict = new Dictionary<String, String>();
-
-        //表格处理：
-        foreach (var tablebody in table.ChildNodes)
-        {
-            //整理出最大行列数
-            int MaxRow = 0;
-            int MaxColumn = 0;
-
-            foreach (var tableRows in tablebody.ChildNodes)
-            {
-                if (tableRows.ChildNodes.Count != 0)
-                {
-                    int xc = 0;
-                    foreach (var tableData in tableRows.ChildNodes)
-                    {
-                        if (tableData.Name == "td")
-                        {
-                            if (tableData.Attributes["colspan"] != null)
-                            {
-                                xc += int.Parse(tableData.Attributes["colspan"].Value);
-                            }
-                            else
-                            {
-                                xc++;
-                            }
-                        }
-                    }
-                    if (xc > MaxColumn) MaxColumn = xc;
-                    MaxRow++;
-                }
-            }
-
-
-            //准备Cell内容字典
-            for (int Row = 1; Row < MaxRow + 1; Row++)
-            {
-                for (int Col = 1; Col < MaxColumn + 1; Col++)
-                {
-                    dict.Add(Row + "," + Col, "");
-                }
-            }
-
-            int CurrentRow = 1;
-            int NextNeedToFillColumn = 1;
-
-            foreach (var tableRows in tablebody.ChildNodes)
-            {
-                if (tableRows.ChildNodes.Count != 0)
-                {
-                    foreach (var tableData in tableRows.ChildNodes)
-                    {
-                        //对于#text的过滤
-                        if (tableData.Name == "td")
-                        {
-
-                            //寻找该行下一个需要填充的格子的列号
-                            for (int Col = 1; Col < MaxColumn + 1; Col++)
-                            {
-                                if (dict[CurrentRow + "," + Col] == "")
-                                {
-                                    NextNeedToFillColumn = Col;
-                                    break;
-                                }
-                            }
-
-                            var cellvalue = Normalizer.Normalize(tableData.InnerText);
-                            var cellpos = CurrentRow + "," + NextNeedToFillColumn;
-                            if (cellvalue == "")
-                            {
-                                cellvalue = "<null>";
-                            }
-                            dict[CurrentRow + "," + NextNeedToFillColumn] = cellvalue;
-                            if (tableData.Attributes["rowspan"] != null)
-                            {
-                                //具有RowSpan特性的情况
-                                for (int i = 1; i < int.Parse(tableData.Attributes["rowspan"].Value); i++)
-                                {
-                                    dict[(CurrentRow + i) + "," + NextNeedToFillColumn] = "<rowspan>";
-                                }
-                            }
-                            if (tableData.Attributes["colspan"] != null)
-                            {
-                                //具有RowSpan特性的情况
-                                for (int i = 1; i < int.Parse(tableData.Attributes["colspan"].Value); i++)
-                                {
-                                    dict[CurrentRow + "," + (NextNeedToFillColumn + i)] = "<colspan>";
-                                }
-                            }
-                        }
-                    }
-                    CurrentRow++;
-                }
-            }
-        }
-
-        //表格分页的修正
-        var NeedToModify = "";
-        foreach (var item in dict)
-        {
-            if (item.Value == "<null>")
-            {
-                var Row = int.Parse(item.Key.Split(",")[0]) - 1;
-                var Column = item.Key.Split(",")[1];
-                if (Row == 0) continue;
-                if (dict[Row + "," + Column] == "<rowspan>")
-                {
-                    NeedToModify = item.Key;
-                }
-            }
-        }
-
-        if (NeedToModify != "") dict[NeedToModify] = "<rowspan>";
-
-        foreach (var item in dict)
-        {
-            tablecontentlist.Add(TableId + "," + item.Key + "|" + item.Value);
-        }
-        TableList.Add(TableId, tablecontentlist);
-        return tablecontentlist;
-    }
-
     #endregion
 }
