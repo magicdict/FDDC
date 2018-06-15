@@ -116,6 +116,9 @@ public class BussinessLogic
         return IsStartWithNS && IsEndWithNS && IsRange;
     }
 
+    //字典里面错误分类的地名
+    public static string[] DictNSAdjust = new string[] { "大连", "霍尔果斯", "烟台" };
+
     public static List<struCompanyName> GetCompanyNameByCutWord(HTMLEngine.MyRootHtmlNode root)
     {
         var posSeg = new PosSegmenter();
@@ -188,10 +191,10 @@ public class BussinessLogic
                             }
                             //寻找地名?words[NRIdx].Flag == EntityWordAnlayzeTool.机构团体
                             //posSeg.Cut(words[NRIdx].Word + "市").First().Flag == EntityWordAnlayzeTool.地名
-                            if (words[NRIdx].Flag == EntityWordAnlayzeTool.地名)
+                            if (words[NRIdx].Flag == EntityWordAnlayzeTool.地名 || DictNSAdjust.Contains(words[NRIdx].Word))
                             {
                                 //注意，地名可能相连，例如：上海市嘉定
-                                if (NRIdx != 0 && (words[NRIdx - 1].Flag == EntityWordAnlayzeTool.地名)) continue;
+                                if (NRIdx != 0 && (words[NRIdx - 1].Flag == EntityWordAnlayzeTool.地名 || DictNSAdjust.Contains(words[NRIdx - 1].Word))) continue;
                                 FullName = "";
                                 for (int companyFullNameInd = NRIdx; companyFullNameInd <= baseInd; companyFullNameInd++)
                                 {

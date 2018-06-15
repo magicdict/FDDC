@@ -6,14 +6,21 @@ using System.Text.RegularExpressions;
 public static class RegularTool
 {
 
-    public static string GetDate(string str){
+    public static List<string> GetDate(string str)
+    {
         //中文数字转阿拉伯数字
         str = Utility.ConvertUpperDateToLittle(str);
         Regex r = new Regex(@"\d+年\d+月\d+日");
-        return r.Match(str).Value;
+        var strList = new List<string>();
+        foreach (var item in r.Matches(str).ToList())
+        {
+            if (!string.IsNullOrEmpty(item.Value)) strList.Add(item.Value);
+        }
+        return strList;
     }
 
-    public static List<string> GetNumberList(string str){
+    public static List<string> GetNumberList(string str)
+    {
         var strList = new List<string>();
         Regex r = new Regex(@"\d+");
         foreach (var item in r.Matches(str).ToList())
@@ -23,8 +30,21 @@ public static class RegularTool
         return strList;
     }
 
-   
-
+    public static bool IsNumeric(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return false;
+        return Regex.IsMatch(value, @"^[+-]?\d*[.]?\d*$");
+    }
+    public static bool IsInt(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return false;
+        return Regex.IsMatch(value, @"^[+-]?\d*$");
+    }
+    public static bool IsUnsign(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return false;
+        return Regex.IsMatch(value, @"^\d*[.]?\d*$");
+    }
 
     public static List<string> GetMultiValueBetweenMark(string str, string s, string e)
     {

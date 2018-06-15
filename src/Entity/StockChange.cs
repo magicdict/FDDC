@@ -88,7 +88,7 @@ public class StockChange
 
 
     static List<struCompanyName> companynamelist;
-    static List<LocAndValue<String>> datelist;
+    static List<LocAndValue<DateTime>> datelist;
     static Char[] trimChar = new Char[] { '—', '-', ']' };
     public static List<struStockChange> Extract(string htmlFileName)
     {
@@ -121,6 +121,10 @@ public class StockChange
         stockchange.id = fi.Name.Replace(".html", "");
         //Program.Logger.WriteLine("公告ID:" + stockchange.id);
         stockchange.HolderFullName = Name.Item1.TrimStart(trimChar);
+        if (EntityWordAnlayzeTool.TrimEnglish(stockchange.HolderFullName).Length > ContractTraning.MaxYiFangLength)
+        {
+            stockchange.HolderFullName = "";
+        }
         stockchange.HolderShortName = Name.Item2;
         stockchange.ChangeEndDate = GetChangeEndDate(root);
 
@@ -208,15 +212,27 @@ public class StockChange
             }
 
             if (!String.IsNullOrEmpty(rec[2].RawData) &&
-                !(rec[2].RawData.Contains("-") || rec[2].RawData.Contains("至")))
+                !(rec[2].RawData.Contains("-") || rec[2].RawData.Contains("~") || rec[2].RawData.Contains("至")))
             {
                 //股价区间化的去除
-                stockchange.ChangePrice = rec[2].RawData;
+                stockchange.ChangePrice = rec[2].RawData.Replace(" ", "");
                 stockchange.ChangePrice = stockchange.ChangePrice.NormalizeNumberResult();
             }
+            if (!RegularTool.IsUnsign(stockchange.ChangePrice))
+            {
+                stockchange.ChangePrice = "";
+            }
 
-            stockchange.ChangeNumber = rec[3].RawData;
-            stockchange.ChangeNumber = stockchange.ChangeNumber.NormalizeNumberResult();
+            if (!String.IsNullOrEmpty(rec[3].RawData))
+            {
+                stockchange.ChangeNumber = rec[3].RawData.Replace(" ", "");
+                stockchange.ChangeNumber = stockchange.ChangeNumber.NormalizeNumberResult();
+                if (!RegularTool.IsUnsign(stockchange.ChangeNumber))
+                {
+                    stockchange.ChangeNumber = "";
+                }
+            }
+
             //基本上所有的有效记录都有股东名和截至日期，所以，这里这么做，可能对于极少数没有截至日期的数据有伤害，但是对于整体指标来说是好的
             if (string.IsNullOrEmpty(stockchange.HolderFullName) || string.IsNullOrEmpty(stockchange.ChangeEndDate)) continue;
             stockchangelist.Add(stockchange);
@@ -433,30 +449,13 @@ public class StockChange
         if (orgString.Contains("公告") || orgString.Contains("披露") || orgString.StartsWith("本"))
         {
             if (datelist.Count == 0) return orgString;
-            var AnnouceDate = datelist.Last();
-            var AnnouceDateNumberList = RegularTool.GetNumberList(AnnouceDate.Value);
-            String Year = AnnouceDateNumberList[0];
-            String Month = AnnouceDateNumberList[1];
-            String Day = AnnouceDateNumberList[2];
-            int year; int month; int day;
-            if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
+            var AnnouceDate = datelist.Last().Value;
+            if (datelist.Count > 1)
             {
-                var d = Utility.GetWorkDay(year, month, day);
-                if (datelist.Count > 1)
-                {
-                    //这里有可能要使用前一天。。。
-                    var FirstAnnouceDate = datelist.First();
-                    var FirstAnnouceDateNumberList = RegularTool.GetNumberList(FirstAnnouceDate.Value);
-                    String firstYear = FirstAnnouceDateNumberList[0];
-                    String firstMonth = FirstAnnouceDateNumberList[1];
-                    String firstDay = FirstAnnouceDateNumberList[2];
-                    if (int.TryParse(firstYear, out year) && int.TryParse(firstMonth, out month) && int.TryParse(firstDay, out day))
-                    {
-                        var fd = Utility.GetWorkDay(year, month, day);
-                        if (fd.Subtract(d).Days == -1) return fd.ToString(format);
-                    }
-                }
-                return d.ToString(format);
+                //这里有可能要使用前一天。。。
+                var FirstAnnouceDate = datelist.First().Value;
+                if (FirstAnnouceDate.Subtract(AnnouceDate).Days == -1) return FirstAnnouceDate.ToString(format);
+                return AnnouceDate.ToString(format);
             }
         }
 
@@ -519,13 +518,12 @@ public class StockChange
             {
                 if (datelist.Count == 0) return orgString;
                 var AnnouceDate = datelist.Last();
-                String Year = AnnouceDate.Value.Substring(0, 4);
                 String Month = NumberList[0];
                 String Day = NumberList[1];
-                int year; int month; int day;
-                if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
+                int month; int day;
+                if (int.TryParse(Month, out month) && int.TryParse(Day, out day))
                 {
-                    var d = Utility.GetWorkDay(year, month, day);
+                    var d = Utility.GetWorkDay(AnnouceDate.Value.Year, month, day);
                     return d.ToString(format);
                 }
             }

@@ -103,17 +103,21 @@ public static class HTMLEngine
             //重大合同:1232951  
             var LastSentence = LastParagrah.Children.Last().Content;
             var sentence = Utility.ConvertUpperDateToLittle(LastSentence);
-            var strDate = RegularTool.GetDate(sentence);
-            if (!String.IsNullOrEmpty(strDate))
+            var dateList = RegularTool.GetDate(sentence);
+            if (dateList.Count > 0)
             {
-                var strBefore = Utility.GetStringBefore(sentence, strDate);
-                if (!String.IsNullOrEmpty(strBefore))
+                var strDate = dateList.Last();
+                if (!String.IsNullOrEmpty(strDate))
                 {
-                    //尾部除去
-                    LastParagrah.Children.RemoveAt(LastParagrah.Children.Count - 1);
-                    strBefore = LastSentence.Substring(0, LastSentence.LastIndexOf("年") - 4);
-                    LastParagrah.Children.Add(new MyHtmlNode() { Content = strBefore });
-                    LastParagrah.Children.Add(new MyHtmlNode() { Content = strDate });
+                    var strBefore = Utility.GetStringBefore(sentence, strDate);
+                    if (!String.IsNullOrEmpty(strBefore))
+                    {
+                        //尾部除去
+                        LastParagrah.Children.RemoveAt(LastParagrah.Children.Count - 1);
+                        strBefore = LastSentence.Substring(0, LastSentence.LastIndexOf("年") - 4);
+                        LastParagrah.Children.Add(new MyHtmlNode() { Content = strBefore });
+                        LastParagrah.Children.Add(new MyHtmlNode() { Content = strDate });
+                    }
                 }
             }
         }

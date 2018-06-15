@@ -13,18 +13,31 @@ public static class LocateProperty
     }
 
     //获得日期
-    public static List<LocAndValue<String>> LocateDate(HTMLEngine.MyRootHtmlNode root)
+    public static List<LocAndValue<DateTime>> LocateDate(HTMLEngine.MyRootHtmlNode root)
     {
-        var list = new List<LocAndValue<String>>();
+        var list = new List<LocAndValue<DateTime>>();
         foreach (var paragrah in root.Children)
         {
             foreach (var sentence in paragrah.Children)
             {
                 var OrgString = sentence.Content;
                 OrgString = Utility.ConvertUpperDateToLittle(OrgString).Replace(" ", "");
-                if (!String.IsNullOrEmpty(RegularTool.GetDate(OrgString)))
+                var datelist = RegularTool.GetDate(OrgString);
+                foreach (var strDate in datelist)
                 {
-                    list.Add(new LocAndValue<String>() { Loc = sentence.PositionId, Value = RegularTool.GetDate(OrgString) });
+                    var DateNumberList = RegularTool.GetNumberList(strDate);
+                    String Year = DateNumberList[0];
+                    String Month = DateNumberList[1];
+                    String Day = DateNumberList[2];
+                    int year; int month; int day;
+                    if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
+                    {
+                        list.Add(new LocAndValue<DateTime>()
+                        {
+                            Loc = sentence.PositionId,
+                            Value = Utility.GetWorkDay(year, month, day)
+                        });
+                    }
                 }
             }
         }
@@ -32,9 +45,9 @@ public static class LocateProperty
     }
 
     //获得金额
-    public static List<LocAndValue<Tuple<String,String>>> LocateMoney(HTMLEngine.MyRootHtmlNode root)
+    public static List<LocAndValue<Tuple<String, String>>> LocateMoney(HTMLEngine.MyRootHtmlNode root)
     {
-        var list = new List<LocAndValue<Tuple<String,String>>>();
+        var list = new List<LocAndValue<Tuple<String, String>>>();
         foreach (var paragrah in root.Children)
         {
             foreach (var sentence in paragrah.Children)

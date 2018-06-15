@@ -82,7 +82,7 @@ public class Contract
     //公司
     static List<struCompanyName> companynamelist;
     //日期
-    static List<LocAndValue<String>> datelist;
+    static List<LocAndValue<DateTime>> datelist;
 
     static List<LocAndValue<Tuple<String, String>>> moneylist;
 
