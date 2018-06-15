@@ -84,7 +84,7 @@ public class Contract
     //日期
     static List<LocAndValue<DateTime>> datelist;
 
-    static List<LocAndValue<Tuple<String, String>>> moneylist;
+    static List<LocAndValue<(String MoneyAmount, String MoneyCurrency)>> moneylist;
 
     public static List<struContract> Extract(string htmlFileName)
     {
@@ -398,7 +398,7 @@ public class Contract
         //这些关键字后面
         Extractor.LeadingWordList = new string[] { "中标金额", "中标价", "合同金额", "合同总价", "订单总金额" };
         Extractor.Extract(root);
-        var AllMoneyList = new List<Tuple<String, String>>();
+        var AllMoneyList = new List<(String MoneyAmount, String MoneyCurrency)>();
         foreach (var item in Extractor.CandidateWord)
         {
             var ml = Utility.SeekMoney(item);
@@ -407,15 +407,15 @@ public class Contract
         if (AllMoneyList.Count == 0) return "";
         foreach (var m in AllMoneyList)
         {
-            if (m.Item2 == "人民币" || m.Item2 == "元")
+            if (m.MoneyCurrency == "人民币" || m.MoneyCurrency == "元")
             {
-                Money = m.Item1;
+                Money = m.MoneyAmount;
                 break;
             }
         }
         if (Money == "")
         {
-            Money = AllMoneyList[0].Item1;
+            Money = AllMoneyList[0].MoneyAmount;
         }
         Program.Logger.WriteLine("金额候补词：[" + Money + "]");
 

@@ -45,9 +45,9 @@ public static class LocateProperty
     }
 
     //获得金额
-    public static List<LocAndValue<Tuple<String, String>>> LocateMoney(HTMLEngine.MyRootHtmlNode root)
+    public static List<LocAndValue<(String MoneyAmount, String MoneyCurrency)>> LocateMoney(HTMLEngine.MyRootHtmlNode root)
     {
-        var list = new List<LocAndValue<Tuple<String, String>>>();
+        var list = new List<LocAndValue<(String MoneyAmount, String MoneyCurrency)>>();
         foreach (var paragrah in root.Children)
         {
             foreach (var sentence in paragrah.Children)
@@ -55,6 +55,14 @@ public static class LocateProperty
                 var OrgString = sentence.Content;
                 OrgString = Utility.ConvertUpperDateToLittle(OrgString).Replace(" ", "");
                 var Money = Utility.SeekMoney(OrgString);
+                foreach (var money in Money)
+                {
+                    list.Add(new LocAndValue<(String MoneyAmount, String MoneyCurrency)>
+                    {
+                        Loc = sentence.PositionId,
+                        Value = money
+                    });
+                }
             }
         }
         return list;

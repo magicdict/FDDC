@@ -105,12 +105,12 @@ public class StockChange
             Program.Logger.WriteLine("公司简称：" + cn.secShortName);
         }
         var Name = GetHolderName(root);
-        if (!String.IsNullOrEmpty(Name.Item1) && !String.IsNullOrEmpty(Name.Item2))
+        if (!String.IsNullOrEmpty(Name.FullName) && !String.IsNullOrEmpty(Name.ShortName))
         {
             companynamelist.Add(new struCompanyName()
             {
-                secFullName = Name.Item1,
-                secShortName = Name.Item2
+                secFullName = Name.FullName,
+                secShortName = Name.ShortName
             });
         }
         list = ExtractFromTable(root, fi.Name.Replace(".html", ""));
@@ -120,12 +120,12 @@ public class StockChange
         //公告ID
         stockchange.id = fi.Name.Replace(".html", "");
         //Program.Logger.WriteLine("公告ID:" + stockchange.id);
-        stockchange.HolderFullName = Name.Item1.TrimStart(trimChar);
+        stockchange.HolderFullName = Name.FullName.TrimStart(trimChar);
         if (EntityWordAnlayzeTool.TrimEnglish(stockchange.HolderFullName).Length > ContractTraning.MaxYiFangLength)
         {
             stockchange.HolderFullName = "";
         }
-        stockchange.HolderShortName = Name.Item2;
+        stockchange.HolderShortName = Name.ShortName;
         stockchange.ChangeEndDate = GetChangeEndDate(root);
 
         DateTime x;
@@ -196,8 +196,8 @@ public class StockChange
             var stockchange = new struStockChange();
             stockchange.id = id;
             var Name = NormalizeCompanyName(rec[0].RawData);
-            stockchange.HolderFullName = Name.Item1.TrimStart(trimChar);
-            stockchange.HolderShortName = Name.Item2;
+            stockchange.HolderFullName = Name.FullName.TrimStart(trimChar);
+            stockchange.HolderShortName = Name.ShortName;
             stockchange.ChangeEndDate = rec[1].RawData;
 
             DateTime x;
@@ -324,7 +324,7 @@ public class StockChange
         return HoldList;
     }
 
-    static Tuple<String, String> GetHolderName(HTMLEngine.MyRootHtmlNode root)
+    static (String FullName, String ShortName) GetHolderName(HTMLEngine.MyRootHtmlNode root)
     {
         var Extractor = new EntityProperty();
         var StartArray = new string[] { "接到", "收到", "股东" };
@@ -334,7 +334,7 @@ public class StockChange
         foreach (var word in Extractor.CandidateWord)
         {
             var name = NormalizeCompanyName(word);
-            if (!String.IsNullOrEmpty(name.Item1) && !String.IsNullOrEmpty(name.Item2))
+            if (!String.IsNullOrEmpty(name.FullName) && !String.IsNullOrEmpty(name.ShortName))
             {
                 return name;
             }
@@ -342,19 +342,19 @@ public class StockChange
         foreach (var word in Extractor.CandidateWord)
         {
             var name = NormalizeCompanyName(word);
-            if (!String.IsNullOrEmpty(name.Item1))
+            if (!String.IsNullOrEmpty(name.FullName))
             {
                 return name;
             }
         }
-        return Tuple.Create("", "");
+        return ("", "");
     }
 
     public static string[] CompanyNameTrailingwords =
     new string[] { "（以下简称", "（下称", "（以下称", "（简称", "(以下简称", "(下称", "(以下称", "(简称" };
 
 
-    private static Tuple<String, String> NormalizeCompanyName(string word)
+    private static (String FullName, String ShortName) NormalizeCompanyName(string word)
     {
         if (!String.IsNullOrEmpty(word))
         {
@@ -362,7 +362,7 @@ public class StockChange
             var shortname = "";
             var StdIdx = word.IndexOf("“");
             var EndIdx = word.IndexOf("”");
-            if (EndIdx < StdIdx) return Tuple.Create("", "");
+            if (EndIdx < StdIdx) return ("", "");
             if (StdIdx != -1 && EndIdx != -1)
             {
                 shortname = word.Substring(StdIdx + 1, EndIdx - StdIdx - 1);
@@ -417,10 +417,10 @@ public class StockChange
             {
                 shortname = BussinessLogic.GetCompanyNameByFullName(fullname).secShortName;
             }
-            return Tuple.Create(fullname, shortname);
+            return (fullname, shortname);
 
         }
-        return Tuple.Create("", "");
+        return ("", "");
     }
 
     //变动截止日期

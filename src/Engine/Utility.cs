@@ -123,7 +123,7 @@ public static class Utility
     }
 
 
-    public static List<Tuple<String, String>> SeekMoney(string OrgString)
+    public static List<(String MoneyAmount, String MoneyCurrency)> SeekMoney(string OrgString)
     {
         OrgString = OrgString.Replace(" ", "");
 
@@ -151,7 +151,7 @@ public static class Utility
         OrgString = OrgString.Replace("８", "8");
         OrgString = OrgString.Replace("９", "9");
 
-        var MoneyList = new List<Tuple<String, String>>();
+        var MoneyList = new List<(String MoneyAmount, String MoneyCurrency)>();
         var LastIndex = 0;
         var detectString = OrgString;
         while (true)
@@ -203,12 +203,12 @@ public static class Utility
                         MoneyAmount = "";
                         break;  //暂时认为一定要有阿拉伯数字
                     }
-                    MoneyList.Add(Tuple.Create(MoneyAmount, MoneyCurrency));
+                    MoneyList.Add((MoneyAmount, MoneyCurrency));
                     MoneyAmount = "";
                     break;
                 }
             }
-            if (MoneyAmount != "") MoneyList.Add(Tuple.Create(MoneyAmount, MoneyCurrency));
+            if (MoneyAmount != "") MoneyList.Add((MoneyAmount, MoneyCurrency));
             LastIndex += MoneyCurrency.Length;
         }
 
