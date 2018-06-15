@@ -7,6 +7,27 @@ using static EntityProperty;
 
 public static class Utility
 {
+
+    public static DateTime GetWorkDay(int year, int month, int day)
+    {
+        DateTime x = new DateTime(1980, 11, 24);
+        var IsWordDayMode = false;
+        if (day == -1)
+        {
+            IsWordDayMode = true;
+            day = 31;
+        }
+        for (int testDay = day; testDay > 0; testDay--)
+        {
+            if (DateTime.TryParse(year + "/" + month + "/" + testDay, out x))
+            {
+                if (!IsWordDayMode) break;
+                if (x.DayOfWeek != DayOfWeek.Saturday && x.DayOfWeek != DayOfWeek.Sunday) break;
+            }
+        }
+        return x;
+    }
+
     //获得开始字符结束字符的排列组合
     public static struStartEndStringFeature[] GetStartEndStringArray(string[] StartStringList, string[] EndStringList)
     {

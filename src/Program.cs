@@ -16,6 +16,9 @@ namespace FDDC
         public static StreamWriter Logger = new StreamWriter("Log.log");
         public static StreamWriter Score = new StreamWriter(@"Result\Score\score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
         public static String DocBase = @"E:\WorkSpace2018\FDDC2018";
+        //这个模式下，有问题的数据会输出，正式比赛的时候设置为False，降低召回率！
+        public static bool IsDebugMode = true;
+
         static void Main(string[] args)
         {
             //生成PDF的TXT文件的批处理命令
@@ -31,7 +34,6 @@ namespace FDDC
             ContractTraning.GetListLeadWords();
             TraningDataset.InitIncreaseStock();
             Training.Close();
-            //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\17968257.html");
             UT();
             Extract();
             Logger.Close();
@@ -46,12 +48,12 @@ namespace FDDC
             var ContractPath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
             var ContractPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\重大合同";
 
-            var IsRunStockChange = false;
-            var IsRunStockChange_TEST = false;
+            var IsRunStockChange = true;
+            var IsRunStockChange_TEST = true;
             var StockChangePath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持";
             var StockChangePath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\增减持";
 
-            var IsRunIncreaseStock = true;
+            var IsRunIncreaseStock = false;
             var IsRunIncreaseStock_TEST = false;
             var IncreaseStockPath_TRAIN = DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增";
             var IncreaseStockPath_TEST = DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增";
@@ -168,6 +170,7 @@ namespace FDDC
 
         private static void UT()
         {
+            //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\1861263.html");
             //EntityWordAnlayzeTool.ConsoleWritePos("北京金泉广场和摩根中心项目的弱电系统总包工程框架协议》，确立由国电南瑞科技股份有限公司");
             //Console.WriteLine(EntityWordAnlayzeTool.TrimEnglish("CNOOC Iraq Limited（中海油伊拉克有限公司）"));
             //Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\2259816.html");

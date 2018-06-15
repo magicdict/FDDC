@@ -6,6 +6,7 @@ using FDDC;
 using static BussinessLogic;
 using static HTMLEngine;
 using static HTMLTable;
+using static LocateProperty;
 
 public class StockChange
 {
@@ -72,8 +73,6 @@ public class StockChange
         return c;
     }
 
-
-
     internal static string ConvertToString(struStockChange increaseStock)
     {
         var record = increaseStock.id + "," +
@@ -89,6 +88,7 @@ public class StockChange
 
 
     static List<struCompanyName> companynamelist;
+    static List<LocAndValue<String>> datelist;
     static Char[] trimChar = new Char[] { '—', '-', ']' };
     public static List<struStockChange> Extract(string htmlFileName)
     {
@@ -97,6 +97,8 @@ public class StockChange
         Program.Logger.WriteLine("Start FileName:[" + fi.Name + "]");
         var root = HTMLEngine.Anlayze(htmlFileName);
         companynamelist = BussinessLogic.GetCompanyNameByCutWord(root);
+        datelist = LocateProperty.LocateDate(root);
+
         foreach (var cn in companynamelist)
         {
             Program.Logger.WriteLine("公司名称：" + cn.secFullName);
@@ -121,6 +123,18 @@ public class StockChange
         stockchange.HolderFullName = Name.Item1.TrimStart(trimChar);
         stockchange.HolderShortName = Name.Item2;
         stockchange.ChangeEndDate = GetChangeEndDate(root);
+
+        DateTime x;
+        if (!DateTime.TryParse(stockchange.ChangeEndDate, out x))
+        {
+            //无法处理的情况
+            if (!Program.IsDebugMode)
+            {
+                //非调试模式
+                stockchange.ChangeEndDate = "";
+            }
+        }
+
         if (!string.IsNullOrEmpty(stockchange.HolderFullName) && !string.IsNullOrEmpty(stockchange.ChangeEndDate))
         {
             list.Add(stockchange);
@@ -141,7 +155,7 @@ public class StockChange
         ChangeDateRule.Rule = new string[] { "减持期间", "增持期间", "减持股份期间", "增持股份期间",
                                              "减持时间", "增持时间", "减持股份时间", "增持股份时间" }.ToList();
         ChangeDateRule.IsEq = false;
-        ChangeDateRule.Normalize = Normalizer.NormailizeDate;
+        ChangeDateRule.Normalize = NormailizeEndChangeDate;
 
 
         var ChangePriceRule = new TableSearchRule();
@@ -185,7 +199,12 @@ public class StockChange
             DateTime x;
             if (!DateTime.TryParse(stockchange.ChangeEndDate, out x))
             {
-                stockchange.ChangeEndDate = "";
+                //无法处理的情况
+                if (!Program.IsDebugMode)
+                {
+                    //非调试模式
+                    stockchange.ChangeEndDate = "";
+                }
             }
 
             if (!String.IsNullOrEmpty(rec[2].RawData) &&
@@ -315,7 +334,8 @@ public class StockChange
         return Tuple.Create("", "");
     }
 
-    public static string[] CompanyNameTrailingwords = new string[] { "（以下简称", "（下称", "（以下称", "（简称", "(以下简称", "(下称", "(以下称", "(简称" };
+    public static string[] CompanyNameTrailingwords =
+    new string[] { "（以下简称", "（下称", "（以下称", "（简称", "(以下简称", "(下称", "(以下称", "(简称" };
 
 
     private static Tuple<String, String> NormalizeCompanyName(string word)
@@ -399,8 +419,171 @@ public class StockChange
         {
             if (item.Length > 20) continue;
             Program.Logger.WriteLine("候补变动截止日期：[" + item + "]");
-            return Normalizer.NormailizeDate(item + "日");
+            return NormailizeEndChangeDate(item + "日");
         }
         return "";
+    }
+
+
+    public static string NormailizeEndChangeDate(string orgString, string keyword = "")
+    {
+        var format = "yyyy-MM-dd";
+        if (orgString.StartsWith("到")) orgString = orgString.Substring(1);
+        if (orgString.Contains("（")) orgString = Utility.GetStringBefore(orgString, "（");
+        if (orgString.Contains("公告") || orgString.Contains("披露") || orgString.StartsWith("本"))
+        {
+            if (datelist.Count == 0) return orgString;
+            var AnnouceDate = datelist.Last();
+            var AnnouceDateNumberList = RegularTool.GetNumberList(AnnouceDate.Value);
+            String Year = AnnouceDateNumberList[0];
+            String Month = AnnouceDateNumberList[1];
+            String Day = AnnouceDateNumberList[2];
+            int year; int month; int day;
+            if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
+            {
+                var d = Utility.GetWorkDay(year, month, day);
+                if (datelist.Count > 1)
+                {
+                    //这里有可能要使用前一天。。。
+                    var FirstAnnouceDate = datelist.First();
+                    var FirstAnnouceDateNumberList = RegularTool.GetNumberList(FirstAnnouceDate.Value);
+                    String firstYear = FirstAnnouceDateNumberList[0];
+                    String firstMonth = FirstAnnouceDateNumberList[1];
+                    String firstDay = FirstAnnouceDateNumberList[2];
+                    if (int.TryParse(firstYear, out year) && int.TryParse(firstMonth, out month) && int.TryParse(firstDay, out day))
+                    {
+                        var fd = Utility.GetWorkDay(year, month, day);
+                        if (fd.Subtract(d).Days == -1) return fd.ToString(format);
+                    }
+                }
+                return d.ToString(format);
+            }
+        }
+
+        orgString = orgString.Trim().Replace(",", "");
+
+        //XXXX年XX月XX日 - XXXX年XX月XX日
+        var NumberList = RegularTool.GetNumberList(orgString);
+        if (NumberList.Count == 6)
+        {
+            String Year = NumberList[3];
+            String Month = NumberList[4];
+            String Day = NumberList[5];
+            int year; int month; int day;
+            if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
+            {
+                var d = Utility.GetWorkDay(year, month, day);
+                return d.ToString(format);
+            }
+        }
+
+        //XXXX年XX月XX日 - XX月XX日
+        if (NumberList.Count == 5)
+        {
+            if (orgString.IndexOf("年") != -1 && orgString.IndexOf("月") != -1 && orgString.IndexOf("日") != -1)
+            {
+                String Year = NumberList[0];
+                String Month = NumberList[3];
+                String Day = NumberList[4];
+                int year; int month; int day;
+                if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
+                {
+                    if (month <= 12 && day <= 31)
+                    {
+                        var d = Utility.GetWorkDay(year, month, day);
+                        return d.ToString(format);
+                    }
+                }
+            }
+        }
+        //XXXX年XX月XX日 - XX日 
+        if (NumberList.Count == 4)
+        {
+            if (orgString.IndexOf("年") != -1 && orgString.IndexOf("月") != -1 && orgString.IndexOf("日") != -1)
+            {
+                String Year = NumberList[0];
+                String Month = NumberList[1];
+                String Day = NumberList[3];
+                int year; int month; int day;
+                if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
+                {
+                    var d = Utility.GetWorkDay(year, month, day);
+                    return d.ToString(format);
+                }
+            }
+        }
+        //XX月XX日
+        if (NumberList.Count == 2)
+        {
+            if (orgString.IndexOf("月") != -1 && orgString.IndexOf("日") != -1)
+            {
+                if (datelist.Count == 0) return orgString;
+                var AnnouceDate = datelist.Last();
+                String Year = AnnouceDate.Value.Substring(0, 4);
+                String Month = NumberList[0];
+                String Day = NumberList[1];
+                int year; int month; int day;
+                if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
+                {
+                    var d = Utility.GetWorkDay(year, month, day);
+                    return d.ToString(format);
+                }
+            }
+            if (orgString.IndexOf("年") != -1 && orgString.IndexOf("月") != -1)
+            {
+                String Year = NumberList[0];
+                String Month = NumberList[1];
+                int year; int month;
+                if (int.TryParse(Year, out year) && int.TryParse(Month, out month))
+                {
+                    var d = Utility.GetWorkDay(year, month, -1);
+                    return d.ToString(format);
+                }
+            }
+            if (orgString.IndexOf("月") != -1)
+            {
+                String Year = NumberList[0];
+                if (Year.Length != 4) return orgString;
+                String Month = NumberList[1];
+                int year; int month;
+                if (int.TryParse(Year, out year) && int.TryParse(Month, out month))
+                {
+                    var d = Utility.GetWorkDay(year, month, -1);
+                    return d.ToString(format);
+                }
+            }
+        }
+        //XXXX年XX月XX日
+        if (orgString.Contains("年") && orgString.Contains("月") && orgString.Contains("月"))
+        {
+            String Year = Utility.GetStringBefore(orgString, "年");
+            String Month = RegularTool.GetValueBetweenString(orgString, "年", "月");
+            String Day = Utility.GetStringAfter(orgString, "月").Replace("日", "");
+            int year; int month; int day;
+            if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
+            {
+                var d = Utility.GetWorkDay(year, month, day);
+                return d.ToString(format);
+            }
+        }
+
+        var SplitChar = new string[] { "/", ".", "-" };
+        foreach (var sc in SplitChar)
+        {
+            var SplitArray = orgString.Split(sc);
+            if (SplitArray.Length == 3)
+            {
+                String Year = SplitArray[0];
+                String Month = SplitArray[1];
+                String Day = SplitArray[2];
+                int year; int month; int day;
+                if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
+                {
+                    var d = Utility.GetWorkDay(year, month, day);
+                    return d.ToString(format);
+                }
+            }
+        }
+        return orgString;
     }
 }
