@@ -102,8 +102,8 @@ public static class HTMLEngine
         {
             //重大合同:1232951  
             var LastSentence = LastParagrah.Children.Last().Content;
-            var sentence = Utility.ConvertUpperDateToLittle(LastSentence);
-            var dateList = RegularTool.GetDate(sentence);
+            var sentence = DateUtility.ConvertUpperToLower(LastSentence);
+            var dateList = DateUtility.GetDate(sentence);
             if (dateList.Count > 0)
             {
                 var strDate = dateList.Last();
@@ -128,17 +128,14 @@ public static class HTMLEngine
             AdjustItemList(root, txtfilename);
             AdjustTwoLine(root, txtfilename);
         }
-
         for (int i = 0; i < root.Children.Count - 1; i++)
         {
             root.Children[i].NextBrother = root.Children[i + 1];
         }
-
         for (int i = 1; i < root.Children.Count; i++)
         {
             root.Children[i].PreviewBrother = root.Children[i - 1];
         }
-
         for (int i = 0; i < root.Children.Count; i++)
         {
             root.Children[i].PositionId = i + 1;
@@ -147,11 +144,8 @@ public static class HTMLEngine
                 root.Children[i].Children[j].PositionId = (i + 1) * 100 + j + 1;
             }
         }
-
         root.TableList = TableList;
         root.DetailItemList = DetailItemList;
-
-
         return root;
     }
 

@@ -16,7 +16,7 @@ public class BussinessLogic
         //从第一行开始找到  有限公司 有限责任公司, 如果有简称的话Value是简称
         //股票简称：东方电气
         //东方电气股份有限公司董事会
-        var Extractor = new EntityProperty();
+        var Extractor = new ExtractProperty();
         Extractor.LeadingWordList = new string[] { "股票简称", "证券简称" };
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
@@ -53,7 +53,7 @@ public class BussinessLogic
     }
     public static string GetCompanyFullName(HTMLEngine.MyRootHtmlNode root)
     {
-        var Extractor = new EntityProperty();
+        var Extractor = new ExtractProperty();
         Extractor.TrailingWordList = new string[] { "公司董事会" };
         Extractor.Extract(root);
         Extractor.CandidateWord.Reverse();
@@ -110,7 +110,7 @@ public class BussinessLogic
     {
         var posSeg = new PosSegmenter();
         var list = posSeg.Cut(companyName);
-        var IsStartWithNS = list.First().Flag == EntityWordAnlayzeTool.地名;
+        var IsStartWithNS = list.First().Flag == WordUtility.地名;
         var IsEndWithNS = companyName.EndsWith("有限公司");
         var IsRange = companyName.Length <= ContractTraning.MaxJiaFangLength;
         return IsStartWithNS && IsEndWithNS && IsRange;
@@ -191,10 +191,10 @@ public class BussinessLogic
                             }
                             //寻找地名?words[NRIdx].Flag == EntityWordAnlayzeTool.机构团体
                             //posSeg.Cut(words[NRIdx].Word + "市").First().Flag == EntityWordAnlayzeTool.地名
-                            if (words[NRIdx].Flag == EntityWordAnlayzeTool.地名 || DictNSAdjust.Contains(words[NRIdx].Word))
+                            if (words[NRIdx].Flag == WordUtility.地名 || DictNSAdjust.Contains(words[NRIdx].Word))
                             {
                                 //注意，地名可能相连，例如：上海市嘉定
-                                if (NRIdx != 0 && (words[NRIdx - 1].Flag == EntityWordAnlayzeTool.地名 || DictNSAdjust.Contains(words[NRIdx - 1].Word))) continue;
+                                if (NRIdx != 0 && (words[NRIdx - 1].Flag == WordUtility.地名 || DictNSAdjust.Contains(words[NRIdx - 1].Word))) continue;
                                 FullName = "";
                                 for (int companyFullNameInd = NRIdx; companyFullNameInd <= baseInd; companyFullNameInd++)
                                 {
@@ -219,7 +219,7 @@ public class BussinessLogic
                                     break;  //不要继续寻找地名了
                                 }
                             }
-                            if (words[NRIdx].Flag == EntityWordAnlayzeTool.标点)
+                            if (words[NRIdx].Flag == WordUtility.标点)
                             {
                                 if (words[NRIdx].Word != "（" && words[NRIdx].Word != "）") break;
                                 if (words[NRIdx].Word == "）") IsMarkClosed = false;    //打开
@@ -230,7 +230,7 @@ public class BussinessLogic
                         if (CompanyStartIdx == -1)
                         {
                             if (FirstShortNameIdx == -1) continue;
-                            if (posSeg.Cut(ShortName).First().Flag == EntityWordAnlayzeTool.地名) continue;
+                            if (posSeg.Cut(ShortName).First().Flag == WordUtility.地名) continue;
                             FullName = "";
                             for (int NRIdx = FirstShortNameIdx; NRIdx <= baseInd; NRIdx++)
                             {

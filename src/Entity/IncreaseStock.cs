@@ -6,7 +6,7 @@ using static HTMLTable;
 using static HTMLEngine;
 using static BussinessLogic;
 
-public class IncreaseStock
+public class IncreaseStock : AnnouceDocument
 {
     public struct struIncreaseStock
     {
@@ -32,74 +32,59 @@ public class IncreaseStock
         {
             return id + ":" + PublishTarget.NormalizeKey();
         }
-    }
-
-    internal static struIncreaseStock ConvertFromString(string str)
-    {
-        var Array = str.Split("\t");
-        var c = new struIncreaseStock();
-        c.id = Array[0];
-        c.PublishTarget = Array[1];
-        if (Array.Length > 2)
+        public static struIncreaseStock ConvertFromString(string str)
         {
-            c.IncreaseNumber = Array[2];
+            var Array = str.Split("\t");
+            var c = new struIncreaseStock();
+            c.id = Array[0];
+            c.PublishTarget = Array[1];
+            if (Array.Length > 2)
+            {
+                c.IncreaseNumber = Array[2];
+            }
+            if (Array.Length > 3)
+            {
+                c.IncreaseMoney = Array[3];
+            }
+            if (Array.Length > 4)
+            {
+                c.FreezeYear = Array[4];
+            }
+            if (Array.Length > 5)
+            {
+                c.BuyMethod = Array[5];
+            }
+            return c;
         }
-        if (Array.Length > 3)
-        {
-            c.IncreaseMoney = Array[3];
-        }
-        if (Array.Length > 4)
-        {
-            c.FreezeYear = Array[4];
-        }
-        if (Array.Length > 5)
-        {
-            c.BuyMethod = Array[5];
-        }
-        return c;
-    }
 
 
-    internal static string ConvertToString(struIncreaseStock increaseStock)
-    {
-        var record = increaseStock.id + "," +
-        increaseStock.PublishTarget + ",";
-        record += Normalizer.NormalizeNumberResult(increaseStock.IncreaseNumber) + ",";
-        record += Normalizer.NormalizeNumberResult(increaseStock.IncreaseMoney) + ",";
-        record += increaseStock.FreezeYear + "," +
-        increaseStock.BuyMethod;
-        return record;
+        public string ConvertToString(struIncreaseStock increaseStock)
+        {
+            var record = increaseStock.id + "," +
+            increaseStock.PublishTarget + ",";
+            record += Normalizer.NormalizeNumberResult(increaseStock.IncreaseNumber) + ",";
+            record += Normalizer.NormalizeNumberResult(increaseStock.IncreaseMoney) + ",";
+            record += increaseStock.FreezeYear + "," +
+            increaseStock.BuyMethod;
+            return record;
+        }
     }
-    //公司
-    static List<struCompanyName> companynamelist;
 
     public static List<struIncreaseStock> Extract(string htmlFileName)
     {
-        var fi = new System.IO.FileInfo(htmlFileName);
-        Program.Logger.WriteLine("Start FileName:[" + fi.Name + "]");
-        var root = HTMLEngine.Anlayze(htmlFileName);
-        companynamelist = BussinessLogic.GetCompanyNameByCutWord(root);
-        foreach (var cn in companynamelist)
-        {
-            Program.Logger.WriteLine("公司名称：" + cn.secFullName);
-            Program.Logger.WriteLine("公司简称：" + cn.secShortName);
-        }
-        //公告ID
-        var id = fi.Name.Replace(".html", "");
-        Program.Logger.WriteLine("公告ID:" + id);
+        Init(htmlFileName);
         //认购方式
         var buyMethod = getBuyMethod(root);
         //样本
         var increaseStock = new struIncreaseStock();
-        increaseStock.id = id;
+        increaseStock.id = Id;
         increaseStock.BuyMethod = buyMethod;
         var list = GetMultiTarget(root, increaseStock);
         return list;
     }
 
 
-    static List<struIncreaseStock> GetMultiTarget(HTMLEngine.MyRootHtmlNode root,
-                                                  struIncreaseStock SampleincreaseStock)
+    static List<struIncreaseStock> GetMultiTarget(HTMLEngine.MyRootHtmlNode root, struIncreaseStock SampleincreaseStock)
     {
         var BuyerRule = new TableSearchRule();
         BuyerRule.Name = "认购对象";
@@ -111,13 +96,13 @@ public class IncreaseStock
         BuyNumber.Name = "增发数量";
         BuyNumber.Rule = new string[] { "配售股数", "认购数量", "认购股份数" }.ToList();
         BuyNumber.IsEq = false;             //包含即可
-        BuyNumber.Normalize = Normalizer.NormalizerStockNumber;
+        BuyNumber.Normalize = NumberUtility.NormalizerStockNumber;
 
         var BuyMoney = new TableSearchRule();
         BuyMoney.Name = "增发金额";
         BuyMoney.Rule = new string[] { "配售金额", "认购金额" }.ToList();
         BuyMoney.IsEq = false;             //包含即可
-        BuyMoney.Normalize = Normalizer.NormalizerMoney;
+        BuyMoney.Normalize = MoneyUtility.Format;
 
         var FreezeYear = new TableSearchRule();
         FreezeYear.Name = "锁定期";
@@ -175,12 +160,17 @@ public class IncreaseStock
         return orgString.Trim();
     }
 
+    //认购方式
     static string getBuyMethod(HTMLEngine.MyRootHtmlNode root)
     {
+        var p = new EntityProperty();
         //是否包含关键字 "现金认购"
-        var cnt = EntityProperty.FindWordCnt("现金认购", root).Count;
-        Program.Logger.WriteLine("现金认购(文本):" + cnt);
-        if (cnt > 0) return "现金";
+        p.KeyWordMap.Add("现金认购", "现金");
+        var result = p.ExtractByKeyWordMap(root);
+        if (result.Count == 1)
+        {
+            Program.Logger.WriteLine("认购方式:" + result[0]);
+        }
         return "";
     }
 

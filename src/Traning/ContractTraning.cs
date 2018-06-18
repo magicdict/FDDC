@@ -54,13 +54,17 @@ public class ContractTraning
             }
         }
         Program.Training.WriteLine("列表前导词：");
-        EntityWordAnlayzeTool.FindTop(20, dict);
+        Utility.FindTop(20, dict);
     }
 
     public static void AnlayzeEntitySurroundWords()
     {
         var ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
-        Console.WriteLine("前导词：甲方");
+        var JiaFangS = new Surround();
+        var YiFangS = new Surround();
+        var ProjectNameS = new Surround();
+        var ContractNameS = new Surround();
+
         foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\html\"))
         {
             var fi = new System.IO.FileInfo(filename);
@@ -69,8 +73,20 @@ public class ContractTraning
             var contract = TraningDataset.GetContractById(Id).First();
             if (contract.JiaFang == "") continue;
             var root = HTMLEngine.Anlayze(filename);
-            EntityWordAnlayzeTool.AnlayzeEntitySurroundWords(root, contract.JiaFang);
+            JiaFangS.AnlayzeEntitySurroundWords(root, contract.JiaFang);
+            YiFangS.AnlayzeEntitySurroundWords(root, contract.YiFang);
+            ProjectNameS.AnlayzeEntitySurroundWords(root, contract.ProjectName);
+            ContractNameS.AnlayzeEntitySurroundWords(root, contract.ContractName);
         }
+        Program.Training.WriteLine("甲方附近词语分析：");
+        JiaFangS.WriteTop(10);
+        Program.Training.WriteLine("乙方附近词语分析：");
+        YiFangS.WriteTop(10);
+        Program.Training.WriteLine("工程名附近词语分析：");
+        ProjectNameS.WriteTop(10);
+        Program.Training.WriteLine("合同名附近词语分析：");
+        ContractNameS.WriteTop(10);
+
     }
 
     //最大长度
@@ -141,36 +157,36 @@ public class ContractTraning
         var WordLength = new Dictionary<int, int>();
 
         Program.Training.WriteLine("甲方统计：");
-        EntityWordAnlayzeTool.Init();
+        EntitySelf.Init();
         foreach (var contract in TraningDataset.ContractList)
         {
-            EntityWordAnlayzeTool.PutEntityWordPerperty(contract.JiaFang);
+            EntitySelf.PutEntityWordPerperty(contract.JiaFang);
         }
-        EntityWordAnlayzeTool.WriteFirstAndLengthWordToLog();
+        EntitySelf.WriteFirstAndLengthWordToLog();
 
         Program.Training.WriteLine("乙方统计：");
-        EntityWordAnlayzeTool.Init();
+        EntitySelf.Init();
         foreach (var contract in TraningDataset.ContractList)
         {
-            EntityWordAnlayzeTool.PutEntityWordPerperty(contract.YiFang);
+            EntitySelf.PutEntityWordPerperty(contract.YiFang);
         }
-        EntityWordAnlayzeTool.WriteFirstAndLengthWordToLog();
+        EntitySelf.WriteFirstAndLengthWordToLog();
 
 
         Program.Training.WriteLine("合同统计：");
-        EntityWordAnlayzeTool.Init();
+        EntitySelf.Init();
         foreach (var contract in TraningDataset.ContractList)
         {
-            EntityWordAnlayzeTool.PutEntityWordPerperty(contract.ContractName);
+            EntitySelf.PutEntityWordPerperty(contract.ContractName);
         }
-        EntityWordAnlayzeTool.WriteFirstAndLengthWordToLog();
+        EntitySelf.WriteFirstAndLengthWordToLog();
 
         Program.Training.WriteLine("工程统计：");
-        EntityWordAnlayzeTool.Init();
+        EntitySelf.Init();
         foreach (var contract in TraningDataset.ContractList)
         {
-            EntityWordAnlayzeTool.PutEntityWordPerperty(contract.ProjectName);
+            EntitySelf.PutEntityWordPerperty(contract.ProjectName);
         }
-        EntityWordAnlayzeTool.WriteFirstAndLengthWordToLog();
+        EntitySelf.WriteFirstAndLengthWordToLog();
     }
 }

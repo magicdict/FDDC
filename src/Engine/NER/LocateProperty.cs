@@ -10,6 +10,8 @@ public static class LocateProperty
         public int Loc;
         //值
         public T Value;
+        //原始值
+        public string RawDate;
     }
 
     //获得日期
@@ -21,8 +23,8 @@ public static class LocateProperty
             foreach (var sentence in paragrah.Children)
             {
                 var OrgString = sentence.Content;
-                OrgString = Utility.ConvertUpperDateToLittle(OrgString).Replace(" ", "");
-                var datelist = RegularTool.GetDate(OrgString);
+                OrgString = DateUtility.ConvertUpperToLower(OrgString).Replace(" ", "");
+                var datelist = DateUtility.GetDate(OrgString);
                 foreach (var strDate in datelist)
                 {
                     var DateNumberList = RegularTool.GetNumberList(strDate);
@@ -35,7 +37,7 @@ public static class LocateProperty
                         list.Add(new LocAndValue<DateTime>()
                         {
                             Loc = sentence.PositionId,
-                            Value = Utility.GetWorkDay(year, month, day)
+                            Value = DateUtility.GetWorkDay(year, month, day)
                         });
                     }
                 }
@@ -53,8 +55,8 @@ public static class LocateProperty
             foreach (var sentence in paragrah.Children)
             {
                 var OrgString = sentence.Content;
-                OrgString = Utility.ConvertUpperDateToLittle(OrgString).Replace(" ", "");
-                var Money = Utility.SeekMoney(OrgString);
+                OrgString = MoneyUtility.ConvertUpperToLower(OrgString).Replace(" ", "");
+                var Money = MoneyUtility.SeekMoney(OrgString);
                 foreach (var money in Money)
                 {
                     list.Add(new LocAndValue<(String MoneyAmount, String MoneyCurrency)>

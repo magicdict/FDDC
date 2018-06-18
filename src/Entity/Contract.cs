@@ -6,7 +6,7 @@ using static BussinessLogic;
 using static HTMLEngine;
 using static LocateProperty;
 
-public class Contract
+public class Contract : AnnouceDocument
 {
     public struct struContract
     {
@@ -39,73 +39,48 @@ public class Contract
             //去空格转小写
             return id + ":" + JiaFang.NormalizeKey() + ":" + YiFang.NormalizeKey();
         }
-    }
-
-
-    internal static struContract ConvertFromString(string str)
-    {
-        var Array = str.Split("\t");
-        var c = new struContract();
-        c.id = Array[0];
-        c.JiaFang = Array[1];
-        c.YiFang = Array[2];
-        c.ProjectName = Array[3];
-        if (Array.Length > 4)
+        public static struContract ConvertFromString(string str)
         {
-            c.ContractName = Array[4];
+            var Array = str.Split("\t");
+            var c = new struContract();
+            c.id = Array[0];
+            c.JiaFang = Array[1];
+            c.YiFang = Array[2];
+            c.ProjectName = Array[3];
+            if (Array.Length > 4)
+            {
+                c.ContractName = Array[4];
+            }
+            if (Array.Length > 6)
+            {
+                c.ContractMoneyUpLimit = Array[5];
+                c.ContractMoneyDownLimit = Array[6];
+            }
+            if (Array.Length == 8)
+            {
+                c.UnionMember = Array[7];
+            }
+            return c;
         }
-        if (Array.Length > 6)
+
+        public string ConvertToString(struContract contract)
         {
-            c.ContractMoneyUpLimit = Array[5];
-            c.ContractMoneyDownLimit = Array[6];
+            var record = contract.id + "," +
+                         contract.JiaFang + "," +
+                         contract.YiFang + "," +
+                         contract.ProjectName + "," +
+                         contract.ContractName + ",";
+            record += contract.ContractMoneyUpLimit + ",";
+            record += contract.ContractMoneyDownLimit + ",";
+            record += contract.UnionMember;
+            return record;
         }
-        if (Array.Length == 8)
-        {
-            c.UnionMember = Array[7];
-        }
-        return c;
     }
-
-    internal static string ConvertToString(struContract contract)
-    {
-        var record = contract.id + "," +
-                     contract.JiaFang + "," +
-                     contract.YiFang + "," +
-                     contract.ProjectName + "," +
-                     contract.ContractName + ",";
-        record += contract.ContractMoneyUpLimit + ",";
-        record += contract.ContractMoneyDownLimit + ",";
-        record += contract.UnionMember;
-        return record;
-    }
-
-    //公司
-    static List<struCompanyName> companynamelist;
-    //日期
-    static List<LocAndValue<DateTime>> datelist;
-
-    static List<LocAndValue<(String MoneyAmount, String MoneyCurrency)>> moneylist;
 
     public static List<struContract> Extract(string htmlFileName)
     {
-        //模式1：只有一个主合同
-        //模式2：只有多个子合同
-        //模式3：有一个主合同以及多个子合同
+        Init(htmlFileName);
         var ContractList = new List<struContract>();
-        var fi = new System.IO.FileInfo(htmlFileName);
-        Program.Logger.WriteLine("Start FileName:[" + fi.Name + "]");
-        var root = HTMLEngine.Anlayze(htmlFileName);
-        companynamelist = BussinessLogic.GetCompanyNameByCutWord(root);
-        foreach (var cn in companynamelist)
-        {
-            Program.Logger.WriteLine("公司名称：" + cn.secFullName);
-            Program.Logger.WriteLine("公司简称：" + cn.secShortName);
-        }
-        datelist = LocateProperty.LocateDate(root);
-        moneylist = LocateProperty.LocateMoney(root);
-
-        var Id = fi.Name.Replace(".html", "");
-        Program.Logger.WriteLine("公告ID:" + Id);
         //主合同的抽取
         ContractList.Add(ExtractSingle(root, Id));
         return ContractList;
@@ -125,11 +100,11 @@ public class Contract
         //乙方
         contract.YiFang = GetYiFang(root);
         //暂时不做括号的正规化
-        foreach (var trailin in StockChange.CompanyNameTrailingwords)
+        foreach (var trail in StockChange.CompanyNameTrailingwords)
         {
-            if (contract.YiFang.Contains(trailin))
+            if (contract.YiFang.Contains(trail))
             {
-                contract.YiFang = Utility.GetStringBefore(contract.YiFang, trailin);
+                contract.YiFang = Utility.GetStringBefore(contract.YiFang, trail);
             }
         }
         contract.YiFang = contract.YiFang.NormalizeTextResult();
@@ -148,7 +123,7 @@ public class Contract
 
 
         //金额
-        contract.ContractMoneyUpLimit = Normalizer.NormalizerMoney(GetMoney(root), "");
+        contract.ContractMoneyUpLimit = MoneyUtility.Format(GetMoney(root), "");
         contract.ContractMoneyDownLimit = contract.ContractMoneyUpLimit;
 
         //联合体
@@ -206,7 +181,7 @@ public class Contract
 
     static string GetJiaFang(MyRootHtmlNode root)
     {
-        var Extractor = new EntityProperty();
+        var Extractor = new ExtractProperty();
         //这些关键字后面
         Extractor.LeadingWordList = new string[] {
             "甲方：",
@@ -227,7 +202,7 @@ public class Contract
         }
 
         //招标
-        Extractor = new EntityProperty();
+        Extractor = new ExtractProperty();
         var StartArray = new string[] { "招标单位", "业主", "收到", "接到" };
         var EndArray = new string[] { "发来", "发出", "的中标" };
         Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
@@ -243,7 +218,7 @@ public class Contract
         }
 
         //合同
-        Extractor = new EntityProperty();
+        Extractor = new ExtractProperty();
         StartArray = new string[] { "与", "与业主" };
         EndArray = new string[] { "签署", "签订" };
         Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
@@ -261,7 +236,7 @@ public class Contract
     }
     static string GetYiFang(HTMLEngine.MyRootHtmlNode root)
     {
-        var Extractor = new EntityProperty();
+        var Extractor = new ExtractProperty();
         //这些关键字后面
         Extractor.LeadingWordList = new string[] { "供应商名称：", "乙方：" };
         //"中标单位：","中标人：","中标单位：","中标人：","乙方（供方）：","承包人：","承包方：","中标方：","供应商名称：","中标人名称："
@@ -275,7 +250,7 @@ public class Contract
         }
 
         //乙方:"有限公司"
-        Extractor = new EntityProperty();
+        Extractor = new ExtractProperty();
         //这些关键字后面
         Extractor.TrailingWordList = new string[] { "有限公司董事会" };
         Extractor.Extract(root);
@@ -299,19 +274,19 @@ public class Contract
     }
     static string GetContractName(MyRootHtmlNode root)
     {
-        var Extractor = new EntityProperty();
-        var MarkFeature = new EntityProperty.struMarkFeature();
+        var Extractor = new ExtractProperty();
+        var MarkFeature = new ExtractProperty.struMarkFeature();
         MarkFeature.MarkStartWith = "《";
         MarkFeature.MarkEndWith = "》";
         MarkFeature.InnerEndWith = "合同";
 
-        var MarkFeatureConfirm = new EntityProperty.struMarkFeature();
+        var MarkFeatureConfirm = new ExtractProperty.struMarkFeature();
         MarkFeatureConfirm.MarkStartWith = "《";
         MarkFeatureConfirm.MarkEndWith = "》";
         MarkFeatureConfirm.InnerEndWith = "确认书";
 
 
-        Extractor.MarkFeature = new EntityProperty.struMarkFeature[] { MarkFeature, MarkFeatureConfirm };
+        Extractor.MarkFeature = new ExtractProperty.struMarkFeature[] { MarkFeature, MarkFeatureConfirm };
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
@@ -321,7 +296,7 @@ public class Contract
             return ContractName;
         }
 
-        Extractor = new EntityProperty();
+        Extractor = new ExtractProperty();
         //这些关键字后面
         Extractor.LeadingWordList = new string[] { "合同名称：" };
         Extractor.Extract(root);
@@ -334,7 +309,7 @@ public class Contract
         }
 
         //合同
-        Extractor = new EntityProperty();
+        Extractor = new ExtractProperty();
         var StartArray = new string[] { "签署了" };
         var EndArray = new string[] { "合同" };
         Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
@@ -351,7 +326,7 @@ public class Contract
 
     static string GetProjectName(MyRootHtmlNode root)
     {
-        var Extractor = new EntityProperty();
+        var Extractor = new ExtractProperty();
         //这些关键字后面
         Extractor.LeadingWordList = new string[] { "项目名称：", "工程名称：", "中标项目：", "合同标的：", "工程内容：" };
         Extractor.Extract(root);
@@ -363,17 +338,17 @@ public class Contract
             return ProjectName;
         }
 
-        var MarkFeature = new EntityProperty.struMarkFeature();
+        var MarkFeature = new ExtractProperty.struMarkFeature();
         MarkFeature.MarkStartWith = "“";
         MarkFeature.MarkEndWith = "”";
         MarkFeature.InnerEndWith = "标段";
 
-        var MarkFeatureConfirm = new EntityProperty.struMarkFeature();
+        var MarkFeatureConfirm = new ExtractProperty.struMarkFeature();
         MarkFeatureConfirm.MarkStartWith = "“";
         MarkFeatureConfirm.MarkEndWith = "”";
         MarkFeatureConfirm.InnerEndWith = "标";
 
-        Extractor.MarkFeature = new EntityProperty.struMarkFeature[] { MarkFeature, MarkFeatureConfirm };
+        Extractor.MarkFeature = new ExtractProperty.struMarkFeature[] { MarkFeature, MarkFeatureConfirm };
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
@@ -394,22 +369,23 @@ public class Contract
     static string GetMoney(HTMLEngine.MyRootHtmlNode root)
     {
         var Money = "";
-        var Extractor = new EntityProperty();
+        var Extractor = new ExtractProperty();
         //这些关键字后面
         Extractor.LeadingWordList = new string[] { "中标金额", "中标价", "合同金额", "合同总价", "订单总金额" };
         Extractor.Extract(root);
         var AllMoneyList = new List<(String MoneyAmount, String MoneyCurrency)>();
         foreach (var item in Extractor.CandidateWord)
         {
-            var ml = Utility.SeekMoney(item);
-            AllMoneyList.AddRange(ml);
+            var moneylist = MoneyUtility.SeekMoney(item);
+            AllMoneyList.AddRange(moneylist);
         }
         if (AllMoneyList.Count == 0) return "";
-        foreach (var m in AllMoneyList)
+        foreach (var money in AllMoneyList)
         {
-            if (m.MoneyCurrency == "人民币" || m.MoneyCurrency == "元")
+            if (money.MoneyCurrency == "人民币" ||
+                money.MoneyCurrency == "元")
             {
-                Money = m.MoneyAmount;
+                Money = money.MoneyAmount;
                 break;
             }
         }
@@ -424,7 +400,7 @@ public class Contract
 
     static string GetUnionMember(HTMLEngine.MyRootHtmlNode root, String YiFang)
     {
-        var paragrahlist = EntityProperty.FindWordCnt("联合体", root);
+        var paragrahlist = ExtractProperty.FindWordCnt("联合体", root);
         var Union = new List<String>();
         foreach (var paragrahId in paragrahlist)
         {

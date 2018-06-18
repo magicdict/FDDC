@@ -8,7 +8,7 @@ using static HTMLEngine;
 using static HTMLTable;
 using static LocateProperty;
 
-public class StockChange
+public class StockChange : AnnouceDocument
 {
     public struct struStockChange
     {
@@ -40,70 +40,56 @@ public class StockChange
         {
             return id + ":" + HolderFullName.NormalizeKey() + ":" + ChangeEndDate;
         }
+        public static struStockChange ConvertFromString(string str)
+        {
+            var Array = str.Split("\t");
+            var c = new struStockChange();
+            c.id = Array[0];
+            c.HolderFullName = Array[1];
+            c.HolderShortName = Array[2];
+            if (Array.Length > 3)
+            {
+                c.ChangeEndDate = Array[3];
+            }
+            if (Array.Length > 4)
+            {
+                c.ChangePrice = Array[4];
+            }
+            if (Array.Length > 5)
+            {
+                c.ChangeNumber = Array[5];
+            }
+            if (Array.Length > 6)
+            {
+                c.HoldNumberAfterChange = Array[6];
+            }
+            if (Array.Length == 8)
+            {
+                c.HoldPercentAfterChange = Array[7];
+            }
+            return c;
+        }
 
+        public string ConvertToString(struStockChange increaseStock)
+        {
+            var record = increaseStock.id + "," +
+            increaseStock.HolderFullName + "," +
+            increaseStock.HolderShortName + "," +
+            increaseStock.ChangeEndDate + ",";
+            record += Normalizer.NormalizeNumberResult(increaseStock.ChangePrice) + ",";
+            record += Normalizer.NormalizeNumberResult(increaseStock.ChangeNumber) + ",";
+            record += Normalizer.NormalizeNumberResult(increaseStock.HoldNumberAfterChange) + ",";
+            record += Normalizer.NormalizeNumberResult(increaseStock.HoldPercentAfterChange) + ",";
+            return record;
+        }
     }
 
-    internal static struStockChange ConvertFromString(string str)
-    {
-        var Array = str.Split("\t");
-        var c = new struStockChange();
-        c.id = Array[0];
-        c.HolderFullName = Array[1];
-        c.HolderShortName = Array[2];
-        if (Array.Length > 3)
-        {
-            c.ChangeEndDate = Array[3];
-        }
-        if (Array.Length > 4)
-        {
-            c.ChangePrice = Array[4];
-        }
-        if (Array.Length > 5)
-        {
-            c.ChangeNumber = Array[5];
-        }
-        if (Array.Length > 6)
-        {
-            c.HoldNumberAfterChange = Array[6];
-        }
-        if (Array.Length == 8)
-        {
-            c.HoldPercentAfterChange = Array[7];
-        }
-        return c;
-    }
 
-    internal static string ConvertToString(struStockChange increaseStock)
-    {
-        var record = increaseStock.id + "," +
-        increaseStock.HolderFullName + "," +
-        increaseStock.HolderShortName + "," +
-        increaseStock.ChangeEndDate + ",";
-        record += Normalizer.NormalizeNumberResult(increaseStock.ChangePrice) + ",";
-        record += Normalizer.NormalizeNumberResult(increaseStock.ChangeNumber) + ",";
-        record += Normalizer.NormalizeNumberResult(increaseStock.HoldNumberAfterChange) + ",";
-        record += Normalizer.NormalizeNumberResult(increaseStock.HoldPercentAfterChange) + ",";
-        return record;
-    }
-
-
-    static List<struCompanyName> companynamelist;
-    static List<LocAndValue<DateTime>> datelist;
-    static Char[] trimChar = new Char[] { '—', '-', ']' };
+    static Char[] FullNameStartTrimChar = new Char[] { '—', '-', ']' };
     public static List<struStockChange> Extract(string htmlFileName)
     {
+        Init(htmlFileName);
         var list = new List<struStockChange>();
-        var fi = new System.IO.FileInfo(htmlFileName);
-        Program.Logger.WriteLine("Start FileName:[" + fi.Name + "]");
-        var root = HTMLEngine.Anlayze(htmlFileName);
-        companynamelist = BussinessLogic.GetCompanyNameByCutWord(root);
-        datelist = LocateProperty.LocateDate(root);
-
-        foreach (var cn in companynamelist)
-        {
-            Program.Logger.WriteLine("公司名称：" + cn.secFullName);
-            Program.Logger.WriteLine("公司简称：" + cn.secShortName);
-        }
         var Name = GetHolderName(root);
         if (!String.IsNullOrEmpty(Name.FullName) && !String.IsNullOrEmpty(Name.ShortName))
         {
@@ -113,14 +99,14 @@ public class StockChange
                 secShortName = Name.ShortName
             });
         }
-        list = ExtractFromTable(root, fi.Name.Replace(".html", ""));
+        list = ExtractFromTable(root, Id);
         if (list.Count > 0) return list;    //如果这里直接返回，由于召回率等因素，可以细微提高成绩
 
         var stockchange = new struStockChange();
         //公告ID
-        stockchange.id = fi.Name.Replace(".html", "");
+        stockchange.id = Id;
         //Program.Logger.WriteLine("公告ID:" + stockchange.id);
-        stockchange.HolderFullName = Name.FullName.TrimStart(trimChar);
+        stockchange.HolderFullName = Name.FullName.TrimStart(FullNameStartTrimChar);
         if (EntityWordAnlayzeTool.TrimEnglish(stockchange.HolderFullName).Length > ContractTraning.MaxYiFangLength)
         {
             stockchange.HolderFullName = "";
@@ -179,7 +165,7 @@ public class StockChange
         ChangeNumberRule.Name = "变动数量";
         ChangeNumberRule.Rule = new string[] { "减持股数", "增持股数", "减持数量", "增持数量" }.ToList();
         ChangeNumberRule.IsEq = false;
-        ChangeNumberRule.Normalize = Normalizer.NormalizerStockNumber;
+        ChangeNumberRule.Normalize = NumberUtility.NormalizerStockNumber;
 
         var Rules = new List<TableSearchRule>();
         Rules.Add(StockHolderRule);
@@ -196,7 +182,7 @@ public class StockChange
             var stockchange = new struStockChange();
             stockchange.id = id;
             var Name = NormalizeCompanyName(rec[0].RawData);
-            stockchange.HolderFullName = Name.FullName.TrimStart(trimChar);
+            stockchange.HolderFullName = Name.FullName.TrimStart(FullNameStartTrimChar);
             stockchange.HolderShortName = Name.ShortName;
             stockchange.ChangeEndDate = rec[1].RawData;
 
@@ -211,12 +197,14 @@ public class StockChange
                 }
             }
 
-            if (!String.IsNullOrEmpty(rec[2].RawData) &&
-                !(rec[2].RawData.Contains("-") || rec[2].RawData.Contains("~") || rec[2].RawData.Contains("至")))
+            if (!String.IsNullOrEmpty(rec[2].RawData))
             {
                 //股价区间化的去除
-                stockchange.ChangePrice = rec[2].RawData.Replace(" ", "");
-                stockchange.ChangePrice = stockchange.ChangePrice.NormalizeNumberResult();
+                if (!(rec[2].RawData.Contains("-") || rec[2].RawData.Contains("~") || rec[2].RawData.Contains("至")))
+                {
+                    stockchange.ChangePrice = rec[2].RawData.Replace(" ", "");
+                    stockchange.ChangePrice = stockchange.ChangePrice.NormalizeNumberResult();
+                }
             }
             if (!RegularTool.IsUnsign(stockchange.ChangePrice))
             {
@@ -326,7 +314,7 @@ public class StockChange
 
     static (String FullName, String ShortName) GetHolderName(HTMLEngine.MyRootHtmlNode root)
     {
-        var Extractor = new EntityProperty();
+        var Extractor = new ExtractProperty();
         var StartArray = new string[] { "接到", "收到", "股东" };
         var EndArray = new string[] { "的", "通知", "告知函", "减持", "增持", "《" };
         Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
@@ -426,7 +414,7 @@ public class StockChange
     //变动截止日期
     static string GetChangeEndDate(HTMLEngine.MyRootHtmlNode root)
     {
-        var Extractor = new EntityProperty();
+        var Extractor = new ExtractProperty();
         var StartArray = new string[] { "截止", "截至" };
         var EndArray = new string[] { "日" };
         Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
@@ -471,7 +459,7 @@ public class StockChange
             int year; int month; int day;
             if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
             {
-                var d = Utility.GetWorkDay(year, month, day);
+                var d = DateUtility.GetWorkDay(year, month, day);
                 return d.ToString(format);
             }
         }
@@ -487,11 +475,8 @@ public class StockChange
                 int year; int month; int day;
                 if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
                 {
-                    if (month <= 12 && day <= 31)
-                    {
-                        var d = Utility.GetWorkDay(year, month, day);
-                        return d.ToString(format);
-                    }
+                    var d = DateUtility.GetWorkDay(year, month, day);
+                    return d.ToString(format);
                 }
             }
         }
@@ -506,7 +491,7 @@ public class StockChange
                 int year; int month; int day;
                 if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
                 {
-                    var d = Utility.GetWorkDay(year, month, day);
+                    var d = DateUtility.GetWorkDay(year, month, day);
                     return d.ToString(format);
                 }
             }
@@ -523,7 +508,7 @@ public class StockChange
                 int month; int day;
                 if (int.TryParse(Month, out month) && int.TryParse(Day, out day))
                 {
-                    var d = Utility.GetWorkDay(AnnouceDate.Value.Year, month, day);
+                    var d = DateUtility.GetWorkDay(AnnouceDate.Value.Year, month, day);
                     return d.ToString(format);
                 }
             }
@@ -534,7 +519,7 @@ public class StockChange
                 int year; int month;
                 if (int.TryParse(Year, out year) && int.TryParse(Month, out month))
                 {
-                    var d = Utility.GetWorkDay(year, month, -1);
+                    var d = DateUtility.GetWorkDay(year, month, -1);
                     return d.ToString(format);
                 }
             }
@@ -546,7 +531,7 @@ public class StockChange
                 int year; int month;
                 if (int.TryParse(Year, out year) && int.TryParse(Month, out month))
                 {
-                    var d = Utility.GetWorkDay(year, month, -1);
+                    var d = DateUtility.GetWorkDay(year, month, -1);
                     return d.ToString(format);
                 }
             }
@@ -560,7 +545,7 @@ public class StockChange
             int year; int month; int day;
             if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
             {
-                var d = Utility.GetWorkDay(year, month, day);
+                var d = DateUtility.GetWorkDay(year, month, day);
                 return d.ToString(format);
             }
         }
@@ -577,7 +562,7 @@ public class StockChange
                 int year; int month; int day;
                 if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
                 {
-                    var d = Utility.GetWorkDay(year, month, day);
+                    var d = DateUtility.GetWorkDay(year, month, day);
                     return d.ToString(format);
                 }
             }

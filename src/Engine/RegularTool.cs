@@ -5,20 +5,6 @@ using System.Text.RegularExpressions;
 
 public static class RegularTool
 {
-
-    public static List<string> GetDate(string str)
-    {
-        //中文数字转阿拉伯数字
-        str = Utility.ConvertUpperDateToLittle(str);
-        Regex r = new Regex(@"\d+年\d+月\d+日");
-        var strList = new List<string>();
-        foreach (var item in r.Matches(str).ToList())
-        {
-            if (!string.IsNullOrEmpty(item.Value)) strList.Add(item.Value);
-        }
-        return strList;
-    }
-
     public static List<string> GetNumberList(string str)
     {
         var strList = new List<string>();

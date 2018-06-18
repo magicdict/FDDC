@@ -10,3 +10,4 @@ Result/*
 Log.log
 Result.zip
 !score.txt
+*.bat

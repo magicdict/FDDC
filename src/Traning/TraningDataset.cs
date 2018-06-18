@@ -17,7 +17,7 @@ public static class TraningDataset
         var sr = new StreamReader(ContractPath_TRAIN);
         while (!sr.EndOfStream)
         {
-            var c = Contract.ConvertFromString(sr.ReadLine());
+            var c = Contract.struContract.ConvertFromString(sr.ReadLine());
             ContractList.Add(c);
         }
         Console.WriteLine("合同标准结果数:" + ContractList.Count);
@@ -36,7 +36,7 @@ public static class TraningDataset
         var sr = new StreamReader(IncreaseStockPath_TRAIN);
         while (!sr.EndOfStream)
         {
-            IncreaseStockList.Add(IncreaseStock.ConvertFromString(sr.ReadLine()));
+            IncreaseStockList.Add(IncreaseStock.struIncreaseStock.ConvertFromString(sr.ReadLine()));
         }
         Console.WriteLine("定增标准结果数:" + IncreaseStockList.Count);
         sr.Close();
@@ -50,7 +50,7 @@ public static class TraningDataset
         var sr = new StreamReader(StockChangePath_TRAIN);
         while (!sr.EndOfStream)
         {
-            StockChangeList.Add(StockChange.ConvertFromString(sr.ReadLine()));
+            StockChangeList.Add(StockChange.struStockChange.ConvertFromString(sr.ReadLine()));
         }
         Console.WriteLine("增减持标准结果数:" + StockChangeList.Count);
         sr.Close();

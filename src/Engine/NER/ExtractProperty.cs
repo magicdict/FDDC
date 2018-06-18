@@ -2,20 +2,8 @@ using System;
 using System.Collections.Generic;
 using static HTMLEngine;
 
-public class EntityProperty
+public class ExtractProperty
 {
-
-    //属性类型
-    public enmType PropertyType = enmType.Normal;
-
-    public enum enmType{
-        Money,      //金钱
-        Number,     //数字
-        Date,       //日期
-        Normal,     //普通文本
-    }
-
-
     public static List<int> FindWordCnt(string KeyWord, MyRootHtmlNode root)
     {
         var paragrahIdList = new List<int>();
