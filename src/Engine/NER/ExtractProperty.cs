@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using static HTMLEngine;
+using static LocateProperty;
 
 public class ExtractProperty
 {
@@ -20,9 +21,9 @@ public class ExtractProperty
         }
         return paragrahIdList;
     }
-    
+
     //候选词
-    public List<String> CandidateWord = new List<string>();
+    public List<LocAndValue<String>> CandidateWord = new List<LocAndValue<String>>();
 
     public void Extract(MyRootHtmlNode root)
     {
@@ -86,7 +87,14 @@ public class ExtractProperty
                 {
                     //非表格
                     var candidate = ExtractMethod(contentNode.Content);
-                    if (candidate.Count != 0) CandidateWord.AddRange(candidate);
+                    foreach (var item in candidate)
+                    {
+                        CandidateWord.Add(new LocAndValue<String>()
+                        {
+                            Loc = contentNode.PositionId,
+                            Value = item
+                        });
+                    }
                 }
             }
         }

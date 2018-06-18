@@ -193,7 +193,7 @@ public class Contract : AnnouceDocument
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            var JiaFang = AfterProcessJiaFang(item.Trim());
+            var JiaFang = AfterProcessJiaFang(item.Value.Trim());
             if (EntityWordAnlayzeTool.TrimEnglish(JiaFang).Length > ContractTraning.MaxJiaFangLength) continue;
             if (JiaFang.Length < 3) continue;     //使用实际长度排除全英文的情况
             JiaFang = CutOtherLeadingWords(JiaFang);
@@ -209,7 +209,7 @@ public class Contract : AnnouceDocument
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            var JiaFang = AfterProcessJiaFang(item.Trim());
+            var JiaFang = AfterProcessJiaFang(item.Value.Trim());
             JiaFang = JiaFang.Replace("业主", "").Trim();
             if (EntityWordAnlayzeTool.TrimEnglish(JiaFang).Length > ContractTraning.MaxJiaFangLength) continue;
             if (JiaFang.Length < 3) continue;     //使用实际长度排除全英文的情况
@@ -225,7 +225,7 @@ public class Contract : AnnouceDocument
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            var JiaFang = AfterProcessJiaFang(item.Trim());
+            var JiaFang = AfterProcessJiaFang(item.Value.Trim());
             JiaFang = JiaFang.Replace("业主", "").Trim();
             if (EntityWordAnlayzeTool.TrimEnglish(JiaFang).Length > ContractTraning.MaxJiaFangLength) continue;
             if (JiaFang.Length < 3) continue;     //使用实际长度排除全英文的情况
@@ -243,7 +243,7 @@ public class Contract : AnnouceDocument
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            var YiFang = item.Trim();
+            var YiFang = item.Value.Trim();
             YiFang = CutOtherLeadingWords(YiFang);
             Program.Logger.WriteLine("乙方候补词(关键字)：[" + item + "]");
             return YiFang;
@@ -263,7 +263,7 @@ public class Contract : AnnouceDocument
                 if (c.isSubCompany) return c.secFullName;
             }
             Program.Logger.WriteLine("乙方候补词(关键字)：[" + item + "有限公司]");
-            return item.Trim() + "有限公司";
+            return item.Value.Trim() + "有限公司";
         }
 
         if (companynamelist.Count > 0)
@@ -290,7 +290,7 @@ public class Contract : AnnouceDocument
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            var ContractName = item.Trim();
+            var ContractName = item.Value.Trim();
             if (EntityWordAnlayzeTool.TrimEnglish(ContractName).Length > ContractTraning.MaxContractNameLength) continue;
             Program.Logger.WriteLine("合同名称候补词（《XXX》）：[" + item + "]");
             return ContractName;
@@ -302,7 +302,7 @@ public class Contract : AnnouceDocument
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            var ContractName = item.Trim();
+            var ContractName = item.Value.Trim();
             if (EntityWordAnlayzeTool.TrimEnglish(ContractName).Length > ContractTraning.MaxContractNameLength) continue;
             Program.Logger.WriteLine("合同名称候补词(关键字)：[" + item + "]");
             return ContractName;
@@ -316,7 +316,7 @@ public class Contract : AnnouceDocument
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            var ContractName = item.Trim();
+            var ContractName = item.Value.Trim();
             if (EntityWordAnlayzeTool.TrimEnglish(ContractName).Length > ContractTraning.MaxContractNameLength) continue;
             Program.Logger.WriteLine("合同候补词(合同)：[" + item + "]");
             return ContractName;
@@ -332,7 +332,7 @@ public class Contract : AnnouceDocument
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            var ProjectName = item.Trim();
+            var ProjectName = item.Value.Trim();
             if (EntityWordAnlayzeTool.TrimEnglish(ProjectName).Length > ContractTraning.MaxContractNameLength) continue;
             Program.Logger.WriteLine("项目名称候补词(关键字)：[" + item + "]");
             return ProjectName;
@@ -352,7 +352,7 @@ public class Contract : AnnouceDocument
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            var ProjectName = item.Trim();
+            var ProjectName = item.Value.Trim();
             if (EntityWordAnlayzeTool.TrimEnglish(ProjectName).Length > ContractTraning.MaxContractNameLength) continue;
             Program.Logger.WriteLine("工程名称候补词（《XXX》）：[" + item + "]");
             return ProjectName;
@@ -376,7 +376,7 @@ public class Contract : AnnouceDocument
         var AllMoneyList = new List<(String MoneyAmount, String MoneyCurrency)>();
         foreach (var item in Extractor.CandidateWord)
         {
-            var moneylist = MoneyUtility.SeekMoney(item);
+            var moneylist = MoneyUtility.SeekMoney(item.Value);
             AllMoneyList.AddRange(moneylist);
         }
         if (AllMoneyList.Count == 0) return "";

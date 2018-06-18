@@ -21,7 +21,7 @@ public class BussinessLogic
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            var ShortName = item.Replace(":", "").Replace("：", "").Trim();
+            var ShortName = item.Value.Replace(":", "").Replace("：", "").Trim();
             if (Utility.GetStringBefore(ShortName, "、") != "")
             {
                 ShortName = Utility.GetStringBefore(ShortName, "、");
@@ -60,7 +60,7 @@ public class BussinessLogic
         foreach (var item in Extractor.CandidateWord)
         {
             Program.Logger.WriteLine("全称：[" + item + "公司]");
-            return item;
+            return item.Value;
         }
         return "";
     }

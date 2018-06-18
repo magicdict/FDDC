@@ -321,7 +321,7 @@ public class StockChange : AnnouceDocument
         Extractor.Extract(root);
         foreach (var word in Extractor.CandidateWord)
         {
-            var name = NormalizeCompanyName(word);
+            var name = NormalizeCompanyName(word.Value);
             if (!String.IsNullOrEmpty(name.FullName) && !String.IsNullOrEmpty(name.ShortName))
             {
                 return name;
@@ -329,7 +329,7 @@ public class StockChange : AnnouceDocument
         }
         foreach (var word in Extractor.CandidateWord)
         {
-            var name = NormalizeCompanyName(word);
+            var name = NormalizeCompanyName(word.Value);
             if (!String.IsNullOrEmpty(name.FullName))
             {
                 return name;
@@ -421,7 +421,7 @@ public class StockChange : AnnouceDocument
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            if (item.Length > 20) continue;
+            if (item.Value.Length > 20) continue;
             Program.Logger.WriteLine("候补变动截止日期：[" + item + "]");
             return NormailizeEndChangeDate(item + "日");
         }
@@ -437,10 +437,10 @@ public class StockChange : AnnouceDocument
         if (orgString.Contains("公告") || orgString.Contains("披露") || orgString.StartsWith("本"))
         {
             if (datelist.Count == 0) return orgString;
-            var AnnouceDate = datelist.Last().Value;
             if (datelist.Count > 1)
             {
-                //这里有可能要使用前一天。。。
+                //这里有可能要使用第一次出现的日期
+                //如果第一次出现的日期是公告发布日的前一天，则认为应该采用前一天
                 var FirstAnnouceDate = datelist.First().Value;
                 if (FirstAnnouceDate.Subtract(AnnouceDate).Days == -1) return FirstAnnouceDate.ToString(format);
                 return AnnouceDate.ToString(format);
