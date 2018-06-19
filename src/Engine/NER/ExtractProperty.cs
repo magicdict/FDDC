@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using static HTMLEngine;
 using static LocateProperty;
+using System.IO;
 
 public class ExtractProperty
 {
@@ -24,6 +25,30 @@ public class ExtractProperty
 
     //候选词
     public List<LocAndValue<String>> CandidateWord = new List<LocAndValue<String>>();
+
+    public void ExtractFromTextFile(string filename)
+    {
+        if (!File.Exists(filename)) return;
+        CandidateWord.Clear();
+        if (LeadingWordList.Length > 0) ExtractTextByLeadingKeyWord(filename);
+    }
+
+    public void ExtractTextByLeadingKeyWord(string filename)
+    {
+        var sr = new StreamReader(filename);
+        while (!sr.EndOfStream)
+        {
+            var line = sr.ReadLine();
+            foreach (var word in LeadingWordList)
+            {
+                if (Utility.GetStringAfter(line, word) != "")
+                {
+                    CandidateWord.Add(new LocAndValue<string>() { Value = Utility.GetStringAfter(line, word) });
+                }
+            }
+        }
+        sr.Close();
+    }
 
     public void Extract(MyRootHtmlNode root)
     {

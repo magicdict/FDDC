@@ -19,6 +19,7 @@ public class ContractTraning
     public static int MaxProjectNameLength = 999;
     public static string MaxProjectName = "";
 
+    public static double MinAmount = double.MaxValue;
 
 
     public static void Train()
@@ -123,6 +124,15 @@ public class ContractTraning
                 }
             }
 
+            if (!string.IsNullOrEmpty(c.ContractMoneyUpLimit))
+            {
+                var m = 0.0;
+                if (double.TryParse(c.ContractMoneyUpLimit, out m))
+                {
+                    if (m < MinAmount) MinAmount = m;
+                }
+            }
+
             var ProjectNameList = c.ProjectName.Split("、");
             foreach (var jn in ProjectNameList)
             {
@@ -144,6 +154,7 @@ public class ContractTraning
         Program.Training.WriteLine("最大合同(除去英语):" + MaxContractName);
         Program.Training.WriteLine("最大工程(除去英语)长度:" + MaxProjectNameLength);
         Program.Training.WriteLine("最大工程(除去英语):" + MaxProjectName);
+        Program.Training.WriteLine("最小金额:" + MinAmount);
         //新建北京至石家庄铁路客运专线石家庄枢纽(北京局代建部分)站场工程一个标段
         //新建大塔至四眼井铁路吴四圪堵至四眼井段站前工程wssg-1标段
     }

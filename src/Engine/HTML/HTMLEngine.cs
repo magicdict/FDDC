@@ -248,6 +248,20 @@ public static class HTMLEngine
     {
         //原始HTML的第二阶层无法保证嵌套结构是正确的，
         //所以决定第二阶层不分层
+        if (paragraph.ChildNodes.Count == 1)
+        {
+            if (paragraph.ChildNodes[0].Name == "#text")
+            {
+                if (subTitle != "")
+                {
+                    var txtnode = new MyHtmlNode();
+                    txtnode.Content = subTitle;
+                    root.Children.Add(txtnode);
+                    return;
+                }
+            }
+        }
+
         foreach (var node in paragraph.ChildNodes)
         {
             if (node.Name == "div")

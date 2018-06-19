@@ -6,12 +6,15 @@ using JiebaNet.Segmenter.PosSeg;
 
 public class EntitySelf{
         static PosSegmenter posSeg = new PosSegmenter();
-    //甲方乙方首单词统计
+    //首单词词性
     static Dictionary<String, int> FirstWordPosDict = new Dictionary<String, int>();
+    //长度
     static Dictionary<int, int> WordLengthDict = new Dictionary<int, int>();
     //词数
     static Dictionary<int, int> WordCountDict = new Dictionary<int, int>();
+    //最后一个单词
     static Dictionary<String, int> LastWordDict = new Dictionary<String, int>();
+    //POS组合
     static Dictionary<String, int> WordFlgsDict = new Dictionary<String, int>();
 
     public static void Init()

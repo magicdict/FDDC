@@ -34,7 +34,7 @@ public class Surround
                         var EndInx = Math.Min(i + 5, segments.Count);
                         for (int s = startInx; s < i; s++)
                         {
-                            if (segments[s].Flag == WordUtility.标点) continue;
+                            if (segments[s].Flag == WordUtility.标点 && segments[s].Word != "：") continue;
                             if (LeadingWordDict.ContainsKey(segments[s].Word))
                             {
                                 LeadingWordDict[segments[s].Word]++;
@@ -63,7 +63,7 @@ public class Surround
                                 var leading = "";
                                 for (int l = startInx; l < s; l++)
                                 {
-                                    leading += segments[l];
+                                    leading += segments[l].Word;
                                 }
                                 Program.Training.WriteLine("冒号前导词：" + leading);
                             }
@@ -87,6 +87,7 @@ public class Surround
                 }
             }
         }
+        segmenter.DeleteWord(KeyWord);
     }
 
     public void WriteTop(int top)

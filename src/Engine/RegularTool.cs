@@ -5,6 +5,21 @@ using System.Text.RegularExpressions;
 
 public static class RegularTool
 {
+
+    public static string TrimChinesebrackets(string str)
+    {
+        Regex r = new Regex(@"\（.*?\）");
+        str = r.Replace(str, "");
+        return str;
+    }
+
+    public static string Trimbrackets(string str)
+    {
+        Regex r = new Regex(@"\(.*?\)");
+        str = r.Replace(str, "");
+        return str;
+    }
+
     public static List<string> GetNumberList(string str)
     {
         var strList = new List<string>();

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-
+using System.Text.RegularExpressions;
+using System.Linq;
 public static class LocateProperty
 {
 
@@ -12,6 +13,30 @@ public static class LocateProperty
         public T Value;
         //原始值
         public string RawDate;
+    }
+
+
+    public static List<LocAndValue<String>> LocateBracket(HTMLEngine.MyRootHtmlNode root)
+    {
+        var list = new List<LocAndValue<String>>();
+        foreach (var paragrah in root.Children)
+        {
+            foreach (var sentence in paragrah.Children)
+            {
+                var OrgString = sentence.Content;
+                Regex r = new Regex(@"\《.*?\》");
+                foreach (var item in r.Matches(OrgString).ToList())
+                {
+                    list.Add(new LocAndValue<String>() { Loc = sentence.PositionId, Value = item.Value.Substring(1,item.Value.Length -2) });
+                }
+                r = new Regex(@"\“.*?\”");
+                foreach (var item in r.Matches(OrgString).ToList())
+                {
+                    list.Add(new LocAndValue<String>() { Loc = sentence.PositionId, Value = item.Value.Substring(1,item.Value.Length -2) });
+                }
+            }
+        }
+        return list;
     }
 
     //获得日期

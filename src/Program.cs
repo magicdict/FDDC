@@ -37,12 +37,13 @@ namespace FDDC
             TraningDataset.InitContract();
             ContractTraning.TraningMaxLenth();
             ContractTraning.EntityWordPerperty();
-            ContractTraning.GetListLeadWords();
+            //ContractTraning.GetListLeadWords();
             //警告：可能所有的Segmenter使用的是共用的词典！
             //下面的训练将把关键字加入到词典中，引发一些问题
             //ContractTraning.AnlayzeEntitySurroundWords();
             TraningDataset.InitIncreaseStock();
             Training.Close();
+            UT();
             Extract();
             Logger.Close();
             Score.Close();
@@ -56,12 +57,12 @@ namespace FDDC
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
             var ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_a_20180605" + Path.DirectorySeparatorChar + "重大合同";
 
-            var IsRunStockChange = true;
+            var IsRunStockChange = false;
             var IsRunStockChange_TEST = false;
             var StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
             var StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_a_20180605" + Path.DirectorySeparatorChar + "增减持";
 
-            var IsRunIncreaseStock = true;
+            var IsRunIncreaseStock = false;
             var IsRunIncreaseStock_TEST = false;
             var IncreaseStockPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "定增";
             var IncreaseStockPath_TEST = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_test_a_20180605" + Path.DirectorySeparatorChar + "定增";
@@ -178,13 +179,15 @@ namespace FDDC
 
         private static void UT()
         {
-            var s0 = "近日，本公司所属全资控股子公司华陆工程科技有限责任公司与中煤陕西榆林能源化工有限公司签署了甲醇醋酸系列";    
+            var s0 = "华陆工程（科技）有限责任公司";
             JiebaSegmenter segmenter = new JiebaSegmenter();
             segmenter.AddWord("华陆工程科技有限责任公司");
             segmenter.AddWord("中煤陕西榆林能源化工有限公司");
             PosSegmenter posSeg = new PosSegmenter(segmenter);
             var c = posSeg.Cut(s0);
-            //Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\2259816.html");
+            s0 = s0.NormalizeTextResult();
+            s0 = RegularTool.Trimbrackets(s0);
+            Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\15536383.html");
             //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\1021022.html");
         }
     }
