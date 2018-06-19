@@ -123,7 +123,8 @@ public class Contract : AnnouceDocument
 
 
         //金额
-        contract.ContractMoneyUpLimit = MoneyUtility.Format(GetMoney(root), "");
+        var money = GetMoney(root);
+        contract.ContractMoneyUpLimit = MoneyUtility.Format(money.MoneyAmount, "");
         contract.ContractMoneyDownLimit = contract.ContractMoneyUpLimit;
 
         //联合体
@@ -366,9 +367,8 @@ public class Contract : AnnouceDocument
         return "";
     }
 
-    static string GetMoney(HTMLEngine.MyRootHtmlNode root)
+    static (String MoneyAmount, String MoneyCurrency) GetMoney(HTMLEngine.MyRootHtmlNode root)
     {
-        var Money = "";
         var Extractor = new ExtractProperty();
         //这些关键字后面
         Extractor.LeadingWordList = new string[] { "中标金额", "中标价", "合同金额", "合同总价", "订单总金额" };
@@ -379,23 +379,18 @@ public class Contract : AnnouceDocument
             var moneylist = MoneyUtility.SeekMoney(item.Value);
             AllMoneyList.AddRange(moneylist);
         }
-        if (AllMoneyList.Count == 0) return "";
+        if (AllMoneyList.Count == 0) return ("", "");
         foreach (var money in AllMoneyList)
         {
             if (money.MoneyCurrency == "人民币" ||
                 money.MoneyCurrency == "元")
             {
-                Money = money.MoneyAmount;
-                break;
+                Program.Logger.WriteLine("金额候补词：[" + money.MoneyAmount + ":" + money.MoneyCurrency + "]");
+                return money;
             }
         }
-        if (Money == "")
-        {
-            Money = AllMoneyList[0].MoneyAmount;
-        }
-        Program.Logger.WriteLine("金额候补词：[" + Money + "]");
-
-        return Money;
+        Program.Logger.WriteLine("金额候补词：[" + AllMoneyList[0].MoneyAmount + ":" + AllMoneyList[0].MoneyCurrency + "]");
+        return AllMoneyList[0];
     }
 
     static string GetUnionMember(HTMLEngine.MyRootHtmlNode root, String YiFang)

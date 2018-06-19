@@ -170,6 +170,7 @@ public class IncreaseStock : AnnouceDocument
         if (result.Count == 1)
         {
             Program.Logger.WriteLine("认购方式:" + result[0]);
+            return result[0];
         }
         return "";
     }

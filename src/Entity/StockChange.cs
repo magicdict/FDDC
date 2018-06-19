@@ -422,8 +422,8 @@ public class StockChange : AnnouceDocument
         foreach (var item in Extractor.CandidateWord)
         {
             if (item.Value.Length > 20) continue;
-            Program.Logger.WriteLine("候补变动截止日期：[" + item + "]");
-            return NormailizeEndChangeDate(item + "日");
+            Program.Logger.WriteLine("候补变动截止日期：[" + item.Value + "]");
+            return NormailizeEndChangeDate(item.Value + "日");
         }
         return "";
     }

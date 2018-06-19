@@ -131,24 +131,24 @@ public class MoneyUtility
     }
 
     //金额的处理
-    public static string Format(string orgString, string TitleWord)
+    public static string Format(string orgAmountString, string TitleWord)
     {
-        if (!String.IsNullOrEmpty(orgString))
+        if (!String.IsNullOrEmpty(orgAmountString))
         {
-            orgString = orgString.Trim().Replace(",", "");
-            orgString = orgString.Trim().Replace("，", "");
+            orgAmountString = orgAmountString.Trim().Replace(",", "");
+            orgAmountString = orgAmountString.Trim().Replace("，", "");
         }
-        orgString = orgString.Replace("不超过", "");
-        orgString = orgString.Replace("不低于", "");
-        orgString = orgString.Replace("不多于", "");
-        orgString = orgString.Replace("不少于", "");
+        orgAmountString = orgAmountString.Replace("不超过", "");
+        orgAmountString = orgAmountString.Replace("不低于", "");
+        orgAmountString = orgAmountString.Replace("不多于", "");
+        orgAmountString = orgAmountString.Replace("不少于", "");
 
         foreach (var Currency in CurrencyList)
         {
-            if (orgString.EndsWith(Currency))
+            if (orgAmountString.EndsWith(Currency))
             {
-                orgString = orgString.Replace(Currency, "");
-                orgString = orgString.Trim();
+                orgAmountString = orgAmountString.Replace(Currency, "");
+                orgAmountString = orgAmountString.Trim();
                 break;
             }
         }
@@ -157,37 +157,33 @@ public class MoneyUtility
         if (TitleWord.Contains("万元"))
         {
             double x;
-            if (double.TryParse(orgString, out x))
+            if (double.TryParse(orgAmountString, out x))
             {
-                orgString = (x * 10_000).ToString();
+                orgAmountString = (x * 10_000).ToString();
             }
         }
         else
         {
-            //XXX万美元
-            foreach (var Currency in CurrencyList)
+            if (orgAmountString.EndsWith("万"))
             {
-                if (orgString.EndsWith("万" + Currency))
+                orgAmountString = orgAmountString.Replace("万", "");
+                double x;
+                if (double.TryParse(orgAmountString, out x))
                 {
-                    orgString = orgString.Replace("万" + Currency, "");
-                    double x;
-                    if (double.TryParse(orgString, out x))
-                    {
-                        orgString = (x * 10_000).ToString();
-                    }
+                    orgAmountString = (x * 10_000).ToString();
                 }
             }
         }
 
         //惩 本次HTML特殊处理
-        if (orgString.EndsWith("亿") || orgString.EndsWith("惩"))
+        if (orgAmountString.EndsWith("亿") || orgAmountString.EndsWith("惩"))
         {
-            orgString = orgString.Replace("亿", "");
-            orgString = orgString.Replace("惩", "");
+            orgAmountString = orgAmountString.Replace("亿", "");
+            orgAmountString = orgAmountString.Replace("惩", "");
             double x;
-            if (double.TryParse(orgString, out x))
+            if (double.TryParse(orgAmountString, out x))
             {
-                orgString = (x * 100_000_000).ToString();
+                orgAmountString = (x * 100_000_000).ToString();
             }
         }
         else
@@ -196,22 +192,22 @@ public class MoneyUtility
             foreach (var Currency in CurrencyList)
             {
                 //惩 本次HTML特殊处理
-                if (orgString.EndsWith("亿" + Currency) || orgString.EndsWith("惩" + Currency))
+                if (orgAmountString.EndsWith("亿") || orgAmountString.EndsWith("惩"))
                 {
-                    orgString = orgString.Replace("亿" + Currency, "");
-                    orgString = orgString.Replace("惩" + Currency, "");
+                    orgAmountString = orgAmountString.Replace("亿", "");
+                    orgAmountString = orgAmountString.Replace("惩", "");
                     double x;
-                    if (double.TryParse(orgString, out x))
+                    if (double.TryParse(orgAmountString, out x))
                     {
-                        orgString = (x * 10_000).ToString();
+                        orgAmountString = (x * 10_000).ToString();
                     }
                 }
             }
         }
 
-        if (orgString.EndsWith(".00")) orgString = orgString.Substring(0, orgString.Length - 3);
-        orgString = orgString.Trim();
-        return orgString;
+        if (orgAmountString.EndsWith(".00")) orgAmountString = orgAmountString.Substring(0, orgAmountString.Length - 3);
+        orgAmountString = orgAmountString.Trim();
+        return orgAmountString;
     }
 
 }

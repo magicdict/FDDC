@@ -33,7 +33,7 @@ public class AnnouceDocument
         companynamelist = BussinessLogic.GetCompanyNameByCutWord(root);
         datelist = LocateProperty.LocateDate(root);
         //公告中出现的最后一个日期作为公告发布日
-        AnnouceDate = datelist.Last().Value;
+        if (datelist.Count > 0) AnnouceDate = datelist.Last().Value;
         moneylist = LocateProperty.LocateMoney(root);
         foreach (var cn in companynamelist)
         {
