@@ -30,31 +30,54 @@ public class ExtractProperty
     {
         if (!File.Exists(filename)) return;
         CandidateWord.Clear();
-        if (LeadingWordList.Length > 0) ExtractTextByLeadingKeyWord(filename);
+        if (LeadingColonKeyWordList.Length > 0) ExtractTextByColonKeyWord(filename);
     }
 
-    public void ExtractTextByLeadingKeyWord(string filename)
+    public void ExtractTextByColonKeyWord(string filename)
     {
+        var lines = new List<String>();
         var sr = new StreamReader(filename);
         while (!sr.EndOfStream)
         {
             var line = sr.ReadLine();
-            foreach (var word in LeadingWordList)
+            if (!String.IsNullOrEmpty(line)) lines.Add(line);
+        }
+        sr.Close();
+
+        for (int CurrentLineIdx = 0; CurrentLineIdx < lines.Count; CurrentLineIdx++)
+        {
+            var line = lines[CurrentLineIdx];
+            foreach (var word in LeadingColonKeyWordList)
             {
                 if (Utility.GetStringAfter(line, word) != "")
                 {
-                    CandidateWord.Add(new LocAndValue<string>() { Value = Utility.GetStringAfter(line, word) });
+                    var result = Utility.GetStringAfter(line, word);
+                    if (CurrentLineIdx + 2 < lines.Count)
+                    {
+                        if (!lines[CurrentLineIdx + 1].Contains("："))
+                        {
+                            if (lines[CurrentLineIdx + 2].Contains("："))
+                            {
+                                result += lines[CurrentLineIdx + 1];
+                            }
+                        }
+                    }
+                    if (string.IsNullOrEmpty(result)) continue;
+                    CandidateWord.Add(new LocAndValue<string>()
+                    {
+                        Value = result
+                    });
+                    break;
                 }
             }
         }
-        sr.Close();
     }
 
     public void Extract(MyRootHtmlNode root)
     {
         CandidateWord.Clear();
         //先导词列表
-        if (LeadingWordList.Length > 0) ExtractByLeadingKeyWord(root);
+        if (LeadingColonKeyWordList.Length > 0) ExtractByLeadingKeyWord(root);
         //结尾词列表
         if (TrailingWordList.Length > 0) ExtractByTrailingKeyWord(root);
         //是否有符号包裹特征
@@ -65,11 +88,11 @@ public class ExtractProperty
     }
 
     //先导词（直接取先导词的后面的内容）
-    public string[] LeadingWordList = new string[] { };
+    public string[] LeadingColonKeyWordList = new string[] { };
     //先导词
     void ExtractByLeadingKeyWord(MyRootHtmlNode root)
     {
-        foreach (var word in LeadingWordList)
+        foreach (var word in LeadingColonKeyWordList)
         {
             Func<String, List<String>> ExtractMethod = (x) =>
             {

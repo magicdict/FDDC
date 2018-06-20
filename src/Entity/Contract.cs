@@ -65,13 +65,13 @@ public class Contract : AnnouceDocument
 
         public string ConvertToString(struContract contract)
         {
-            var record = contract.id + "," +
-                         contract.JiaFang + "," +
-                         contract.YiFang + "," +
-                         contract.ProjectName + "," +
-                         contract.ContractName + ",";
-            record += contract.ContractMoneyUpLimit + ",";
-            record += contract.ContractMoneyDownLimit + ",";
+            var record = contract.id + "\t" +
+                         contract.JiaFang + "\t" +
+                         contract.YiFang + "\t" +
+                         contract.ProjectName + "\t" +
+                         contract.ContractName + "\t";
+            record += contract.ContractMoneyUpLimit + "\t";
+            record += contract.ContractMoneyDownLimit + "\t";
             record += contract.UnionMember;
             return record;
         }
@@ -197,7 +197,7 @@ public class Contract : AnnouceDocument
     {
         var Extractor = new ExtractProperty();
         //这些关键字后面
-        Extractor.LeadingWordList = new string[] {
+        Extractor.LeadingColonKeyWordList = new string[] {
             "甲方：",
             "发包人：","发包单位：","发包方：","发包机构：","发包人名称：",
             "招标人：","招标单位：","招标方：","招标机构：","招标人名称：",
@@ -265,7 +265,7 @@ public class Contract : AnnouceDocument
     {
         var Extractor = new ExtractProperty();
         //这些关键字后面
-        Extractor.LeadingWordList = new string[] { "供应商名称：", "乙方：" };
+        Extractor.LeadingColonKeyWordList = new string[] { "供应商名称：", "乙方：" };
         //"中标单位：","中标人：","中标单位：","中标人：","乙方（供方）：","承包人：","承包方：","中标方：","供应商名称：","中标人名称："
         Extractor.ExtractFromTextFile(TextFileName);
         foreach (var item in Extractor.CandidateWord)
@@ -326,7 +326,7 @@ public class Contract : AnnouceDocument
 
         var Extractor = new ExtractProperty();
         //这些关键字后面
-        Extractor.LeadingWordList = new string[] { "合同名称：" };
+        Extractor.LeadingColonKeyWordList = new string[] { "合同名称：" };
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
@@ -367,20 +367,15 @@ public class Contract : AnnouceDocument
 
         var Extractor = new ExtractProperty();
         //这些关键字后面
-        Extractor.LeadingWordList = new string[] { "项目名称：", "工程名称：", "中标项目：", "合同标的：", "工程内容：" };
-
-        //这里会出现换行漏字的问题，正确的做法应该是
-        //TODO:两种模式相互参考
-        /*       
-                Extractor.ExtractFromTextFile(TextFileName);
-                foreach (var item in Extractor.CandidateWord)
-                {
-                    var ProjectName = item.Value.Trim();
-                    if (EntityWordAnlayzeTool.TrimEnglish(ProjectName).Length > ContractTraning.MaxContractNameLength) continue;
-                    Program.Logger.WriteLine("项目名称候补词(关键字)：[" + item + "]");
-                    return ProjectName;
-                }
-         */
+        Extractor.LeadingColonKeyWordList = new string[] { "项目名称：", "工程名称：", "中标项目：", "合同标的：", "工程内容：" };
+        Extractor.ExtractFromTextFile(TextFileName);
+        foreach (var item in Extractor.CandidateWord)
+        {
+            var ProjectName = item.Value.Trim();
+            if (EntityWordAnlayzeTool.TrimEnglish(ProjectName).Length > ContractTraning.MaxContractNameLength) continue;
+            Program.Logger.WriteLine("项目名称候补词(关键字)：[" + item + "]");
+            return ProjectName;
+        }
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
@@ -422,7 +417,7 @@ public class Contract : AnnouceDocument
     {
         var Extractor = new ExtractProperty();
         //这些关键字后面
-        Extractor.LeadingWordList = new string[] { "中标金额", "中标价", "合同金额", "合同总价", "订单总金额" };
+        Extractor.LeadingColonKeyWordList = new string[] { "中标金额", "中标价", "合同金额", "合同总价", "订单总金额" };
         Extractor.Extract(root);
         var AllMoneyList = new List<(String MoneyAmount, String MoneyCurrency)>();
         foreach (var item in Extractor.CandidateWord)

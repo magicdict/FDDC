@@ -17,7 +17,7 @@ public class BussinessLogic
         //股票简称：东方电气
         //东方电气股份有限公司董事会
         var Extractor = new ExtractProperty();
-        Extractor.LeadingWordList = new string[] { "股票简称", "证券简称" };
+        Extractor.LeadingColonKeyWordList = new string[] { "股票简称", "证券简称" };
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {

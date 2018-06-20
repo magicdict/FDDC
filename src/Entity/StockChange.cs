@@ -72,14 +72,14 @@ public class StockChange : AnnouceDocument
 
         public string ConvertToString(struStockChange increaseStock)
         {
-            var record = increaseStock.id + "," +
-            increaseStock.HolderFullName + "," +
-            increaseStock.HolderShortName + "," +
-            increaseStock.ChangeEndDate + ",";
-            record += Normalizer.NormalizeNumberResult(increaseStock.ChangePrice) + ",";
-            record += Normalizer.NormalizeNumberResult(increaseStock.ChangeNumber) + ",";
-            record += Normalizer.NormalizeNumberResult(increaseStock.HoldNumberAfterChange) + ",";
-            record += Normalizer.NormalizeNumberResult(increaseStock.HoldPercentAfterChange) + ",";
+            var record = increaseStock.id + "\t" +
+            increaseStock.HolderFullName + "\t" +
+            increaseStock.HolderShortName + "\t" +
+            increaseStock.ChangeEndDate + "\t";
+            record += Normalizer.NormalizeNumberResult(increaseStock.ChangePrice) + "\t";
+            record += Normalizer.NormalizeNumberResult(increaseStock.ChangeNumber) + "\t";
+            record += Normalizer.NormalizeNumberResult(increaseStock.HoldNumberAfterChange) + "\t";
+            record += Normalizer.NormalizeNumberResult(increaseStock.HoldPercentAfterChange) + "\t";
             return record;
         }
     }

@@ -13,7 +13,7 @@ namespace FDDC
 {
     class Program
     {
-
+        public static Encoding utf8WithoutBom = new System.Text.UTF8Encoding(false);
         public static StreamWriter Training = new StreamWriter("Training.log");
         public static StreamWriter Logger = new StreamWriter("Log.log");
         public static StreamWriter Score = new StreamWriter(@"Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
@@ -72,8 +72,8 @@ namespace FDDC
                 //合同处理
                 //通过训练获得各种字段的最大长度，便于抽取的时候做置信度检查
                 Console.WriteLine("Start To Extract Info Contract TRAIN");
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong_train.csv", false, Encoding.GetEncoding("gb2312"));
-                ResultCSV.WriteLine("公告id,甲方,乙方,项目名称,合同名称,合同金额上限,合同金额下限,联合体成员");
+                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong_train.txt", false, utf8WithoutBom);
+                ResultCSV.WriteLine("公告id\t甲方\t乙方\t项目名称\t合同名称\t合同金额上限\t合同金额下限\t联合体成员");
                 var StockChange_Result = new List<struContract>();
                 foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
                 {
@@ -89,8 +89,8 @@ namespace FDDC
             }
             if (IsRunContract_TEST)
             {
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong.csv", false, Encoding.GetEncoding("gb2312"));
-                ResultCSV.WriteLine("公告id,甲方,乙方,项目名称,合同名称,合同金额上限,合同金额下限,联合体成员");
+                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong.txt", false, utf8WithoutBom);
+                ResultCSV.WriteLine("公告id\t甲方\t乙方\t项目名称\t合同名称\t合同金额上限\t合同金额下限\t联合体成员");
                 Console.WriteLine("Start To Extract Info Contract TEST");
                 foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TEST + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
                 {
@@ -108,8 +108,8 @@ namespace FDDC
             {
                 //增减持
                 Console.WriteLine("Start To Extract Info StockChange TRAIN");
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "zengjianchi_train.csv", false, Encoding.GetEncoding("gb2312"));
-                ResultCSV.WriteLine("公告id,股东全称,股东简称,变动截止日期,变动价格,变动数量,变动后持股数,变动后持股比例");
+                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "zengjianchi_train.txt", false, utf8WithoutBom);
+                ResultCSV.WriteLine("公告id\t股东全称\t股东简称\t变动截止日期\t变动价格\t变动数量\t变动后持股数\t变动后持股比例");
                 var StockChange_Result = new List<struStockChange>();
                 foreach (var filename in System.IO.Directory.GetFiles(StockChangePath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
                 {
@@ -125,8 +125,8 @@ namespace FDDC
             }
             if (IsRunStockChange_TEST)
             {
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "zengjianchi.csv", false, Encoding.GetEncoding("gb2312"));
-                ResultCSV.WriteLine("公告id,股东全称,股东简称,变动截止日期,变动价格,变动数量,变动后持股数,变动后持股比例");
+                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "zengjianchi.txt", false, utf8WithoutBom);
+                ResultCSV.WriteLine("公告id\t股东全称\t股东简称\t变动截止日期\t变动价格\t变动数量\t变动后持股数\t变动后持股比例");
                 Console.WriteLine("Start To Extract Info StockChange TEST");
                 foreach (var filename in System.IO.Directory.GetFiles(StockChangePath_TEST + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
                 {
@@ -143,8 +143,8 @@ namespace FDDC
             {
 
                 //定增
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "dingzeng_train.csv", false, Encoding.GetEncoding("gb2312"));
-                ResultCSV.WriteLine("公告id,增发对象,增发数量,增发金额,锁定期,认购方式");
+                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "dingzeng_train.txt", false, utf8WithoutBom);
+                ResultCSV.WriteLine("公告id\t增发对象\t增发数量\t增发金额\t锁定期\t认购方式");
                 Console.WriteLine("Start To Extract Info IncreaseStock TRAIN");
                 var Increase_Result = new List<struIncreaseStock>();
                 foreach (var filename in System.IO.Directory.GetFiles(IncreaseStockPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
@@ -162,8 +162,8 @@ namespace FDDC
 
             if (IsRunIncreaseStock_TEST)
             {
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "dingzeng.csv", false, Encoding.GetEncoding("gb2312"));
-                ResultCSV.WriteLine("公告id,增发对象,增发数量,增发金额,锁定期,认购方式");
+                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "dingzeng.txt", false, utf8WithoutBom);
+                ResultCSV.WriteLine("公告id\t增发对象\t增发数量\t增发金额\t锁定期\t认购方式");
                 Console.WriteLine("Start To Extract Info IncreaseStock TEST");
                 foreach (var filename in System.IO.Directory.GetFiles(IncreaseStockPath_TEST + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
                 {
@@ -187,7 +187,7 @@ namespace FDDC
             var c = posSeg.Cut(s0);
             s0 = s0.NormalizeTextResult();
             s0 = RegularTool.Trimbrackets(s0);
-            Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\15536383.html");
+            Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1775568.html");
             //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\1021022.html");
         }
     }

@@ -60,12 +60,11 @@ public class IncreaseStock : AnnouceDocument
 
         public string ConvertToString(struIncreaseStock increaseStock)
         {
-            var record = increaseStock.id + "," +
-            increaseStock.PublishTarget + ",";
-            record += Normalizer.NormalizeNumberResult(increaseStock.IncreaseNumber) + ",";
-            record += Normalizer.NormalizeNumberResult(increaseStock.IncreaseMoney) + ",";
-            record += increaseStock.FreezeYear + "," +
-            increaseStock.BuyMethod;
+            var record = increaseStock.id + "\t" +
+            increaseStock.PublishTarget + "\t";
+            record += Normalizer.NormalizeNumberResult(increaseStock.IncreaseNumber) + "\t";
+            record += Normalizer.NormalizeNumberResult(increaseStock.IncreaseMoney) + "\t";
+            record += increaseStock.FreezeYear + "\t" + increaseStock.BuyMethod;
             return record;
         }
     }
