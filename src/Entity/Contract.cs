@@ -159,8 +159,6 @@ public class Contract : AnnouceDocument
             Program.Logger.WriteLine("甲方候补词(关键字)：[" + JiaFang + "]");
             return JiaFang.secFullName;
         }
-
-
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
@@ -170,6 +168,9 @@ public class Contract : AnnouceDocument
             Program.Logger.WriteLine("甲方候补词(关键字)：[" + JiaFang + "]");
             return JiaFang.secFullName;
         }
+
+
+        var CandidateWord = new List<String>();
 
         //招标
         Extractor = new ExtractProperty();
@@ -181,10 +182,11 @@ public class Contract : AnnouceDocument
         {
             var JiaFang = CompanyNameLogic.AfterProcessFullName(item.Value.Trim());
             JiaFang.secFullName = JiaFang.secFullName.Replace("业主", "").Trim();
+            JiaFang.secFullName = JiaFang.secFullName.Replace("招标单位", "").Trim();
             if (EntityWordAnlayzeTool.TrimEnglish(JiaFang.secFullName).Length > ContractTraning.MaxJiaFangLength) continue;
             if (JiaFang.secFullName.Length < 3) continue;     //使用实际长度排除全英文的情况
             Program.Logger.WriteLine("甲方候补词(招标)：[" + JiaFang + "]");
-            return JiaFang.secFullName;
+            CandidateWord.Add(JiaFang.secFullName);
         }
 
         //合同
@@ -200,9 +202,9 @@ public class Contract : AnnouceDocument
             if (EntityWordAnlayzeTool.TrimEnglish(JiaFang.secFullName).Length > ContractTraning.MaxJiaFangLength) continue;
             if (JiaFang.secFullName.Length < 3) continue;     //使用实际长度排除全英文的情况
             Program.Logger.WriteLine("甲方候补词(合同)：[" + JiaFang + "]");
-            return JiaFang.secFullName;
+            CandidateWord.Add(JiaFang.secFullName);
         }
-        return "";
+        return CompanyNameLogic.MostLikeCompanyName(CandidateWord);
     }
     static string GetYiFang(HTMLEngine.MyRootHtmlNode root)
     {
@@ -227,18 +229,19 @@ public class Contract : AnnouceDocument
         }
 
         //乙方:"有限公司"
+        //如果有子公司的话，优先使用子公司
+        foreach (var c in companynamelist)
+        {
+            if (c.isSubCompany) return c.secFullName;
+        }
         Extractor = new ExtractProperty();
         //这些关键字后面
         Extractor.TrailingWordList = new string[] { "有限公司董事会" };
+        //Extractor.ExtractTextByTrailingKeyWord(TextFileName);
         Extractor.Extract(root);
         Extractor.CandidateWord.Reverse();
         foreach (var item in Extractor.CandidateWord)
         {
-            //如果有子公司的话，优先使用子公司
-            foreach (var c in companynamelist)
-            {
-                if (c.isSubCompany) return c.secFullName;
-            }
             Program.Logger.WriteLine("乙方候补词(关键字)：[" + item.Value.Trim() + "有限公司]");
             return item.Value.Trim() + "有限公司";
         }

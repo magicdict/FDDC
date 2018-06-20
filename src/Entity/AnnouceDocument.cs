@@ -35,7 +35,22 @@ public class AnnouceDocument
         Id = fi.Name.Replace(".html", "");
         Program.Logger.WriteLine("公告ID:" + Id);
         root = HTMLEngine.Anlayze(htmlFileName);
-
+        AnnouceCompanyName = "";
+        //从最后向前查找
+        for (int i = root.Children.Count - 1; i >= 0; i--)
+        {
+            for (int j = root.Children[i].Children.Count -1; j >= 0; j--)
+            {
+                var content = root.Children[i].Children[j].Content;
+                content = content.Replace(" ", "");
+                if (content.EndsWith("有限公司董事会"))
+                {
+                    AnnouceCompanyName = content.Substring(0, content.Length - 3);
+                    break;
+                }
+            }
+            if (!String.IsNullOrEmpty(AnnouceCompanyName)) break;
+        }
         datelist = LocateProperty.LocateDate(root);
         foreach (var m in datelist)
         {
@@ -61,7 +76,7 @@ public class AnnouceDocument
         }
 
         companynamelist = CompanyNameLogic.GetCompanyNameByCutWord(root);
-        
+
         foreach (var cn in companynamelist)
         {
             Program.Logger.WriteLine("公司名称：" + cn.secFullName);

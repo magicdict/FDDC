@@ -39,7 +39,19 @@ public class CompanyNameLogic
                     var FullName = "";
                     var ShortName = "";
                     var IsSubCompany = false;
-
+                    if (words[baseInd].Word == "国家电网" &&
+                        (baseInd + 1) < words.Count &&
+                        words[baseInd + 1].Word == "公司")
+                    {
+                        namelist.Add(new struCompanyName()
+                        {
+                            secFullName = "国家电网公司",
+                            positionId = sentence.PositionId,
+                            WordIdx = baseInd,
+                            Score = 100
+                        });
+                        continue;
+                    }
                     if (
                          words[baseInd].Word == "有限公司" ||
                         (words[baseInd].Word == "公司" && baseInd != 0 && words[baseInd - 1].Word == "承包") ||
@@ -235,7 +247,7 @@ public class CompanyNameLogic
                 //获取简称
                 var tmp = RegularTool.GetChinesebrackets(FullName);
                 ShortName = RegularTool.GetChineseConno(tmp);
-                if (!String.IsNullOrEmpty(ShortName)) ShortName = ShortName.Substring(1,ShortName.Length -2);
+                if (!String.IsNullOrEmpty(ShortName)) ShortName = ShortName.Substring(1, ShortName.Length - 2);
                 FullName = Utility.GetStringBefore(FullName, trailing);
             }
         }
@@ -283,9 +295,30 @@ public class CompanyNameLogic
             {
                 return OrgString.Substring(0, OrgString.IndexOf(lw + "："));
             }
+            if (OrgString.IndexOf(lw) != -1)
+            {
+                return OrgString.Substring(0, OrgString.IndexOf(lw));
+            }
         }
         return OrgString;
     }
+
+    public static string MostLikeCompanyName(List<string> CandidateWords)
+    {
+        foreach (var word in CandidateWords)
+        {
+            if (string.IsNullOrEmpty(word)) continue;
+            var posSeg = new PosSegmenter();
+            var cuts = posSeg.Cut(word).ToList();
+            if (cuts[0].Flag == WordUtility.地名)
+            {
+                if (word.EndsWith("公司") || word.Contains("有限合伙")) return word;
+            }
+        }
+        if (CandidateWords.Count == 0) return "";
+        return CandidateWords[0];
+    }
+
 
     public static (String FullName, String ShortName) NormalizeCompanyName(string word)
     {

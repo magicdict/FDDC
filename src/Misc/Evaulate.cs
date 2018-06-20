@@ -276,6 +276,10 @@ public static class Evaluate
         var ACT_UnionMember = 0;
         var COR_UnionMember = 0;
 
+        var ErrorJiaFang = 0;
+        var ErrorYiFang = 0;
+
+
 
         foreach (var contract in TraningDataset.ContractList)
         {
@@ -314,12 +318,29 @@ public static class Evaluate
                         Program.Evaluator.WriteLine(contract.id + ":");
                         Program.Evaluator.WriteLine(contract.JiaFang + "\t" + contract.YiFang);
                         Program.Evaluator.WriteLine(contract_Result.JiaFang + "\t" + contract_Result.YiFang);
+                        if (!String.IsNullOrEmpty(contract_Result.JiaFang) && !String.IsNullOrEmpty(contract.JiaFang))
+                        {
+                            if (!contract_Result.JiaFang.Equals(contract.JiaFang))
+                            {
+                                ErrorJiaFang++;
+                            }
+                        }
+                        if (!String.IsNullOrEmpty(contract_Result.YiFang) && !String.IsNullOrEmpty(contract.YiFang))
+                        {
+                            if (!contract_Result.YiFang.Equals(contract.YiFang))
+                            {
+                                ErrorYiFang++;
+                            }
+                        }
+
                     }
                     break;  //按照道理开说，不应该主键重复
                 }
             }
         }
 
+        Program.Evaluator.WriteLine("甲方错误数：" + ErrorJiaFang);
+        Program.Evaluator.WriteLine("乙方错误数：" + ErrorYiFang);
 
         foreach (var contract in TraningDataset.ContractList)
         {
