@@ -6,12 +6,18 @@ using System.Text.RegularExpressions;
 public static class RegularTool
 {
 
-    public static string TrimChinesebrackets(string str)
+    public static string GetChinesebrackets(string str)
     {
         Regex r = new Regex(@"\（.*?\）");
-        str = r.Replace(str, "");
-        return str;
+        return r.Match(str).Value;
     }
+    public static string GetChineseConno(string str)
+    {
+        Regex r = new Regex(@"\“.*?\”");
+        return r.Match(str).Value;
+    }
+
+
 
     public static string Trimbrackets(string str)
     {

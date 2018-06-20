@@ -220,8 +220,9 @@ public class CompanyNameLogic
 
     #endregion
 
-    public static String AfterProcessFullName(string FullName)
+    public static struCompanyName AfterProcessFullName(string FullName)
     {
+        var ShortName = "";
         var CompanyNameTrailingwords = new string[] {
             "（以下简称", "（下称", "（以下称", "（简称", "(以下简称", "(下称", "(以下称", "(简称"
         };
@@ -231,6 +232,10 @@ public class CompanyNameLogic
         {
             if (FullName.Contains(trailing))
             {
+                //获取简称
+                var tmp = RegularTool.GetChinesebrackets(FullName);
+                ShortName = RegularTool.GetChineseConno(tmp);
+                if (!String.IsNullOrEmpty(ShortName)) ShortName = ShortName.Substring(1,ShortName.Length -2);
                 FullName = Utility.GetStringBefore(FullName, trailing);
             }
         }
@@ -253,7 +258,14 @@ public class CompanyNameLogic
         //删除前导
         FullName = EntityWordAnlayzeTool.TrimLeadingUL(FullName);
         FullName = CutOtherLeadingWords(FullName);
-        return FullName;
+        if (ShortName != "")
+        {
+            return new struCompanyName() { secFullName = FullName, secShortName = ShortName, Score = 80 };
+        }
+        else
+        {
+            return new struCompanyName() { secFullName = FullName, Score = 60 };
+        }
     }
 
     static string CutOtherLeadingWords(String OrgString)

@@ -101,12 +101,12 @@ public class Contract : AnnouceDocument
         contract.id = Id;
         //甲方
         contract.JiaFang = GetJiaFang(root);
-        contract.JiaFang = CompanyNameLogic.AfterProcessFullName(contract.JiaFang);
+        contract.JiaFang = CompanyNameLogic.AfterProcessFullName(contract.JiaFang).secFullName;
         contract.JiaFang = contract.JiaFang.NormalizeTextResult();
 
         //乙方
         contract.YiFang = GetYiFang(root);
-        contract.YiFang = CompanyNameLogic.AfterProcessFullName(contract.YiFang);
+        contract.YiFang = CompanyNameLogic.AfterProcessFullName(contract.YiFang).secFullName;
         contract.YiFang = contract.YiFang.NormalizeTextResult();
         //按照规定除去括号
         contract.YiFang = RegularTool.Trimbrackets(contract.YiFang);
@@ -154,10 +154,10 @@ public class Contract : AnnouceDocument
         foreach (var item in Extractor.CandidateWord)
         {
             var JiaFang = CompanyNameLogic.AfterProcessFullName(item.Value.Trim());
-            if (EntityWordAnlayzeTool.TrimEnglish(JiaFang).Length > ContractTraning.MaxJiaFangLength) continue;
-            if (JiaFang.Length < 3) continue;     //使用实际长度排除全英文的情况
+            if (EntityWordAnlayzeTool.TrimEnglish(JiaFang.secFullName).Length > ContractTraning.MaxJiaFangLength) continue;
+            if (JiaFang.secFullName.Length < 3) continue;     //使用实际长度排除全英文的情况
             Program.Logger.WriteLine("甲方候补词(关键字)：[" + JiaFang + "]");
-            return JiaFang;
+            return JiaFang.secFullName;
         }
 
 
@@ -165,10 +165,10 @@ public class Contract : AnnouceDocument
         foreach (var item in Extractor.CandidateWord)
         {
             var JiaFang = CompanyNameLogic.AfterProcessFullName(item.Value.Trim());
-            if (EntityWordAnlayzeTool.TrimEnglish(JiaFang).Length > ContractTraning.MaxJiaFangLength) continue;
-            if (JiaFang.Length < 3) continue;     //使用实际长度排除全英文的情况
+            if (EntityWordAnlayzeTool.TrimEnglish(JiaFang.secFullName).Length > ContractTraning.MaxJiaFangLength) continue;
+            if (JiaFang.secFullName.Length < 3) continue;     //使用实际长度排除全英文的情况
             Program.Logger.WriteLine("甲方候补词(关键字)：[" + JiaFang + "]");
-            return JiaFang;
+            return JiaFang.secFullName;
         }
 
         //招标
@@ -180,11 +180,11 @@ public class Contract : AnnouceDocument
         foreach (var item in Extractor.CandidateWord)
         {
             var JiaFang = CompanyNameLogic.AfterProcessFullName(item.Value.Trim());
-            JiaFang = JiaFang.Replace("业主", "").Trim();
-            if (EntityWordAnlayzeTool.TrimEnglish(JiaFang).Length > ContractTraning.MaxJiaFangLength) continue;
-            if (JiaFang.Length < 3) continue;     //使用实际长度排除全英文的情况
+            JiaFang.secFullName = JiaFang.secFullName.Replace("业主", "").Trim();
+            if (EntityWordAnlayzeTool.TrimEnglish(JiaFang.secFullName).Length > ContractTraning.MaxJiaFangLength) continue;
+            if (JiaFang.secFullName.Length < 3) continue;     //使用实际长度排除全英文的情况
             Program.Logger.WriteLine("甲方候补词(招标)：[" + JiaFang + "]");
-            return JiaFang;
+            return JiaFang.secFullName;
         }
 
         //合同
@@ -196,11 +196,11 @@ public class Contract : AnnouceDocument
         foreach (var item in Extractor.CandidateWord)
         {
             var JiaFang = CompanyNameLogic.AfterProcessFullName(item.Value.Trim());
-            JiaFang = JiaFang.Replace("业主", "").Trim();
-            if (EntityWordAnlayzeTool.TrimEnglish(JiaFang).Length > ContractTraning.MaxJiaFangLength) continue;
-            if (JiaFang.Length < 3) continue;     //使用实际长度排除全英文的情况
+            JiaFang.secFullName = JiaFang.secFullName.Replace("业主", "").Trim();
+            if (EntityWordAnlayzeTool.TrimEnglish(JiaFang.secFullName).Length > ContractTraning.MaxJiaFangLength) continue;
+            if (JiaFang.secFullName.Length < 3) continue;     //使用实际长度排除全英文的情况
             Program.Logger.WriteLine("甲方候补词(合同)：[" + JiaFang + "]");
-            return JiaFang;
+            return JiaFang.secFullName;
         }
         return "";
     }

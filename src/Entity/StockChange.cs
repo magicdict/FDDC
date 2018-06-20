@@ -323,7 +323,9 @@ public class StockChange : AnnouceDocument
         Extractor.Extract(root);
         foreach (var word in Extractor.CandidateWord)
         {
-            var name = CompanyNameLogic.NormalizeCompanyName(word.Value);
+            var FullName = CompanyNameLogic.AfterProcessFullName(word.Value);
+            if (FullName.Score == 80) return (FullName.secFullName,FullName.secShortName);
+            var name = CompanyNameLogic.NormalizeCompanyName(FullName.secFullName);
             if (!String.IsNullOrEmpty(name.FullName) && !String.IsNullOrEmpty(name.ShortName))
             {
                 return name;

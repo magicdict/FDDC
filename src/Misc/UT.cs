@@ -1,13 +1,23 @@
 using System;
 using System.Text.RegularExpressions;
 using FDDC;
+using JiebaNet.Segmenter;
+using JiebaNet.Segmenter.PosSeg;
 
 public static class UT
 {
-  
+
 
     public static void RunWordAnlayze()
     {
+        var s0 = "华陆工程（科技）有限责任公司";
+        JiebaSegmenter segmenter = new JiebaSegmenter();
+        segmenter.AddWord("华陆工程科技有限责任公司");
+        segmenter.AddWord("中煤陕西榆林能源化工有限公司");
+        PosSegmenter posSeg = new PosSegmenter(segmenter);
+        var c = posSeg.Cut(s0);
+        s0 = s0.NormalizeTextResult();
+        s0 = RegularTool.Trimbrackets(s0);
         var SProjectName = new Surround();
         var root = HTMLEngine.Anlayze(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1044779.html");
         var Contract = TraningDataset.GetContractById("1044779")[0];
