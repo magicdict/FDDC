@@ -10,4 +10,7 @@ public static class WordUtility
 
     //表示区间的文字和符号
     public static string[] RangeMarkAndChar = new string[] { "至", "-", "~", };
+
+    //字典里面错误分类的地名
+    public static string[] DictNSAdjust = new string[] { "大连", "霍尔果斯", "烟台" };
 }

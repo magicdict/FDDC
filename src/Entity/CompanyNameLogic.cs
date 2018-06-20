@@ -7,50 +7,9 @@ using Newtonsoft.Json.Linq;
 using FDDC;
 using JiebaNet.Segmenter.PosSeg;
 
-public class BussinessLogic
+public class CompanyNameLogic
 {
-    //固定搭配
-    public static string GetCompanyShortName(HTMLEngine.MyRootHtmlNode root)
-    {
-        var companyList = new Dictionary<string, string>();
-        //从第一行开始找到  有限公司 有限责任公司, 如果有简称的话Value是简称
-        //股票简称：东方电气
-        //东方电气股份有限公司董事会
-        var Extractor = new ExtractProperty();
-        Extractor.LeadingColonKeyWordList = new string[] { "股票简称", "证券简称" };
-        Extractor.Extract(root);
-        foreach (var item in Extractor.CandidateWord)
-        {
-            var ShortName = item.Value.Replace(":", "").Replace("：", "").Trim();
-            if (Utility.GetStringBefore(ShortName, "、") != "")
-            {
-                ShortName = Utility.GetStringBefore(ShortName, "、");
-            }
-            if (Utility.GetStringBefore(ShortName, "）") != "")
-            {
-                ShortName = Utility.GetStringBefore(ShortName, "）");
-            }
-            if (Utility.GetStringBefore(ShortName, "公告") != "")
-            {
-                ShortName = Utility.GetStringBefore(ShortName, "公告");
-            }
-            if (Utility.GetStringBefore(ShortName, "股票") != "")
-            {
-                ShortName = Utility.GetStringBefore(ShortName, "股票");
-            }
-            if (Utility.GetStringBefore(ShortName, "证券") != "")
-            {
-                ShortName = Utility.GetStringBefore(ShortName, "证券");
-            }
-            if (Utility.GetStringBefore(ShortName, " ") != "")
-            {
-                ShortName = Utility.GetStringBefore(ShortName, " ");
-            }
-            FDDC.Program.Logger.WriteLine("简称:[" + ShortName + "]");
-            return ShortName;
-        }
-        return "";
-    }
+
     public static string GetCompanyFullName(HTMLEngine.MyRootHtmlNode root)
     {
         var Extractor = new ExtractProperty();
@@ -64,60 +23,6 @@ public class BussinessLogic
         }
         return "";
     }
-
-
-    //词法分析
-
-    public static List<String> GetProjectName(HTMLEngine.MyRootHtmlNode root)
-    {
-        var posSeg = new PosSegmenter();
-        var namelist = new List<String>();
-        foreach (var paragrah in root.Children)
-        {
-            foreach (var sentence in paragrah.Children)
-            {
-                var words = posSeg.Cut(sentence.Content).ToList();
-                for (int baseInd = 0; baseInd < words.Count; baseInd++)
-                {
-                    if (words[baseInd].Word == "标段" ||
-                        words[baseInd].Word == "工程" ||
-                        words[baseInd].Word == "项目")
-                    {
-                        var projectName = "";
-                        //是否能够在前面找到地名
-                        for (int NRIdx = baseInd; NRIdx > -1; NRIdx--)
-                        {
-                            //地理
-                            if (words[NRIdx].Flag == "ns")
-                            {
-                                projectName = "";
-                                for (int companyFullNameInd = NRIdx; companyFullNameInd <= baseInd; companyFullNameInd++)
-                                {
-                                    projectName += words[companyFullNameInd].Word;
-                                }
-                                namelist.Add(projectName);
-                                break;  //不要继续寻找地名了
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return namelist;
-    }
-
-    public static bool IsCompanyName(String companyName)
-    {
-        var posSeg = new PosSegmenter();
-        var list = posSeg.Cut(companyName);
-        var IsStartWithNS = list.First().Flag == WordUtility.地名;
-        var IsEndWithNS = companyName.EndsWith("有限公司");
-        var IsRange = companyName.Length <= ContractTraning.MaxJiaFangLength;
-        return IsStartWithNS && IsEndWithNS && IsRange;
-    }
-
-    //字典里面错误分类的地名
-    public static string[] DictNSAdjust = new string[] { "大连", "霍尔果斯", "烟台" };
 
     public static List<struCompanyName> GetCompanyNameByCutWord(HTMLEngine.MyRootHtmlNode root)
     {
@@ -191,10 +96,10 @@ public class BussinessLogic
                             }
                             //寻找地名?words[NRIdx].Flag == EntityWordAnlayzeTool.机构团体
                             //posSeg.Cut(words[NRIdx].Word + "市").First().Flag == EntityWordAnlayzeTool.地名
-                            if (words[NRIdx].Flag == WordUtility.地名 || DictNSAdjust.Contains(words[NRIdx].Word))
+                            if (words[NRIdx].Flag == WordUtility.地名 || WordUtility.DictNSAdjust.Contains(words[NRIdx].Word))
                             {
                                 //注意，地名可能相连，例如：上海市嘉定
-                                if (NRIdx != 0 && (words[NRIdx - 1].Flag == WordUtility.地名 || DictNSAdjust.Contains(words[NRIdx - 1].Word))) continue;
+                                if (NRIdx != 0 && (words[NRIdx - 1].Flag == WordUtility.地名 || WordUtility.DictNSAdjust.Contains(words[NRIdx - 1].Word))) continue;
                                 FullName = "";
                                 for (int companyFullNameInd = NRIdx; companyFullNameInd <= baseInd; companyFullNameInd++)
                                 {
@@ -271,62 +176,6 @@ public class BussinessLogic
         return namelist;
     }
 
-
-    public static List<String> GetProjectNameByCutWord(HTMLEngine.MyRootHtmlNode root)
-    {
-        var posSeg = new PosSegmenter();
-        var namelist = new List<String>();
-        foreach (var paragrah in root.Children)
-        {
-            foreach (var sentence in paragrah.Children)
-            {
-                if (string.IsNullOrEmpty(sentence.Content)) continue;
-                var words = posSeg.Cut(sentence.Content).ToList();
-                var PreviewEndIdx = -1;
-                for (int baseInd = 0; baseInd < words.Count; baseInd++)
-                {
-                    var FullName = "";
-                    if (words[baseInd].Word == "项目" || words[baseInd].Word == "工程" ||
-                        words[baseInd].Word == "标段" || words[baseInd].Word == "采购")
-                    {
-                        var IsMarkClosed = true;
-                        //是否能够在前面找到地名
-                        for (int NRIdx = baseInd; NRIdx > PreviewEndIdx; NRIdx--)
-                        {
-                            //寻找地名?words[NRIdx].Flag == EntityWordAnlayzeTool.机构团体
-                            //posSeg.Cut(words[NRIdx].Word + "市").First().Flag == EntityWordAnlayzeTool.地名
-                            if (words[NRIdx].Flag == WordUtility.地名 || DictNSAdjust.Contains(words[NRIdx].Word))
-                            {
-                                //注意，地名可能相连，例如：上海市嘉定
-                                if (NRIdx != 0 && (words[NRIdx - 1].Flag == WordUtility.地名 || DictNSAdjust.Contains(words[NRIdx - 1].Word))) continue;
-                                FullName = "";
-                                for (int companyFullNameInd = NRIdx; companyFullNameInd <= baseInd; companyFullNameInd++)
-                                {
-                                    FullName += words[companyFullNameInd].Word;
-                                }
-                                if (IsMarkClosed)
-                                {
-                                    //皆大欢喜的局面
-                                    PreviewEndIdx = baseInd;
-                                    namelist.Add(FullName);
-                                    break;  //不要继续寻找地名了
-                                }
-                            }
-                            if (words[NRIdx].Flag == WordUtility.标点)
-                            {
-                                if (words[NRIdx].Word != "（" && words[NRIdx].Word != "）") break;
-                                if (words[NRIdx].Word == "）") IsMarkClosed = false;    //打开
-                                if (words[NRIdx].Word == "（") IsMarkClosed = true;     //关闭
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return namelist;
-    }
-
-
     //JSON文件
 
     static Dictionary<string, struCompanyName> dictFullName = new Dictionary<string, struCompanyName>();
@@ -344,6 +193,8 @@ public class BussinessLogic
         public int positionId;
         //词位置
         public int WordIdx;
+        //可信度评分
+        public int Score;
     }
 
     public static void LoadCompanyName(string JSONfilename)

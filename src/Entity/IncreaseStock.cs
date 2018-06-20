@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using FDDC;
 using static HTMLTable;
 using static HTMLEngine;
-using static BussinessLogic;
+using static CompanyNameLogic;
 
 public class IncreaseStock : AnnouceDocument
 {

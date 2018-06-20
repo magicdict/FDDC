@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FDDC;
-using static BussinessLogic;
+using static CompanyNameLogic;
 using static HTMLEngine;
 using static LocateProperty;
 
@@ -60,7 +60,7 @@ public class AnnouceDocument
             Program.Logger.WriteLine("货币：" + m.Value.MoneyCurrency);
         }
 
-        companynamelist = BussinessLogic.GetCompanyNameByCutWord(root);
+        companynamelist = CompanyNameLogic.GetCompanyNameByCutWord(root);
         foreach (var cn in companynamelist)
         {
             Program.Logger.WriteLine("公司名称：" + cn.secFullName);

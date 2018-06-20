@@ -31,8 +31,8 @@ namespace FDDC
             //PDFToTXT.GetBatchFile();    
             //初始化   
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            BussinessLogic.LoadCompanyName(@"Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
-            if (IsDebugMode) BussinessLogic.DictNSAdjust = new string[] { };    //调试模式下，去掉地名调整字典
+            CompanyNameLogic.LoadCompanyName(@"Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
+            if (IsDebugMode) WordUtility.DictNSAdjust = new string[] { };    //调试模式下，去掉地名调整字典
             TraningDataset.InitStockChange();
             TraningDataset.InitContract();
             ContractTraning.TraningMaxLenth();
@@ -52,13 +52,13 @@ namespace FDDC
 
         private static void Extract()
         {
-            var IsRunContract = true;
+            var IsRunContract = false;
             var IsRunContract_TEST = false;
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
             var ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_a_20180605" + Path.DirectorySeparatorChar + "重大合同";
 
             var IsRunStockChange = false;
-            var IsRunStockChange_TEST = false;
+            var IsRunStockChange_TEST = true;
             var StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
             var StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_a_20180605" + Path.DirectorySeparatorChar + "增减持";
 
@@ -187,8 +187,8 @@ namespace FDDC
             var c = posSeg.Cut(s0);
             s0 = s0.NormalizeTextResult();
             s0 = RegularTool.Trimbrackets(s0);
-            Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1775568.html");
-            //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\1021022.html");
+            //Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1775568.html");
+            StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\300393.html");
         }
     }
 }

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using FDDC;
-using static BussinessLogic;
+using static CompanyNameLogic;
 using static HTMLEngine;
 using static LocateProperty;
 
@@ -82,7 +82,7 @@ public class Contract : AnnouceDocument
     public static List<struContract> Extract(string htmlFileName)
     {
         Init(htmlFileName);
-        ProjectNameList = BussinessLogic.GetProjectNameByCutWord(root);
+        ProjectNameList = ProjectNameLogic.GetProjectNameByCutWord(root);
         foreach (var m in ProjectNameList)
         {
             Program.Logger.WriteLine("工程名：" + m);
@@ -405,7 +405,7 @@ public class Contract : AnnouceDocument
             return ProjectName;
         }
 
-        var list = BussinessLogic.GetProjectName(root);
+        var list = ProjectNameLogic.GetProjectName(root);
         if (list.Count > 0)
         {
             return list[0];

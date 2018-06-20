@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using FDDC;
-using static BussinessLogic;
+using static CompanyNameLogic;
 using static HTMLEngine;
 using static HTMLTable;
 using static LocateProperty;
@@ -89,6 +89,8 @@ public class StockChange : AnnouceDocument
     public static List<struStockChange> Extract(string htmlFileName)
     {
         Init(htmlFileName);
+
+        var DateRange = LocateDateRange(root);
         var list = new List<struStockChange>();
         var Name = GetHolderName(root);
         if (!String.IsNullOrEmpty(Name.FullName) && !String.IsNullOrEmpty(Name.ShortName))
@@ -364,14 +366,17 @@ public class StockChange : AnnouceDocument
                     fullname = Utility.GetStringBefore(fullname, trailing);
                 }
             }
-
             if (fullname.Contains("股东"))
             {
                 fullname = Utility.GetStringAfter(fullname, "股东");
             }
-            if (!String.IsNullOrEmpty(BussinessLogic.GetCompanyNameByShortName(fullname).secFullName))
+            if (fullname.Contains("一致行动人"))
             {
-                fullname = BussinessLogic.GetCompanyNameByShortName(fullname).secFullName;
+                fullname = Utility.GetStringAfter(fullname, "一致行动人");
+            }
+            if (!String.IsNullOrEmpty(CompanyNameLogic.GetCompanyNameByShortName(fullname).secFullName))
+            {
+                fullname = CompanyNameLogic.GetCompanyNameByShortName(fullname).secFullName;
             }
 
 
@@ -403,7 +408,7 @@ public class StockChange : AnnouceDocument
 
             if (shortname == "")
             {
-                shortname = BussinessLogic.GetCompanyNameByFullName(fullname).secShortName;
+                shortname = CompanyNameLogic.GetCompanyNameByFullName(fullname).secShortName;
             }
             return (fullname, shortname);
 

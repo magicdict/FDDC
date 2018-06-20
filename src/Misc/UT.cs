@@ -6,7 +6,7 @@ public static class UT
 {
     public static void JianchengTest()
     {
-        BussinessLogic.GetCompanyNameByCutWord(HTMLEngine.Anlayze(FDDC.Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20526193.html"));
+        CompanyNameLogic.GetCompanyNameByCutWord(HTMLEngine.Anlayze(FDDC.Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20526193.html"));
 
         var ContractPath_TRAIN = FDDC.Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
         Console.WriteLine("Start To Extract Info Contract TRAIN");
@@ -15,8 +15,8 @@ public static class UT
             var root = HTMLEngine.Anlayze(filename);
             var fi = new System.IO.FileInfo(filename);
             FDDC.Program.Logger.WriteLine("FileName:" + fi.Name);
-            BussinessLogic.GetCompanyShortName(root);
-            BussinessLogic.GetCompanyFullName(root);
+
+            CompanyNameLogic.GetCompanyFullName(root);
         }
         Console.WriteLine("Complete Extract Info Contract");
 
@@ -27,8 +27,8 @@ public static class UT
             var root = HTMLEngine.Anlayze(filename);
             var fi = new System.IO.FileInfo(filename);
             FDDC.Program.Logger.WriteLine("FileName:" + fi.Name);
-            BussinessLogic.GetCompanyShortName(root);
-            BussinessLogic.GetCompanyFullName(root);
+
+            CompanyNameLogic.GetCompanyFullName(root);
         }
 
         Console.WriteLine("Complete Extract Info Contract");
@@ -40,8 +40,8 @@ public static class UT
             var root = HTMLEngine.Anlayze(filename);
             var fi = new System.IO.FileInfo(filename);
             FDDC.Program.Logger.WriteLine("FileName:" + fi.Name);
-            BussinessLogic.GetCompanyShortName(root);
-            BussinessLogic.GetCompanyFullName(root);
+
+            CompanyNameLogic.GetCompanyFullName(root);
         }
         Console.WriteLine("Complete Extract Info Contract");
     }
