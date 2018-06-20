@@ -85,7 +85,7 @@ public class StockChange : AnnouceDocument
     }
 
 
-    static Char[] FullNameStartTrimChar = new Char[] { '—', '-', ']' };
+
     public static List<struStockChange> Extract(string htmlFileName)
     {
         Init(htmlFileName);
@@ -108,7 +108,7 @@ public class StockChange : AnnouceDocument
         //公告ID
         stockchange.id = Id;
         //Program.Logger.WriteLine("公告ID:" + stockchange.id);
-        stockchange.HolderFullName = Name.FullName.TrimStart(FullNameStartTrimChar);
+        stockchange.HolderFullName = Name.FullName.NormalizeTextResult();
         if (EntityWordAnlayzeTool.TrimEnglish(stockchange.HolderFullName).Length > ContractTraning.MaxYiFangLength)
         {
             stockchange.HolderFullName = "";
@@ -183,8 +183,8 @@ public class StockChange : AnnouceDocument
         {
             var stockchange = new struStockChange();
             stockchange.id = id;
-            var Name = NormalizeCompanyName(rec[0].RawData);
-            stockchange.HolderFullName = Name.FullName.TrimStart(FullNameStartTrimChar);
+            var Name = CompanyNameLogic.NormalizeCompanyName(rec[0].RawData);
+            stockchange.HolderFullName = Name.FullName.NormalizeTextResult();
             stockchange.HolderShortName = Name.ShortName;
             stockchange.ChangeEndDate = rec[1].RawData;
 
@@ -323,7 +323,7 @@ public class StockChange : AnnouceDocument
         Extractor.Extract(root);
         foreach (var word in Extractor.CandidateWord)
         {
-            var name = NormalizeCompanyName(word.Value);
+            var name = CompanyNameLogic.NormalizeCompanyName(word.Value);
             if (!String.IsNullOrEmpty(name.FullName) && !String.IsNullOrEmpty(name.ShortName))
             {
                 return name;
@@ -331,7 +331,7 @@ public class StockChange : AnnouceDocument
         }
         foreach (var word in Extractor.CandidateWord)
         {
-            var name = NormalizeCompanyName(word.Value);
+            var name = CompanyNameLogic.NormalizeCompanyName(word.Value);
             if (!String.IsNullOrEmpty(name.FullName))
             {
                 return name;
@@ -340,81 +340,6 @@ public class StockChange : AnnouceDocument
         return ("", "");
     }
 
-    public static string[] CompanyNameTrailingwords =
-    new string[] { "（以下简称", "（下称", "（以下称", "（简称", "(以下简称", "(下称", "(以下称", "(简称" };
-
-
-    private static (String FullName, String ShortName) NormalizeCompanyName(string word)
-    {
-        if (!String.IsNullOrEmpty(word))
-        {
-            var fullname = word.Replace(" ", "");
-            var shortname = "";
-            var StdIdx = word.IndexOf("“");
-            var EndIdx = word.IndexOf("”");
-            if (EndIdx < StdIdx) return ("", "");
-            if (StdIdx != -1 && EndIdx != -1)
-            {
-                shortname = word.Substring(StdIdx + 1, EndIdx - StdIdx - 1);
-            }
-
-            //暂时不做括号的正规化
-            foreach (var trailing in CompanyNameTrailingwords)
-            {
-                if (fullname.Contains(trailing))
-                {
-                    fullname = Utility.GetStringBefore(fullname, trailing);
-                }
-            }
-            if (fullname.Contains("股东"))
-            {
-                fullname = Utility.GetStringAfter(fullname, "股东");
-            }
-            if (fullname.Contains("一致行动人"))
-            {
-                fullname = Utility.GetStringAfter(fullname, "一致行动人");
-            }
-            if (!String.IsNullOrEmpty(CompanyNameLogic.GetCompanyNameByShortName(fullname).secFullName))
-            {
-                fullname = CompanyNameLogic.GetCompanyNameByShortName(fullname).secFullName;
-            }
-
-
-            foreach (var companyname in companynamelist)
-            {
-                if (companyname.secFullName == fullname)
-                {
-                    if (shortname == "")
-                    {
-                        shortname = companyname.secShortName;
-                        break;
-                    }
-                }
-                if (companyname.secShortName == fullname)
-                {
-                    fullname = companyname.secFullName;
-                    shortname = companyname.secShortName;
-                    break;
-                }
-                //如果进来的是简称，而提取的公司信息里面，只有全称，这里简单推断一下
-                //简称和全称的关系
-                if (companyname.secFullName.Contains(fullname) &&
-                    companyname.secFullName.Length > fullname.Length)
-                {
-                    fullname = companyname.secFullName;
-                    shortname = word;
-                }
-            }
-
-            if (shortname == "")
-            {
-                shortname = CompanyNameLogic.GetCompanyNameByFullName(fullname).secShortName;
-            }
-            return (fullname, shortname);
-
-        }
-        return ("", "");
-    }
 
     //变动截止日期
     static string GetChangeEndDate(HTMLEngine.MyRootHtmlNode root)

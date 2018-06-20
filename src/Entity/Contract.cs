@@ -101,21 +101,14 @@ public class Contract : AnnouceDocument
         contract.id = Id;
         //甲方
         contract.JiaFang = GetJiaFang(root);
-        contract.JiaFang = AfterProcessJiaFang(contract.JiaFang);
+        contract.JiaFang = CompanyNameLogic.AfterProcessFullName(contract.JiaFang);
         contract.JiaFang = contract.JiaFang.NormalizeTextResult();
 
         //乙方
         contract.YiFang = GetYiFang(root);
-        //暂时不做括号的正规化
-        foreach (var trail in StockChange.CompanyNameTrailingwords)
-        {
-            if (contract.YiFang.Contains(trail))
-            {
-                contract.YiFang = Utility.GetStringBefore(contract.YiFang, trail);
-            }
-        }
+        contract.YiFang = CompanyNameLogic.AfterProcessFullName(contract.YiFang);
         contract.YiFang = contract.YiFang.NormalizeTextResult();
-        //NormalizeTextResult已经对全角括号进行处理的话
+        //按照规定除去括号
         contract.YiFang = RegularTool.Trimbrackets(contract.YiFang);
 
 
@@ -140,59 +133,9 @@ public class Contract : AnnouceDocument
         //联合体
         contract.UnionMember = GetUnionMember(root, contract.YiFang);
         contract.UnionMember = contract.UnionMember.NormalizeTextResult();
-        //NormalizeTextResult已经对全角括号进行处理的话
+        //按照规定除去括号
         contract.UnionMember = RegularTool.Trimbrackets(contract.UnionMember);
         return contract;
-    }
-
-    private static String AfterProcessJiaFang(string JiaFang)
-    {
-        //暂时不做括号的正规化
-        foreach (var trailing in StockChange.CompanyNameTrailingwords)
-        {
-            if (JiaFang.Contains(trailing))
-            {
-                JiaFang = Utility.GetStringBefore(JiaFang, trailing);
-            }
-        }
-
-        var st = JiaFang.IndexOf("（");
-        var ed = JiaFang.IndexOf("）");
-        if (ed < st) return JiaFang;
-        if (st != -1 && ed != -1)
-        {
-            var InMarkString = JiaFang.Substring(st, ed - st + 1);
-            if (InMarkString.Contains("简称"))
-            {
-                JiaFang = JiaFang.Substring(0, st) + JiaFang.Substring(ed + 1);
-            }
-        }
-        if (JiaFang.Contains("及其")){
-            JiaFang = Utility.GetStringBefore(JiaFang,"及其");
-        }
-        //删除前导
-        JiaFang = EntityWordAnlayzeTool.TrimLeadingUL(JiaFang);
-        return JiaFang;
-    }
-
-    //处理两行并作一行的问题
-    static string CutOtherLeadingWords(String OrgString)
-    {
-        var LeadingWords = new string[]
-        {
-            "证券代码","招标人","注册资本","注册地址","法定代表人","主营业务",
-            "项目名称","证券简称","住所","项目名称","股票代码",
-            "经营范围","公司名称","证券代码","注册地","备查文件",
-            "成立日期","名称","类型"
-        };
-        foreach (var lw in LeadingWords)
-        {
-            if (OrgString.IndexOf(lw + "：") != -1)
-            {
-                return OrgString.Substring(0, OrgString.IndexOf(lw + "："));
-            }
-        }
-        return OrgString;
     }
 
     static string GetJiaFang(MyRootHtmlNode root)
@@ -210,10 +153,9 @@ public class Contract : AnnouceDocument
         Extractor.ExtractFromTextFile(TextFileName);
         foreach (var item in Extractor.CandidateWord)
         {
-            var JiaFang = AfterProcessJiaFang(item.Value.Trim());
+            var JiaFang = CompanyNameLogic.AfterProcessFullName(item.Value.Trim());
             if (EntityWordAnlayzeTool.TrimEnglish(JiaFang).Length > ContractTraning.MaxJiaFangLength) continue;
             if (JiaFang.Length < 3) continue;     //使用实际长度排除全英文的情况
-            JiaFang = CutOtherLeadingWords(JiaFang);
             Program.Logger.WriteLine("甲方候补词(关键字)：[" + JiaFang + "]");
             return JiaFang;
         }
@@ -222,10 +164,9 @@ public class Contract : AnnouceDocument
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            var JiaFang = AfterProcessJiaFang(item.Value.Trim());
+            var JiaFang = CompanyNameLogic.AfterProcessFullName(item.Value.Trim());
             if (EntityWordAnlayzeTool.TrimEnglish(JiaFang).Length > ContractTraning.MaxJiaFangLength) continue;
             if (JiaFang.Length < 3) continue;     //使用实际长度排除全英文的情况
-            JiaFang = CutOtherLeadingWords(JiaFang);
             Program.Logger.WriteLine("甲方候补词(关键字)：[" + JiaFang + "]");
             return JiaFang;
         }
@@ -238,7 +179,7 @@ public class Contract : AnnouceDocument
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            var JiaFang = AfterProcessJiaFang(item.Value.Trim());
+            var JiaFang = CompanyNameLogic.AfterProcessFullName(item.Value.Trim());
             JiaFang = JiaFang.Replace("业主", "").Trim();
             if (EntityWordAnlayzeTool.TrimEnglish(JiaFang).Length > ContractTraning.MaxJiaFangLength) continue;
             if (JiaFang.Length < 3) continue;     //使用实际长度排除全英文的情况
@@ -254,7 +195,7 @@ public class Contract : AnnouceDocument
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {
-            var JiaFang = AfterProcessJiaFang(item.Value.Trim());
+            var JiaFang = CompanyNameLogic.AfterProcessFullName(item.Value.Trim());
             JiaFang = JiaFang.Replace("业主", "").Trim();
             if (EntityWordAnlayzeTool.TrimEnglish(JiaFang).Length > ContractTraning.MaxJiaFangLength) continue;
             if (JiaFang.Length < 3) continue;     //使用实际长度排除全英文的情况
@@ -273,7 +214,6 @@ public class Contract : AnnouceDocument
         foreach (var item in Extractor.CandidateWord)
         {
             var YiFang = item.Value.Trim();
-            YiFang = CutOtherLeadingWords(YiFang);
             Program.Logger.WriteLine("乙方候补词(关键字)：[" + YiFang + "]");
             return YiFang;
         }
@@ -282,7 +222,6 @@ public class Contract : AnnouceDocument
         foreach (var item in Extractor.CandidateWord)
         {
             var YiFang = item.Value.Trim();
-            YiFang = CutOtherLeadingWords(YiFang);
             Program.Logger.WriteLine("乙方候补词(关键字)：[" + YiFang + "]");
             return YiFang;
         }

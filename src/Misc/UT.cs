@@ -4,47 +4,7 @@ using FDDC;
 
 public static class UT
 {
-    public static void JianchengTest()
-    {
-        CompanyNameLogic.GetCompanyNameByCutWord(HTMLEngine.Anlayze(FDDC.Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20526193.html"));
-
-        var ContractPath_TRAIN = FDDC.Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
-        Console.WriteLine("Start To Extract Info Contract TRAIN");
-        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\html\"))
-        {
-            var root = HTMLEngine.Anlayze(filename);
-            var fi = new System.IO.FileInfo(filename);
-            FDDC.Program.Logger.WriteLine("FileName:" + fi.Name);
-
-            CompanyNameLogic.GetCompanyFullName(root);
-        }
-        Console.WriteLine("Complete Extract Info Contract");
-
-        var StockChangePath_TRAIN = FDDC.Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持";
-        Console.WriteLine("Start To Extract Info Contract TRAIN");
-        foreach (var filename in System.IO.Directory.GetFiles(StockChangePath_TRAIN + @"\html\"))
-        {
-            var root = HTMLEngine.Anlayze(filename);
-            var fi = new System.IO.FileInfo(filename);
-            FDDC.Program.Logger.WriteLine("FileName:" + fi.Name);
-
-            CompanyNameLogic.GetCompanyFullName(root);
-        }
-
-        Console.WriteLine("Complete Extract Info Contract");
-
-        var IncreaseStockPath_TRAIN = FDDC.Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增";
-        Console.WriteLine("Start To Extract Info Contract TRAIN");
-        foreach (var filename in System.IO.Directory.GetFiles(IncreaseStockPath_TRAIN + @"\html\"))
-        {
-            var root = HTMLEngine.Anlayze(filename);
-            var fi = new System.IO.FileInfo(filename);
-            FDDC.Program.Logger.WriteLine("FileName:" + fi.Name);
-
-            CompanyNameLogic.GetCompanyFullName(root);
-        }
-        Console.WriteLine("Complete Extract Info Contract");
-    }
+  
 
     public static void RunWordAnlayze()
     {

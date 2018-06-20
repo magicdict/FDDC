@@ -9,21 +9,20 @@ using JiebaNet.Segmenter.PosSeg;
 
 public class CompanyNameLogic
 {
-
-    public static string GetCompanyFullName(HTMLEngine.MyRootHtmlNode root)
+    public struct struCompanyName
     {
-        var Extractor = new ExtractProperty();
-        Extractor.TrailingWordList = new string[] { "公司董事会" };
-        Extractor.Extract(root);
-        Extractor.CandidateWord.Reverse();
-        foreach (var item in Extractor.CandidateWord)
-        {
-            Program.Logger.WriteLine("全称：[" + item + "公司]");
-            return item.Value;
-        }
-        return "";
+        public string secShortName;
+        public string secFullName;
+        public string secShortNameChg;
+        //是否为子公司
+        public bool isSubCompany;
+        //段落编号
+        public int positionId;
+        //词位置
+        public int WordIdx;
+        //可信度评分
+        public int Score;
     }
-
     public static List<struCompanyName> GetCompanyNameByCutWord(HTMLEngine.MyRootHtmlNode root)
     {
         var posSeg = new PosSegmenter();
@@ -159,6 +158,11 @@ public class CompanyNameLogic
                             FullName = FullName.Replace(" ", "").Trim();
                             ShortName = ShortName.Replace(" ", "").Trim();
                             if (ShortName == "公司" || ShortName == "本公司") ShortName = "";
+                            if (ShortName == "")
+                            {
+                                var json = GetCompanyNameByFullName(FullName);
+                                ShortName = json.secShortName;
+                            }
                             namelist.Add(new struCompanyName()
                             {
                                 secFullName = FullName,
@@ -177,26 +181,11 @@ public class CompanyNameLogic
         return namelist;
     }
 
-    //JSON文件
+    #region  JSON文件
 
     static Dictionary<string, struCompanyName> dictFullName = new Dictionary<string, struCompanyName>();
 
     static Dictionary<string, struCompanyName> dictShortName = new Dictionary<string, struCompanyName>();
-
-    public struct struCompanyName
-    {
-        public string secShortName;
-        public string secFullName;
-        public string secShortNameChg;
-        //是否为子公司
-        public bool isSubCompany;
-        //段落编号
-        public int positionId;
-        //词位置
-        public int WordIdx;
-        //可信度评分
-        public int Score;
-    }
 
     public static void LoadCompanyName(string JSONfilename)
     {
@@ -216,6 +205,7 @@ public class CompanyNameLogic
         }
     }
 
+
     public static struCompanyName GetCompanyNameByFullName(string FullName)
     {
         if (dictFullName.ContainsKey(FullName)) return dictFullName[FullName];
@@ -228,4 +218,98 @@ public class CompanyNameLogic
         return new struCompanyName();
     }
 
+    #endregion
+
+    public static String AfterProcessFullName(string FullName)
+    {
+        var CompanyNameTrailingwords = new string[] {
+            "（以下简称", "（下称", "（以下称", "（简称", "(以下简称", "(下称", "(以下称", "(简称"
+        };
+
+        //暂时不做括号的正规化
+        foreach (var trailing in CompanyNameTrailingwords)
+        {
+            if (FullName.Contains(trailing))
+            {
+                FullName = Utility.GetStringBefore(FullName, trailing);
+            }
+        }
+        if (FullName.Contains("及其"))
+        {
+            FullName = Utility.GetStringBefore(FullName, "及其");
+        }
+        if (FullName.Contains("股东"))
+        {
+            FullName = Utility.GetStringAfter(FullName, "股东");
+        }
+        if (FullName.Contains("一致行动人"))
+        {
+            FullName = Utility.GetStringAfter(FullName, "一致行动人");
+        }
+        if (!String.IsNullOrEmpty(CompanyNameLogic.GetCompanyNameByShortName(FullName).secFullName))
+        {
+            FullName = CompanyNameLogic.GetCompanyNameByShortName(FullName).secFullName;
+        }
+        //删除前导
+        FullName = EntityWordAnlayzeTool.TrimLeadingUL(FullName);
+        FullName = CutOtherLeadingWords(FullName);
+        return FullName;
+    }
+
+    static string CutOtherLeadingWords(String OrgString)
+    {
+        var LeadingWords = new string[]
+        {
+            "证券代码","招标人","注册资本","注册地址","法定代表人","主营业务",
+            "项目名称","证券简称","住所","项目名称","股票代码",
+            "经营范围","公司名称","证券代码","注册地","备查文件",
+            "成立日期","名称","类型"
+        };
+        foreach (var lw in LeadingWords)
+        {
+            if (OrgString.IndexOf(lw + "：") != -1)
+            {
+                return OrgString.Substring(0, OrgString.IndexOf(lw + "："));
+            }
+        }
+        return OrgString;
+    }
+
+    public static (String FullName, String ShortName) NormalizeCompanyName(string word)
+    {
+        if (String.IsNullOrEmpty(word)) return ("", "");
+        var fullname = word.Replace(" ", "");
+        var shortname = "";
+        foreach (var companyname in AnnouceDocument.companynamelist)
+        {
+            if (companyname.secFullName == fullname)
+            {
+                if (shortname == "")
+                {
+                    shortname = companyname.secShortName;
+                    break;
+                }
+            }
+            if (companyname.secShortName == fullname)
+            {
+                fullname = companyname.secFullName;
+                shortname = companyname.secShortName;
+                break;
+            }
+            //如果进来的是简称，而提取的公司信息里面，只有全称，这里简单推断一下
+            //简称和全称的关系
+            if (companyname.secFullName.Contains(fullname) &&
+                companyname.secFullName.Length > fullname.Length)
+            {
+                fullname = companyname.secFullName;
+                shortname = word;
+            }
+        }
+
+        if (shortname == "")
+        {
+            shortname = CompanyNameLogic.GetCompanyNameByFullName(fullname).secShortName;
+        }
+        return (fullname, shortname);
+    }
 }

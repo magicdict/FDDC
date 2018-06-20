@@ -61,6 +61,7 @@ public class AnnouceDocument
         }
 
         companynamelist = CompanyNameLogic.GetCompanyNameByCutWord(root);
+        
         foreach (var cn in companynamelist)
         {
             Program.Logger.WriteLine("公司名称：" + cn.secFullName);
