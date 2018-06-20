@@ -167,7 +167,9 @@ public class Contract : AnnouceDocument
                 JiaFang = JiaFang.Substring(0, st) + JiaFang.Substring(ed + 1);
             }
         }
-
+        if (JiaFang.Contains("及其")){
+            JiaFang = Utility.GetStringBefore(JiaFang,"及其");
+        }
         //删除前导
         JiaFang = EntityWordAnlayzeTool.TrimLeadingUL(JiaFang);
         return JiaFang;

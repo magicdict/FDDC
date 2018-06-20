@@ -16,6 +16,7 @@ namespace FDDC
         public static Encoding utf8WithoutBom = new System.Text.UTF8Encoding(false);
         public static StreamWriter Training = new StreamWriter("Training.log");
         public static StreamWriter Logger = new StreamWriter("Log.log");
+        public static StreamWriter Evaluator = new StreamWriter("Evaluator.log");
         public static StreamWriter Score = new StreamWriter(@"Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
         //WIN
         public static String DocBase = @"E:\WorkSpace2018\FDDC2018";
@@ -47,18 +48,18 @@ namespace FDDC
             Extract();
             Logger.Close();
             Score.Close();
-
+            Evaluator.Close();
         }
 
         private static void Extract()
         {
-            var IsRunContract = false;
+            var IsRunContract = true;
             var IsRunContract_TEST = false;
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
             var ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_a_20180605" + Path.DirectorySeparatorChar + "重大合同";
 
             var IsRunStockChange = false;
-            var IsRunStockChange_TEST = true;
+            var IsRunStockChange_TEST = false;
             var StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
             var StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_a_20180605" + Path.DirectorySeparatorChar + "增减持";
 

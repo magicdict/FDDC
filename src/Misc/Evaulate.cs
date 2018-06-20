@@ -303,6 +303,26 @@ public static class Evaluate
 
         foreach (var contract in TraningDataset.ContractList)
         {
+            foreach (var contract_Result in result)
+            {
+                if (contract.id == contract_Result.id)
+                {
+                    var key = contract.GetKey();
+                    var key_Result = contract_Result.GetKey();
+                    if (!key.Equals(key_Result))
+                    {
+                        Program.Evaluator.WriteLine(contract.id + ":");
+                        Program.Evaluator.WriteLine(contract.JiaFang + "\t" + contract.YiFang);
+                        Program.Evaluator.WriteLine(contract_Result.JiaFang + "\t" + contract_Result.YiFang);
+                    }
+                    break;  //按照道理开说，不应该主键重复
+                }
+            }
+        }
+
+
+        foreach (var contract in TraningDataset.ContractList)
+        {
             var key = contract.GetKey();
             foreach (var contract_Result in result)
             {

@@ -165,7 +165,8 @@ public class CompanyNameLogic
                                 secShortName = ShortName,
                                 isSubCompany = IsSubCompany,
                                 positionId = sentence.PositionId,
-                                WordIdx = CompanyStartIdx
+                                WordIdx = CompanyStartIdx,
+                                Score = 100
                             });
                         }
                     }

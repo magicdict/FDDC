@@ -109,11 +109,18 @@ public class IncreaseStock : AnnouceDocument
         FreezeYear.IsEq = false;             //包含即可
         FreezeYear.Normalize = NormalizerFreezeYear;
 
+        var BuyPrice = new TableSearchRule();
+        BuyPrice.Name = "价格";
+        BuyPrice.Rule = new string[] { "认购价格", "配售价格" }.ToList();
+        BuyPrice.IsEq = false;             //包含即可
+        BuyPrice.Normalize = MoneyUtility.Format;
+
         var Rules = new List<TableSearchRule>();
         Rules.Add(BuyerRule);
         Rules.Add(BuyNumber);
         Rules.Add(BuyMoney);
         Rules.Add(FreezeYear);
+        Rules.Add(BuyPrice);
         var result = HTMLTable.GetMultiInfo(root, Rules, true);
         var increaseStocklist = new List<struIncreaseStock>();
         foreach (var item in result)
@@ -133,6 +140,28 @@ public class IncreaseStock : AnnouceDocument
             {
                 increase.IncreaseMoney = "";
             }
+
+            //手工计算金额
+            if (String.IsNullOrEmpty(increase.IncreaseMoney))
+            {
+                if (!String.IsNullOrEmpty(increase.IncreaseNumber))
+                {
+                    if (!String.IsNullOrEmpty(item[4].RawData))
+                    {
+                        double price;
+                        if (double.TryParse(item[4].RawData, out price))
+                        {
+                            double number;
+                            if (double.TryParse(increase.IncreaseNumber, out number))
+                            {
+                                double money = price * number;
+                                Program.Logger.WriteLine("通过计算获得金额：" + money.ToString());
+                            }
+                        }
+                    }
+                }
+            }
+
             increase.FreezeYear = item[3].RawData;
             increaseStocklist.Add(increase);
         }
