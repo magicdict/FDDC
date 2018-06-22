@@ -93,13 +93,13 @@ public class IncreaseStock : AnnouceDocument
 
         var BuyNumber = new TableSearchRule();
         BuyNumber.Name = "增发数量";
-        BuyNumber.Rule = new string[] { "配售股数", "认购数量", "认购股份数" }.ToList();
+        BuyNumber.Rule = new string[] { "配售股数", "认购数量", "认购股数", "认购股份数","发行股份数","配售数量" }.ToList();
         BuyNumber.IsEq = false;             //包含即可
         BuyNumber.Normalize = NumberUtility.NormalizerStockNumber;
 
         var BuyMoney = new TableSearchRule();
         BuyMoney.Name = "增发金额";
-        BuyMoney.Rule = new string[] { "配售金额", "认购金额" }.ToList();
+        BuyMoney.Rule = new string[] { "配售金额", "认购金额","获配金额" }.ToList();
         BuyMoney.IsEq = false;             //包含即可
         BuyMoney.Normalize = MoneyUtility.Format;
 
@@ -111,7 +111,7 @@ public class IncreaseStock : AnnouceDocument
 
         var BuyPrice = new TableSearchRule();
         BuyPrice.Name = "价格";
-        BuyPrice.Rule = new string[] { "认购价格", "配售价格" }.ToList();
+        BuyPrice.Rule = new string[] { "认购价格", "配售价格","申购报价" }.ToList();
         BuyPrice.IsEq = false;             //包含即可
         BuyPrice.Normalize = MoneyUtility.Format;
 
@@ -130,15 +130,19 @@ public class IncreaseStock : AnnouceDocument
             increase.BuyMethod = SampleincreaseStock.BuyMethod;
             increase.PublishTarget = item[0].RawData;
             if (String.IsNullOrEmpty(increase.PublishTarget)) continue;
+            increase.PublishTarget = increase.PublishTarget.NormalizeTextResult();
+
             increase.IncreaseNumber = item[1].RawData;
+            if (!String.IsNullOrEmpty(increase.IncreaseNumber) && increase.IncreaseNumber.Equals("0")) continue;
             if (!String.IsNullOrEmpty(increase.IncreaseNumber) && increase.IncreaseNumber.Contains("|"))
             {
-                increase.IncreaseNumber = "";
+                increase.IncreaseNumber = increase.IncreaseNumber.Split("|").Last();
             }
             increase.IncreaseMoney = item[2].RawData;
+            if (!String.IsNullOrEmpty(increase.IncreaseMoney) && increase.IncreaseMoney.Equals("0")) continue;
             if (!String.IsNullOrEmpty(increase.IncreaseMoney) && increase.IncreaseMoney.Contains("|"))
             {
-                increase.IncreaseMoney = "";
+                increase.IncreaseMoney =  increase.IncreaseMoney.Split("|").Last();
             }
 
             //手工计算金额
@@ -185,6 +189,20 @@ public class IncreaseStock : AnnouceDocument
         if (orgString.Equals("十二个月")) return "12";
         if (orgString.Equals("1年")) return "12";
         if (orgString.Equals("3年")) return "36";
+        //自2007年2月3日至2010年2月2日止
+        var numbers = RegularTool.GetNumberList(orgString);
+        if (numbers.Count == 6)
+        {
+            var sty = 0;
+            var edy = 0;
+            if (int.TryParse(numbers[3], out edy) && int.TryParse(numbers[0], out sty))
+            {
+                if (edy -sty == 1) return "12";
+                if (edy -sty == 3) return "36";
+                Program.Logger.WriteLine("限售期确认：" + orgString);
+            }
+        }
+
         return orgString.Trim();
     }
 

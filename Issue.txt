@@ -1,5 +1,11 @@
 【重要】结巴分词中，任何增加入字典的词语，将在其他地方也生效！
 【PDFMiner】http://www.unixuser.org/~euske/python/pdfminer/index.html
+【LTP】http://ltp.ai/download.html
+
+D:\Download\ltp-3.4.0-win-x64-Release\bin\Release>ltp_test.exe --segmentor-model
+ cws.model --postagger-model pos.model --ner-model ner.model --parser-model pars
+er.model --srl-model --last-stage dp --input xxx.txt >> xxx.xml
+通过语义理解+句法依存分析+特征匹配就可以抽取。
 
 待办事项：
 0.关于TEXT提取信息：由于HTML的问题，所以，需要从TEXT提取必要的信息。

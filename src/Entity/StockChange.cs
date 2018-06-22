@@ -129,7 +129,7 @@ public class StockChange : AnnouceDocument
 
         if (!string.IsNullOrEmpty(stockchange.HolderFullName) && !string.IsNullOrEmpty(stockchange.ChangeEndDate))
         {
-            list.Add(stockchange);
+            if (!stockchange.HolderFullName.Contains("增持") && !stockchange.HolderFullName.Contains("减持")) list.Add(stockchange);
         }
 
         return list;
@@ -186,6 +186,13 @@ public class StockChange : AnnouceDocument
             var Name = CompanyNameLogic.NormalizeCompanyName(rec[0].RawData);
             stockchange.HolderFullName = Name.FullName.NormalizeTextResult();
             stockchange.HolderShortName = Name.ShortName;
+
+            if(stockchange.HolderFullName.Contains("简称")){
+                stockchange.HolderShortName = Utility.GetStringAfter(stockchange.HolderFullName,"简称");
+                stockchange.HolderShortName = stockchange.HolderShortName.Replace(")","").Replace("“","").Replace("”","");
+                stockchange.HolderFullName = Utility.GetStringBefore(stockchange.HolderFullName,"(");
+            }
+
             stockchange.ChangeEndDate = rec[1].RawData;
 
             DateTime x;
@@ -304,7 +311,8 @@ public class StockChange : AnnouceDocument
                         var HodlerPercent = "";
                         if (!String.IsNullOrEmpty(r.Match(StrPercent).Value))
                         {
-                            HodlerPercent = (double.Parse(r.Match(StrPercent).Value) * 0.01).ToString();
+                            var pecent = Math.Round((double.Parse(r.Match(StrPercent).Value) * 0.01), 4);
+                            HodlerPercent = pecent.ToString();
                         }
                         HoldList.Add(new struHoldAfter() { Name = HolderName, Count = HolderCnt, Percent = HodlerPercent, Used = false });
                     }
@@ -324,7 +332,7 @@ public class StockChange : AnnouceDocument
         foreach (var word in Extractor.CandidateWord)
         {
             var FullName = CompanyNameLogic.AfterProcessFullName(word.Value);
-            if (FullName.Score == 80) return (FullName.secFullName,FullName.secShortName);
+            if (FullName.Score == 80) return (FullName.secFullName, FullName.secShortName);
             var name = CompanyNameLogic.NormalizeCompanyName(FullName.secFullName);
             if (!String.IsNullOrEmpty(name.FullName) && !String.IsNullOrEmpty(name.ShortName))
             {

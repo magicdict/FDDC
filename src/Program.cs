@@ -28,14 +28,15 @@ namespace FDDC
 
         static void Main(string[] args)
         {
-            //生成PDF的TXT文件的批处理命令
-            //PDFToTXT.GetBatchFile();    
-            //初始化   
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            //生成PDF的TXT,XML文件的批处理命令
+            //PDFToTXT.GetXMLFile();return;    
+            //初始化   
             CompanyNameLogic.LoadCompanyName(@"Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
             if (IsDebugMode) WordUtility.DictNSAdjust = new string[] { };    //调试模式下，去掉地名调整字典
             TraningDataset.InitStockChange();
             TraningDataset.InitContract();
+            //通过训练获得各种字段的最大长度，便于抽取的时候做置信度检查
             ContractTraning.TraningMaxLenth();
             ContractTraning.EntityWordPerperty();
             //ContractTraning.GetListLeadWords();
@@ -53,25 +54,24 @@ namespace FDDC
 
         private static void Extract()
         {
-            var IsRunContract = true;
+            var IsRunContract = false;
             var IsRunContract_TEST = true;
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
             var ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_a_20180605" + Path.DirectorySeparatorChar + "重大合同";
 
-            var IsRunStockChange = true;
-            var IsRunStockChange_TEST = true;
+            var IsRunStockChange = false;
+            var IsRunStockChange_TEST = false;
             var StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
             var StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_a_20180605" + Path.DirectorySeparatorChar + "增减持";
 
-            var IsRunIncreaseStock = true;
-            var IsRunIncreaseStock_TEST = true;
+            var IsRunIncreaseStock = false;
+            var IsRunIncreaseStock_TEST = false;
             var IncreaseStockPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "定增";
             var IncreaseStockPath_TEST = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_test_a_20180605" + Path.DirectorySeparatorChar + "定增";
 
             if (IsRunContract)
             {
                 //合同处理
-                //通过训练获得各种字段的最大长度，便于抽取的时候做置信度检查
                 Console.WriteLine("Start To Extract Info Contract TRAIN");
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong_train.txt", false, utf8WithoutBom);
                 ResultCSV.WriteLine("公告id\t甲方\t乙方\t项目名称\t合同名称\t合同金额上限\t合同金额下限\t联合体成员");
@@ -184,7 +184,8 @@ namespace FDDC
             JiebaSegmenter segmenter = new JiebaSegmenter();
             PosSegmenter posSeg = new PosSegmenter(segmenter);
             var c = posSeg.Cut(s0);
-            Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\15555218.html");
+            //IncreaseStock.Extract(Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增\html\15304036");
+            //Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\15555218.html");
             //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\1011117.html");
         }
     }
