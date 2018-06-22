@@ -20,6 +20,8 @@ public class AnnouceDocument
 
     public static List<LocAndValue<String>> bracketlist;
 
+    public static List<String> Nerlist;
+
     //公告日期
     public static DateTime AnnouceDate;
 
@@ -31,11 +33,20 @@ public class AnnouceDocument
     {
         var fi = new System.IO.FileInfo(htmlFileName);
         TextFileName = htmlFileName.Replace("html", "txt");
+        if (!TextFileName.EndsWith(".txt"))
+        {
+            //防止无扩展名的html文件
+            TextFileName += ".txt";
+        }
         Program.Logger.WriteLine("Start FileName:[" + fi.Name + "]");
         Id = fi.Name.Replace(".html", "");
         Program.Logger.WriteLine("公告ID:" + Id);
         root = HTMLEngine.Anlayze(htmlFileName);
         AnnouceCompanyName = "";
+
+        var XMLFileName = htmlFileName.Replace("html", "xml");
+        Nerlist = LTP.Anlayze(XMLFileName);
+
         //从最后向前查找
         for (int i = root.Children.Count - 1; i >= 0; i--)
         {

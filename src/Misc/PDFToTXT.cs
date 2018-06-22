@@ -6,21 +6,23 @@ using FDDC;
 
 public class PDFToTXT
 {
-    public static StreamWriter Logger = new StreamWriter("pdf2txt.bat", false, Encoding.GetEncoding("gb2312"));
 
-    public static void GetBatchFile()
+    public static void GetPdf2TxtBatchFile()
     {
+        var Logger = new StreamWriter("pdf2txt.bat", false, Encoding.GetEncoding("gb2312"));
+
         var ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
         Logger.WriteLine("mkdir " + ContractPath_TRAIN + "\\txt");
         foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\pdf\"))
         {
-            Logger.WriteLine("pdf2txt.py " + filename + " >>" + filename.Replace("pdf", "txt"));
+            Logger.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
         }
+
         var ContractPath_TEST = Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\重大合同";
         Logger.WriteLine("mkdir " + ContractPath_TEST + "\\txt");
         foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TEST + @"\pdf\"))
         {
-            Logger.WriteLine("pdf2txt.py " + filename + " >>" + filename.Replace("pdf", "txt"));
+            Logger.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
         }
 
 
@@ -28,13 +30,13 @@ public class PDFToTXT
         Logger.WriteLine("mkdir " + ContractPath_TRAIN + "\\txt");
         foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\pdf\"))
         {
-            Logger.WriteLine("pdf2txt.py " + filename + " >>" + filename.Replace("pdf", "txt"));
+            Logger.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
         }
         ContractPath_TEST = Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\增减持";
         Logger.WriteLine("mkdir " + ContractPath_TEST + "\\txt");
         foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TEST + @"\pdf\"))
         {
-            Logger.WriteLine("pdf2txt.py " + filename + " >>" + filename.Replace("pdf", "txt"));
+            Logger.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
         }
 
 
@@ -42,20 +44,22 @@ public class PDFToTXT
         Logger.WriteLine("mkdir " + ContractPath_TRAIN + "\\txt");
         foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\pdf\"))
         {
-            Logger.WriteLine("pdf2txt.py " + filename + " >>" + filename.Replace("pdf", "txt"));
+            Logger.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
         }
         ContractPath_TEST = Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增";
         Logger.WriteLine("mkdir " + ContractPath_TEST + "\\txt");
         foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TEST + @"\pdf\"))
         {
-            Logger.WriteLine("pdf2txt.py " + filename + " >>" + filename.Replace("pdf", "txt"));
+            Logger.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
         }
         Logger.Close();
     }
 
 
-    public static void GetXMLFile()
+    public static void GetLTPXMLBatchFile()
     {
+        var Logger = new StreamWriter("ltp.bat", false, Encoding.GetEncoding("gb2312"));
+
         Logger.WriteLine(@"D:");
         Logger.WriteLine(@"cd D:\Download\ltp-3.4.0-win-x64-Release\bin\Release");
         var ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
@@ -65,7 +69,7 @@ public class PDFToTXT
             var txt = filename;
             var xml = filename.Replace("txt", "xml");
             Logger.Write("ltp_test.exe --segmentor-model cws.model --postagger-model pos.model --ner-model ner.model");
-            Logger.WriteLine(" --parser-model parser.model --last-stage dp --input " + txt + " >> " + xml);
+            Logger.WriteLine(" --parser-model parser.model --last-stage ner --input " + txt + " > " + xml);
         }
 
         var ContractPath_TEST = Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\重大合同";
@@ -75,11 +79,11 @@ public class PDFToTXT
             var txt = filename;
             var xml = filename.Replace("txt", "xml");
             Logger.Write("ltp_test.exe --segmentor-model cws.model --postagger-model pos.model --ner-model ner.model");
-            Logger.WriteLine(" --parser-model parser.model  --last-stage dp --input " + txt + " >> " + xml);
+            Logger.WriteLine(" --parser-model parser.model  --last-stage ner --input " + txt + " > " + xml);
         }
 
         Logger.Close(); return;
-        
+
         ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持";
         Logger.WriteLine("mkdir " + ContractPath_TRAIN + "\\xml");
         foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\txt\"))
@@ -87,7 +91,7 @@ public class PDFToTXT
             var txt = filename;
             var xml = filename.Replace("txt", "xml");
             Logger.Write("ltp_test.exe --segmentor-model cws.model --postagger-model pos.model --ner-model ner.model");
-            Logger.WriteLine(" --parser-model parser.model  --last-stage dp --input " + txt + " >> " + xml);
+            Logger.WriteLine(" --parser-model parser.model  --last-stage ner --input " + txt + " > " + xml);
         }
         ContractPath_TEST = Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\增减持";
         Logger.WriteLine("mkdir " + ContractPath_TEST + "\\xml");
@@ -96,7 +100,7 @@ public class PDFToTXT
             var txt = filename;
             var xml = filename.Replace("txt", "xml");
             Logger.Write("ltp_test.exe --segmentor-model cws.model --postagger-model pos.model --ner-model ner.model");
-            Logger.WriteLine(" --parser-model parser.model  --last-stage dp --input " + txt + " >> " + xml);
+            Logger.WriteLine(" --parser-model parser.model  --last-stage ner --input " + txt + " > " + xml);
         }
 
 
@@ -107,7 +111,7 @@ public class PDFToTXT
             var txt = filename;
             var xml = filename.Replace("txt", "xml");
             Logger.Write("ltp_test.exe --segmentor-model cws.model --postagger-model pos.model --ner-model ner.model");
-            Logger.WriteLine(" --parser-model parser.model  --last-stage dp --input " + txt + " >> " + xml);
+            Logger.WriteLine(" --parser-model parser.model  --last-stage ner --input " + txt + " > " + xml);
         }
         ContractPath_TEST = Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增";
         Logger.WriteLine("mkdir " + ContractPath_TEST + "\\xml");
@@ -116,7 +120,7 @@ public class PDFToTXT
             var txt = filename;
             var xml = filename.Replace("txt", "xml");
             Logger.Write("ltp_test.exe --segmentor-model cws.model --postagger-model pos.model --ner-model ner.model");
-            Logger.WriteLine(" --parser-model parser.model  --last-stage dp --input " + txt + " >> " + xml);
+            Logger.WriteLine(" --parser-model parser.model  --last-stage ner --input " + txt + " > " + xml);
         }
         Logger.Close();
     }
@@ -124,10 +128,12 @@ public class PDFToTXT
     public static void FormatTxtFile()
     {
         format(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同");
-        format(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持");
-        format(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增");
         format(Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\重大合同");
+      
+        format(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持");
         format(Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\增减持");
+
+        format(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增");
         format(Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增");
     }
 
@@ -143,16 +149,23 @@ public class PDFToTXT
                 while (!sr.EndOfStream)
                 {
                     var line = sr.ReadLine();
-                    if (!String.IsNullOrEmpty(line)) Lines.Add(line);
+                    if (!String.IsNullOrEmpty(line))
+                    {
+                        Lines.Add(line);
+                    }
                 }
                 sr.Close();
 
-                var sw = new StreamWriter(txtfile);
+                var sw = new StreamWriter(txtfile, false);
                 foreach (var line in Lines)
                 {
+                    if (line.Equals(" ")) continue;
+                    if (line.Contains("\f")) line.Replace("\f","");
+                    //是否以空格结尾
                     if (line.EndsWith(" "))
                     {
-                        sw.WriteLine(line);
+                        //Trim之后是否为空
+                        if (!String.IsNullOrEmpty(line.Trim())) sw.WriteLine(line.Trim());
                     }
                     else
                     {

@@ -28,9 +28,17 @@ namespace FDDC
 
         static void Main(string[] args)
         {
+            //全局编码    
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            //生成PDF的TXT,XML文件的批处理命令
-            //PDFToTXT.GetXMLFile();return;    
+
+            //PDFMiner:PDF转TXTbatch
+            //PDFToTXT.GetPdf2TxtBatchFile(); return;
+            //TXT整理
+            //PDFToTXT.FormatTxtFile(); return;
+            //LTP:XML生成Batch
+            //PDFToTXT.GetLTPXMLBatchFile(); return;            
+            //LTP.Anlayze(@"E:\WorkSpace2018\FDDC2018\1021332.xml"); return;
+
             //初始化   
             CompanyNameLogic.LoadCompanyName(@"Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
             if (IsDebugMode) WordUtility.DictNSAdjust = new string[] { };    //调试模式下，去掉地名调整字典

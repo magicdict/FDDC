@@ -122,11 +122,11 @@ public static class HTMLEngine
             }
         }
 
-        var txtfilename = htmlfile.Replace("html", "txt");
-        if (File.Exists(txtfilename))
+        
+        if (File.Exists(AnnouceDocument.TextFileName))
         {
-            AdjustItemList(root, txtfilename);
-            AdjustTwoLine(root, txtfilename);
+            AdjustItemList(root, AnnouceDocument.TextFileName);
+            AdjustTwoLine(root, AnnouceDocument.TextFileName);
         }
         for (int i = 0; i < root.Children.Count - 1; i++)
         {
