@@ -45,23 +45,40 @@ public class AnnouceDocument
         AnnouceCompanyName = "";
 
         var XMLFileName = htmlFileName.Replace("html", "xml");
-        Nerlist = LTP.Anlayze(XMLFileName);
-
-        //从最后向前查找
-        for (int i = root.Children.Count - 1; i >= 0; i--)
+        if (!XMLFileName.EndsWith(".xml"))
         {
-            for (int j = root.Children[i].Children.Count -1; j >= 0; j--)
-            {
-                var content = root.Children[i].Children[j].Content;
-                content = content.Replace(" ", "");
-                if (content.EndsWith("有限公司董事会"))
-                {
-                    AnnouceCompanyName = content.Substring(0, content.Length - 3);
-                    break;
-                }
-            }
-            if (!String.IsNullOrEmpty(AnnouceCompanyName)) break;
+            //防止无扩展名的html文件
+            XMLFileName += ".xml";
         }
+        Nerlist = LTP.Anlayze(XMLFileName);
+        foreach (var ner in Nerlist)
+        {
+            Program.Logger.WriteLine("识别实体：" + ner);
+        }
+        if (Nerlist.Count != 0)
+        {
+            AnnouceCompanyName = Nerlist.Last();
+            Nerlist = Nerlist.Distinct().ToList();
+        }
+        else
+        {
+            //从最后向前查找
+            for (int i = root.Children.Count - 1; i >= 0; i--)
+            {
+                for (int j = root.Children[i].Children.Count - 1; j >= 0; j--)
+                {
+                    var content = root.Children[i].Children[j].Content;
+                    content = content.Replace(" ", "");
+                    if (content.EndsWith("有限公司董事会"))
+                    {
+                        AnnouceCompanyName = content.Substring(0, content.Length - 3);
+                        break;
+                    }
+                }
+                if (!String.IsNullOrEmpty(AnnouceCompanyName)) break;
+            }
+        }
+
         datelist = LocateProperty.LocateDate(root);
         foreach (var m in datelist)
         {

@@ -52,16 +52,6 @@ public class ExtractProperty
                 if (Utility.GetStringAfter(line, word) != "")
                 {
                     var result = Utility.GetStringAfter(line, word);
-                    if (CurrentLineIdx + 2 < lines.Count)
-                    {
-                        if (!lines[CurrentLineIdx + 1].Contains("："))
-                        {
-                            if (lines[CurrentLineIdx + 2].Contains("："))
-                            {
-                                result += lines[CurrentLineIdx + 1];
-                            }
-                        }
-                    }
                     if (string.IsNullOrEmpty(result)) continue;
                     CandidateWord.Add(new LocAndValue<string>()
                     {

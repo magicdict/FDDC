@@ -53,7 +53,7 @@ namespace FDDC
             //ContractTraning.AnlayzeEntitySurroundWords();
             TraningDataset.InitIncreaseStock();
             Training.Close();
-            UT();
+            //UT(); return;
             Extract();
             Logger.Close();
             Score.Close();
@@ -62,8 +62,8 @@ namespace FDDC
 
         private static void Extract()
         {
-            var IsRunContract = false;
-            var IsRunContract_TEST = true;
+            var IsRunContract = true;
+            var IsRunContract_TEST = false;
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
             var ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_a_20180605" + Path.DirectorySeparatorChar + "重大合同";
 
@@ -193,7 +193,8 @@ namespace FDDC
             PosSegmenter posSeg = new PosSegmenter(segmenter);
             var c = posSeg.Cut(s0);
             //IncreaseStock.Extract(Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增\html\15304036");
-            //Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\15555218.html");
+            //Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1438075.html");
+            Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\重大合同\html\1011631.html");
             //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\1011117.html");
         }
     }

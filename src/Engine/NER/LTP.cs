@@ -39,10 +39,21 @@ public class LTP
         public struWordNER(string element)
         {
             var x = RegularTool.GetMultiValueBetweenMark(element, "\"", "\"");
-            id = int.Parse(x[0]);
-            cont = x[1];
-            pos = x[2];
-            ne = x[3];
+            if (x.Count != 4)
+            {
+                Console.WriteLine(element);
+                id = int.Parse(x[0]);
+                cont = "\"";    //&quot;
+                pos = x[1];
+                ne = x[2];
+            }
+            else
+            {
+                id = int.Parse(x[0]);
+                cont = x[1];
+                pos = x[2];
+                ne = x[3];
+            }
         }
     }
 
@@ -82,7 +93,7 @@ public class LTP
                         break;
                     case "E-Ni":
                         ner += word.cont;
-                        if (!NerList.Contains(ner)) NerList.Add(ner);
+                        NerList.Add(ner);
                         break;
                 }
             }
