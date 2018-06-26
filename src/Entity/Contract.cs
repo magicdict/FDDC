@@ -121,23 +121,22 @@ public class Contract : AnnouceDocument
         contract.ContractName = GetContractName(root);
         //去掉书名号
         contract.ContractName = contract.ContractName.Replace("《", "").Replace("》", "");
+        if (contract.ContractName.Contains("（以下简称"))
+        {
+            contract.ContractName = Utility.GetStringAfter(contract.ContractName, "（以下简称");
+        }
         contract.ContractName = contract.ContractName.NormalizeTextResult();
-
 
         //项目
         contract.ProjectName = GetProjectName(root);
-        if (contract.ProjectName == "" && contract.ContractName.EndsWith("项目合同"))
-        {
-            //从合同名获得工程名
-            contract.ProjectName = contract.ContractName.Substring(0, contract.ContractName.Length - 2);
-        }
         if (contract.ProjectName.EndsWith("，签约双方"))
         {
             contract.ProjectName = Utility.GetStringAfter(contract.ProjectName, "，签约双方");
         }
-
-
-
+        if (contract.ProjectName.Contains("（以下简称"))
+        {
+            contract.ProjectName = Utility.GetStringAfter(contract.ProjectName, "（以下简称");
+        }
         contract.ProjectName = contract.ProjectName.NormalizeTextResult();
 
 
@@ -234,8 +233,8 @@ public class Contract : AnnouceDocument
     {
         var Extractor = new ExtractProperty();
         //这些关键字后面
-        Extractor.LeadingColonKeyWordList = new string[] { "供应商名称：", "乙方：" };
-        //"中标单位：","中标人：","中标单位：","中标人：","乙方（供方）：","承包人：","承包方：","中标方：","供应商名称：","中标人名称："
+        Extractor.LeadingColonKeyWordList = new string[] { "乙方：" };
+        //"供应商名称：","中标单位：","中标人：","中标单位：","中标人：","乙方（供方）：","承包人：","承包方：","中标方：","供应商名称：","中标人名称："
         Extractor.ExtractFromTextFile(TextFileName);
         foreach (var item in Extractor.CandidateWord)
         {
@@ -367,7 +366,14 @@ public class Contract : AnnouceDocument
     {
         var Extractor = new ExtractProperty();
         //这些关键字后面
-        Extractor.LeadingColonKeyWordList = new string[] { "中标金额", "中标价", "合同金额", "合同总价", "订单总金额" };
+        Extractor.LeadingColonKeyWordList = new string[] {
+            "订单总金额","订单金额","订单总价","订单额",
+            "合同总投资", "合同总价","合同金额", "合同额","合同总额","合同总金额","合同价","合同价格",
+            "中标业务总额","中标总金额", "中标金额", "中标价","中标总价",
+            "项目总价","项目总投资","项目估算总投资", "项目投资额","项目投资估算",
+            "工程总价","工程总投资","工程估算总投资", "工程投资额","工程投资估算",
+            "投标价格","投标金额","投标额","投标总金额",
+        };
         Extractor.Extract(root);
         var AllMoneyList = new List<(String MoneyAmount, String MoneyCurrency)>();
         foreach (var item in Extractor.CandidateWord)

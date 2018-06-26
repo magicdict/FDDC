@@ -373,6 +373,13 @@ public static class Evaluate
                     {
                         COR_ContractMoneyUpLimit++;
                     }
+                    else
+                    {
+                        if (!String.IsNullOrEmpty(contract.ContractMoneyUpLimit) && String.IsNullOrEmpty(contract_Result.ContractMoneyUpLimit))
+                        {
+                              Program.Evaluator.WriteLine("[" + contract.id +  "]未发现金额：" + contract.ContractMoneyUpLimit);
+                        }
+                    }
                     if (!String.IsNullOrEmpty(contract.ContractMoneyDownLimit) &&
                         !String.IsNullOrEmpty(contract_Result.ContractMoneyDownLimit) &&
                         contract.ContractMoneyDownLimit.Equals(contract_Result.ContractMoneyDownLimit))

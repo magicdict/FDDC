@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using FDDC;
 using static CompanyNameLogic;
@@ -21,6 +22,9 @@ public class AnnouceDocument
     public static List<LocAndValue<String>> bracketlist;
 
     public static List<String> Nerlist;
+
+
+    public static List<String> Dplist;
 
     //公告日期
     public static DateTime AnnouceDate;
@@ -44,13 +48,18 @@ public class AnnouceDocument
         root = HTMLEngine.Anlayze(htmlFileName);
         AnnouceCompanyName = "";
 
-        var XMLFileName = htmlFileName.Replace("html", "xml");
+        var XMLFileName = fi.Name.Replace("html", "xml");
         if (!XMLFileName.EndsWith(".xml"))
         {
             //防止无扩展名的html文件
             XMLFileName += ".xml";
         }
-        Nerlist = LTP.Anlayze(XMLFileName);
+        var XMLPath = fi.DirectoryName.Replace("html", "ner");
+        Nerlist = LTP.AnlayzeNER(XMLPath + "\\" + XMLFileName);
+        XMLPath = fi.DirectoryName.Replace("html", "dp");
+        Dplist = LTP.AnlayzeDP(XMLPath + "\\" + XMLFileName);
+
+
         foreach (var ner in Nerlist)
         {
             Program.Logger.WriteLine("识别实体：" + ner);

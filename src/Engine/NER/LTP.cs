@@ -18,11 +18,24 @@ public class LTP
         public struWordDP(string element)
         {
             var x = RegularTool.GetMultiValueBetweenMark(element, "\"", "\"");
-            id = int.Parse(x[0]);
-            cont = x[1];
-            pos = x[2];
-            parent = int.Parse(x[3]);
-            relate = x[4];
+            if (x.Count != 5)
+            {
+                Console.WriteLine(element);
+                id = int.Parse(x[0]);
+                cont = "\"";    //&quot;
+                pos = x[1];
+                parent = int.Parse(x[2]);
+                relate = x[3];
+            }
+            else
+            {
+                id = int.Parse(x[0]);
+                cont = x[1];
+                pos = x[2];
+                parent = int.Parse(x[3]);
+                relate = x[4];
+            }
+
         }
     }
 
@@ -57,7 +70,40 @@ public class LTP
         }
     }
 
-    public static List<String> Anlayze(string xmlfilename)
+
+    public static List<String> AnlayzeDP(string xmlfilename)
+    {
+        //由于结果是多个XML构成的
+        //1.掉所有的<?xml version="1.0" encoding="utf-8" ?>
+        //2.加入<sentence></sentence> root节点    
+        var NerList = new List<String>();
+
+        if (!File.Exists(xmlfilename)) return NerList;
+
+        var sr = new StreamReader(xmlfilename);
+        List<struWordDP> wl = null;
+        var pl = new List<List<struWordDP>>();
+        while (!sr.EndOfStream)
+        {
+            var line = sr.ReadLine().Trim();
+            if (line.StartsWith("<sent"))
+            {
+                if (wl != null) pl.Add(wl);
+                //一个新的句子
+                wl = new List<struWordDP>();
+            }
+            if (line.StartsWith("<word"))
+            {
+                var word = new struWordDP(line);
+                wl.Add(word);
+            }
+        }
+        if (wl != null) pl.Add(wl);
+        sr.Close();
+        return NerList;
+    }
+
+    public static List<String> AnlayzeNER(string xmlfilename)
     {
         //由于结果是多个XML构成的
         //1.掉所有的<?xml version="1.0" encoding="utf-8" ?>

@@ -30,6 +30,9 @@ namespace FDDC
         {
             //全局编码    
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            //初始化   
+            CompanyNameLogic.LoadCompanyName(@"Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
+            if (IsDebugMode) WordUtility.DictNSAdjust = new string[] { };    //调试模式下，去掉地名调整字典
 
             //PDFMiner:PDF转TXTbatch
             //PDFToTXT.GetPdf2TxtBatchFile(); return;
@@ -39,9 +42,6 @@ namespace FDDC
             //PDFToTXT.GetLTPXMLBatchFile(); return;            
             //LTP.Anlayze(@"E:\WorkSpace2018\FDDC2018\1021332.xml"); return;
 
-            //初始化   
-            CompanyNameLogic.LoadCompanyName(@"Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
-            if (IsDebugMode) WordUtility.DictNSAdjust = new string[] { };    //调试模式下，去掉地名调整字典
             TraningDataset.InitStockChange();
             TraningDataset.InitContract();
             //通过训练获得各种字段的最大长度，便于抽取的时候做置信度检查
@@ -50,8 +50,8 @@ namespace FDDC
             //ContractTraning.GetListLeadWords();
             //警告：可能所有的Segmenter使用的是共用的词典！
             //下面的训练将把关键字加入到词典中，引发一些问题
-            //ContractTraning.AnlayzeEntitySurroundWords();
-            TraningDataset.InitIncreaseStock();
+            //ContractTraning.AnlayzeEntitySurroundWords(); Training.Close(); return;
+            //TraningDataset.InitIncreaseStock();
             Training.Close();
             //UT(); return;
             Extract();
@@ -62,8 +62,8 @@ namespace FDDC
 
         private static void Extract()
         {
-            var IsRunContract = true;
-            var IsRunContract_TEST = false;
+            var IsRunContract = false;
+            var IsRunContract_TEST = true;
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
             var ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_a_20180605" + Path.DirectorySeparatorChar + "重大合同";
 
@@ -150,7 +150,6 @@ namespace FDDC
 
             if (IsRunIncreaseStock)
             {
-
                 //定增
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "dingzeng_train.txt", false, utf8WithoutBom);
                 ResultCSV.WriteLine("公告id\t增发对象\t增发数量\t增发金额\t锁定期\t认购方式");
@@ -193,8 +192,8 @@ namespace FDDC
             PosSegmenter posSeg = new PosSegmenter(segmenter);
             var c = posSeg.Cut(s0);
             //IncreaseStock.Extract(Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增\html\15304036");
-            //Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1438075.html");
-            Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\重大合同\html\1011631.html");
+            Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\10808687.html");
+            //Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\重大合同\html\10808687.html");
             //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\1011117.html");
         }
     }
