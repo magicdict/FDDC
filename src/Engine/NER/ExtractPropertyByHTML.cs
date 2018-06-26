@@ -4,8 +4,28 @@ using static HTMLEngine;
 using static LocateProperty;
 using System.IO;
 
-public class ExtractProperty
+public class ExtractPropertyByHTML
 {
+    //候选词
+    public List<LocAndValue<String>> CandidateWord = new List<LocAndValue<String>>();
+    //先导词（直接取先导词的后面的内容）
+    public string[] LeadingColonKeyWordList = new string[] { };
+    //先导词（直接取先导词的后面的内容）
+    public string[] TrailingWordList = new string[] { };
+    public void Extract(MyRootHtmlNode root)
+    {
+        CandidateWord.Clear();
+        //先导词列表
+        if (LeadingColonKeyWordList.Length > 0) ExtractByColonKeyWord(root);
+        //结尾词列表
+        if (TrailingWordList.Length > 0) ExtractByTrailingKeyWord(root);
+        //是否有符号包裹特征
+        if (MarkFeature.Length > 0) ExtractByMarkFeature(root);
+        //开始字符结束字符
+        if (StartEndFeature.Length > 0) ExtractByStartEndStringFeature(root);
+
+    }
+
     public static List<int> FindWordCnt(string KeyWord, MyRootHtmlNode root)
     {
         var paragrahIdList = new List<int>();
@@ -23,95 +43,7 @@ public class ExtractProperty
         return paragrahIdList;
     }
 
-    //候选词
-    public List<LocAndValue<String>> CandidateWord = new List<LocAndValue<String>>();
 
-    public void ExtractFromTextFile(string filename)
-    {
-        if (!File.Exists(filename)) return;
-        CandidateWord.Clear();
-        if (LeadingColonKeyWordList.Length > 0) ExtractTextByColonKeyWord(filename);
-    }
-
-    public void ExtractTextByColonKeyWord(string filename)
-    {
-        var lines = new List<String>();
-        var sr = new StreamReader(filename);
-        while (!sr.EndOfStream)
-        {
-            var line = sr.ReadLine();
-            if (!String.IsNullOrEmpty(line)) lines.Add(line);
-        }
-        sr.Close();
-
-        for (int CurrentLineIdx = 0; CurrentLineIdx < lines.Count; CurrentLineIdx++)
-        {
-            var line = lines[CurrentLineIdx];
-            foreach (var word in LeadingColonKeyWordList)
-            {
-                if (Utility.GetStringAfter(line, word) != "")
-                {
-                    var result = Utility.GetStringAfter(line, word);
-                    if (string.IsNullOrEmpty(result)) continue;
-                    CandidateWord.Add(new LocAndValue<string>()
-                    {
-                        Loc = CurrentLineIdx,
-                        Value = result
-                    });
-                    break;
-                }
-            }
-        }
-    }
-
-    public void ExtractTextByTrailingKeyWord(string filename)
-    {
-        var lines = new List<String>();
-        var sr = new StreamReader(filename);
-        while (!sr.EndOfStream)
-        {
-            var line = sr.ReadLine();
-            if (!String.IsNullOrEmpty(line)) lines.Add(line);
-        }
-        sr.Close();
-
-        for (int CurrentLineIdx = 0; CurrentLineIdx < lines.Count; CurrentLineIdx++)
-        {
-            var line = lines[CurrentLineIdx];
-            foreach (var word in TrailingWordList)
-            {
-                if (Utility.GetStringBefore(line, word) != "")
-                {
-                    var result = Utility.GetStringBefore(line, word);
-                    if (string.IsNullOrEmpty(result)) continue;
-                    CandidateWord.Add(new LocAndValue<string>()
-                    {
-                        Loc = CurrentLineIdx,
-                        Value = result
-                    });
-                    break;
-                }
-            }
-        }
-    }
-
-
-    public void Extract(MyRootHtmlNode root)
-    {
-        CandidateWord.Clear();
-        //先导词列表
-        if (LeadingColonKeyWordList.Length > 0) ExtractByColonKeyWord(root);
-        //结尾词列表
-        if (TrailingWordList.Length > 0) ExtractByTrailingKeyWord(root);
-        //是否有符号包裹特征
-        if (MarkFeature.Length > 0) ExtractByMarkFeature(root);
-        //开始字符结束字符
-        if (StartEndFeature.Length > 0) ExtractByStartEndStringFeature(root);
-
-    }
-
-    //先导词（直接取先导词的后面的内容）
-    public string[] LeadingColonKeyWordList = new string[] { };
     //先导词
     void ExtractByColonKeyWord(MyRootHtmlNode root)
     {
@@ -127,8 +59,7 @@ public class ExtractProperty
         }
     }
 
-    //先导词（直接取先导词的后面的内容）
-    public string[] TrailingWordList = new string[] { };
+
     //先导词
     void ExtractByTrailingKeyWord(MyRootHtmlNode root)
     {

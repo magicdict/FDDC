@@ -3,6 +3,22 @@ using System.Collections.Generic;
 using System.IO;
 public class LTP
 {
+
+    public const string 主谓关系 = "SBV";
+    public const string 动宾关系 = "VOB";
+    public const string 间宾关系 = "IOB";
+    public const string 前置宾语 = "FOB";
+    public const string 兼语 = "DBL";
+    public const string 定中关系 = "ATT";
+    public const string 状中结构 = "ADV";
+    public const string 动补结构 = "CMP";
+    public const string 并列关系 = "COO";
+    public const string 介宾关系 = "POB";
+    public const string 左附加关系 = "LAD";
+    public const string 右附加关系 = "RAD";
+    public const string 独立结构 = "IS";
+    public const string 核心关系 = "HED";
+
     public struct struWordDP
     {
         public int id;
@@ -35,7 +51,6 @@ public class LTP
                 parent = int.Parse(x[3]);
                 relate = x[4];
             }
-
         }
     }
 

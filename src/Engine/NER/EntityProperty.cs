@@ -25,7 +25,7 @@ public class EntityProperty
         var result = new List<string>();
         foreach (var item in KeyWordMap)
         {
-            var cnt = ExtractProperty.FindWordCnt(item.Key, root).Count;
+            var cnt = ExtractPropertyByHTML.FindWordCnt(item.Key, root).Count;
             if (cnt > 0){
                 if (!result.Contains(item.Value)) result.Add(item.Value);
             }

@@ -342,6 +342,7 @@ public static class Evaluate
         Program.Evaluator.WriteLine("甲方错误数：" + ErrorJiaFang);
         Program.Evaluator.WriteLine("乙方错误数：" + ErrorYiFang);
 
+        var ErrorMoneyAtRightKey = 0;
         foreach (var contract in TraningDataset.ContractList)
         {
             var key = contract.GetKey();
@@ -377,7 +378,8 @@ public static class Evaluate
                     {
                         if (!String.IsNullOrEmpty(contract.ContractMoneyUpLimit) && String.IsNullOrEmpty(contract_Result.ContractMoneyUpLimit))
                         {
-                              Program.Evaluator.WriteLine("[" + contract.id +  "]未发现金额：" + contract.ContractMoneyUpLimit);
+                            Program.Evaluator.WriteLine("[" + contract.id + "]未发现金额：" + contract.ContractMoneyUpLimit);
+                            ErrorMoneyAtRightKey++;
                         }
                     }
                     if (!String.IsNullOrEmpty(contract.ContractMoneyDownLimit) &&
@@ -392,10 +394,22 @@ public static class Evaluate
                     {
                         COR_UnionMember++;
                     }
+                    else
+                    {
+                        if (!String.IsNullOrEmpty(contract.UnionMember) && String.IsNullOrEmpty(contract_Result.UnionMember))
+                        {
+                            Program.Evaluator.WriteLine("[" + contract.id + "]未发现联合体：" + contract.UnionMember);
+                            ErrorMoneyAtRightKey++;
+                        }
+                    }
                     break;  //按照道理开说，不应该主键重复
                 }
             }
         }
+
+        Program.Evaluator.WriteLine("正确ID中金额错误数：" + ErrorMoneyAtRightKey);
+
+
         var F1_ID = GetF1("公告ID", POS_ID, ACT_ID, COR_ID);
         var F1_JiaFang = GetF1("甲方", POS_JiaFang, ACT_JiaFang, COR_JiaFang);
         var F1_YiFang = GetF1("乙方", POS_YiFang, ACT_YiFang, COR_YiFang);

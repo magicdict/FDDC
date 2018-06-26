@@ -324,7 +324,7 @@ public class StockChange : AnnouceDocument
 
     static (String FullName, String ShortName) GetHolderName(HTMLEngine.MyRootHtmlNode root)
     {
-        var Extractor = new ExtractProperty();
+        var Extractor = new ExtractPropertyByHTML();
         var StartArray = new string[] { "接到", "收到", "股东" };
         var EndArray = new string[] { "的", "通知", "告知函", "减持", "增持", "《" };
         Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
@@ -354,7 +354,7 @@ public class StockChange : AnnouceDocument
     //变动截止日期
     static string GetChangeEndDate(HTMLEngine.MyRootHtmlNode root)
     {
-        var Extractor = new ExtractProperty();
+        var Extractor = new ExtractPropertyByHTML();
         var StartArray = new string[] { "截止", "截至" };
         var EndArray = new string[] { "日" };
         Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);

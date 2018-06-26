@@ -3,9 +3,10 @@ using System.IO;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using static ExtractProperty;
+using static ExtractPropertyByText;
 using System.Linq;
 using FDDC;
+using static ExtractPropertyByHTML;
 
 public static class Utility
 {
