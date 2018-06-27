@@ -6,7 +6,7 @@ using FDDC;
 using static CompanyNameLogic;
 using static HTMLEngine;
 using static LocateProperty;
-
+using static LTP;
 
 public class AnnouceDocument
 {
@@ -24,7 +24,7 @@ public class AnnouceDocument
     public static List<String> Nerlist;
 
 
-    public static List<String> Dplist;
+    public static List<List<struWordDP>> Dplist;
 
     //公告日期
     public static DateTime AnnouceDate;

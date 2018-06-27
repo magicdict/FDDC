@@ -86,36 +86,35 @@ public class LTP
     }
 
 
-    public static List<String> AnlayzeDP(string xmlfilename)
+    public static List<List<struWordDP>> AnlayzeDP(string xmlfilename)
     {
         //由于结果是多个XML构成的
         //1.掉所有的<?xml version="1.0" encoding="utf-8" ?>
         //2.加入<sentence></sentence> root节点    
-        var NerList = new List<String>();
+        var DPList = new List<List<struWordDP>>();
 
-        if (!File.Exists(xmlfilename)) return NerList;
+        if (!File.Exists(xmlfilename)) return DPList;
 
         var sr = new StreamReader(xmlfilename);
-        List<struWordDP> wl = null;
-        var pl = new List<List<struWordDP>>();
+        List<struWordDP> WordList = null;
         while (!sr.EndOfStream)
         {
             var line = sr.ReadLine().Trim();
             if (line.StartsWith("<sent"))
             {
-                if (wl != null) pl.Add(wl);
+                if (WordList != null) DPList.Add(WordList);
                 //一个新的句子
-                wl = new List<struWordDP>();
+                WordList = new List<struWordDP>();
             }
             if (line.StartsWith("<word"))
             {
                 var word = new struWordDP(line);
-                wl.Add(word);
+                WordList.Add(word);
             }
         }
-        if (wl != null) pl.Add(wl);
+        if (WordList != null) DPList.Add(WordList);
         sr.Close();
-        return NerList;
+        return DPList;
     }
 
     public static List<String> AnlayzeNER(string xmlfilename)

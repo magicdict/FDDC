@@ -70,6 +70,7 @@ public class MoneyUtility
         var detectString = OrgString;
         while (true)
         {
+            bool IsCurrencyMark = false;
             detectString = detectString.Substring(LastIndex);
             var MoneyCurrency = "";
             //可能同时存在多个关键字，这里选择最前面一个关键字
@@ -93,8 +94,38 @@ public class MoneyUtility
                     }
                 }
             }
-            if (MoneyCurrency == "") break;
-            LastIndex = detectString.IndexOf(MoneyCurrency);
+            if (MoneyCurrency == "")
+            {
+                if (detectString.Contains("￥"))
+                {
+                    IsCurrencyMark = true;
+                    MoneyCurrency = "人民币";
+                    int currencyMarkIdx = detectString.IndexOf("￥");
+                    for (int k = currencyMarkIdx + 1; k < detectString.Length; k++)
+                    {
+                        var s = detectString.Substring(k, 1);
+                        if (RegularTool.IsNumeric(s) || s == ",")
+                        {
+                            if (k == detectString.Length - 1)
+                            {
+                                LastIndex = k;
+                                break;
+                            }
+                            continue;
+                        }
+                        LastIndex = k;
+                        break;
+                    }
+                }
+                else
+                {
+                    break;
+                }
+            }
+            else
+            {
+                LastIndex = detectString.IndexOf(MoneyCurrency);
+            }
             Regex rex = new Regex(@"^\d+");
             var MoneyAmount = "";
             for (int i = LastIndex - 1; i >= 0; i--)
@@ -125,7 +156,10 @@ public class MoneyUtility
                 }
             }
             if (MoneyAmount != "") MoneyList.Add((MoneyAmount, MoneyCurrency));
-            LastIndex += MoneyCurrency.Length;
+            if (!IsCurrencyMark)
+            {
+                LastIndex += MoneyCurrency.Length;
+            }
         }
         return MoneyList;
     }

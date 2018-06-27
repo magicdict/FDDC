@@ -360,6 +360,15 @@ public static class Evaluate
                     {
                         COR_ProjectName++;
                     }
+                    else
+                    {
+                        if (!String.IsNullOrEmpty(contract.ProjectName) &&
+                            !String.IsNullOrEmpty(contract_Result.ProjectName))
+                        {
+                            Program.Evaluator.WriteLine("[" + contract.id + "]正确：" + contract.ProjectName);
+                            Program.Evaluator.WriteLine("[" + contract.id + "]错误：" + contract_Result.ProjectName);
+                        }
+                    }
 
                     if (!String.IsNullOrEmpty(contract.ContractName) &&
                         !String.IsNullOrEmpty(contract_Result.ContractName) &&
