@@ -48,7 +48,7 @@ public class AnnouceDocument
         if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("Start FileName:[" + fi.Name + "]");
         Id = fi.Name.Replace(".html", String.Empty);
         if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("公告ID:" + Id);
-        root = HTMLEngine.Anlayze(htmlFileName,TextFileName);
+        root = new HTMLEngine().Anlayze(htmlFileName, TextFileName);
         AnnouceCompanyName = String.Empty;
 
         var XMLFileName = fi.Name.Replace("html", "xml");

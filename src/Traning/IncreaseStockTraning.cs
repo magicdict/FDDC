@@ -16,7 +16,7 @@ public class IncreaseStockTraning
             if (PreviewId.Equals(increase.id))
             {
                 var htmlfile = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增\html\" + increase.id + ".html";
-                PreviewRoot = HTMLEngine.Anlayze(htmlfile,"");
+                PreviewRoot = new HTMLEngine().Anlayze(htmlfile,"");
             }
             TableAnlayzeTool.PutTrainingItem(PreviewRoot, increase.PublishTarget);
         }

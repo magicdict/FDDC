@@ -73,7 +73,7 @@ public class ContractTraning
             if (TraningDataset.GetContractById(Id).Count == 0) continue;
             var contract = TraningDataset.GetContractById(Id).First();
             if (contract.JiaFang == String.Empty) continue;
-            var root = HTMLEngine.Anlayze(filename,"");
+            var root = new HTMLEngine().Anlayze(filename,"");
             if (!string.IsNullOrEmpty(contract.JiaFang)) JiaFangS.AnlayzeEntitySurroundWords(root, contract.JiaFang);
             if (!string.IsNullOrEmpty(contract.YiFang)) YiFangS.AnlayzeEntitySurroundWords(root, contract.YiFang);
             if (!string.IsNullOrEmpty(contract.ProjectName)) ProjectNameS.AnlayzeEntitySurroundWords(root, contract.ProjectName);

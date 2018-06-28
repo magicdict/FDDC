@@ -4,7 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 
-public static class HTMLEngine
+public class HTMLEngine
 {
 
     #region Anlayze
@@ -45,13 +45,13 @@ public static class HTMLEngine
     }
 
 
-    static int TableId = 0;
-    static int DetailItemId = 0;
-    static Dictionary<int, List<String>> TableList;
+    int TableId = 0;
+    int DetailItemId = 0;
+    Dictionary<int, List<String>> TableList;
 
-    static Dictionary<int, List<String>> DetailItemList;
+    Dictionary<int, List<String>> DetailItemList;
 
-    public static MyRootHtmlNode Anlayze(string htmlfile, string TextFileName)
+    public MyRootHtmlNode Anlayze(string htmlfile, string TextFileName)
     {
         TableId = 0;
         DetailItemId = 0;
@@ -244,7 +244,7 @@ public static class HTMLEngine
         SR.Close();
     }
 
-    static void AnlayzeParagraph(HtmlNode paragraph, MyHtmlNode root, String subTitle = "")
+    void AnlayzeParagraph(HtmlNode paragraph, MyHtmlNode root, String subTitle = "")
     {
         //原始HTML的第二阶层无法保证嵌套结构是正确的，
         //所以决定第二阶层不分层
@@ -328,7 +328,7 @@ public static class HTMLEngine
 
     //找一下Content列表里面是否存在明确带有数字的列表
     //由于先导处理的效果应该统一化为 <1> 的形式了
-    static void FindContentWithList(List<MyHtmlNode> Children)
+    void FindContentWithList(List<MyHtmlNode> Children)
     {
         var lst = new List<String>();
         var pos = -1;

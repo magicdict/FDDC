@@ -24,10 +24,14 @@ namespace FDDC
         //MAC
         //public static String DocBase = @"/Users/hu/Desktop/FDDCTraing";
 
-        //这个模式下，有问题的数据会输出，正式比赛的时候设置为False，降低召回率！
+        /// <summary>
+        /// 这个模式下，有问题的数据会输出，正式比赛的时候设置为False，降低召回率！
+        /// </summary>
         public static bool IsDebugMode = false;
-
-        public static bool IsMultiThreadMode = false;
+        /// <summary>
+        /// 多线程模式
+        /// </summary>
+        public static bool IsMultiThreadMode = true;
 
         static void Main(string[] args)
         {
