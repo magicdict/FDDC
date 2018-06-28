@@ -18,7 +18,7 @@ public static class UT
         var c = posSeg.Cut(s0);
         s0 = s0.NormalizeTextResult();
         s0 = RegularTool.Trimbrackets(s0);
-        var SProjectName = new Surround();
+       /*  var SProjectName = new Surround();
         var root = HTMLEngine.Anlayze(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1044779.html");
         var Contract = TraningDataset.GetContractById("1044779")[0];
         SProjectName.AnlayzeEntitySurroundWords(root, Contract.ProjectName);
@@ -34,7 +34,7 @@ public static class UT
         root = HTMLEngine.Anlayze(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\917362.html");
         Contract = TraningDataset.GetContractById("917362")[0];
         SProjectName.AnlayzeEntitySurroundWords(root, Contract.ProjectName);
-        SProjectName.WriteTop(10);
+        SProjectName.WriteTop(10); */
         var TestString = "承运市";
         var pos = new JiebaNet.Segmenter.PosSeg.PosSegmenter();
         foreach (var item in pos.Cut(TestString))
@@ -45,15 +45,15 @@ public static class UT
 
     public static void ContractTest()
     {
-        StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20526193.html");
-        StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20596890.html");
-        StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\1018217.html");
-        StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\314146.html");
-        IncreaseStock.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增\html\7880.html");
 
         var x1 = Normalizer.NormalizeItemListNumber("（4）2012 年 4 月，公司与中国华西企业股份");
         var x2 = Normalizer.NormalizeItemListNumber("4 、承包方式： 从深化设计、制作、运输、");
         var x3 = Normalizer.NormalizeItemListNumber("4、承包方式： 从深化设计、制作、运输、");
+/*         StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20526193.html");
+        StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20596890.html");
+        StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\1018217.html");
+        StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\314146.html");
+        IncreaseStock.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增\html\7880.html");
         Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1153.html");
         Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1008828.html");
         Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\3620.html");
@@ -63,7 +63,8 @@ public static class UT
         Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1450.html");
         Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1042224.html");
         Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\917362.html");
-        IncreaseStock.Extract(@"E:\WorkSpace2018\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增\html\7880.html");
+        Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\5258.html");
+        IncreaseStock.Extract(@"E:\WorkSpace2018\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增\html\7880.html"); */
         //数字金额的测试
         var TestString = "中标价为人民币共计16928.79754万元（大写：人民币壹亿陆仟玖佰贰拾捌万柒仟玖佰柒拾伍元肆角整）。";
         var Result = MoneyUtility.SeekMoney(TestString);
@@ -73,7 +74,6 @@ public static class UT
         //Result = Utility.GetStringBefore(TestString, "有限公司");
         //Console.WriteLine(Result);
 
-        Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\5258.html");
 
         var x0 = "在此之前，2003年6月30日，本公司曾与MICROS US和MICROS Singapore（以下简称 “MICROS”）签订了《技术许可与代理协议》，并分别于2005年11月、2006年12月和2007年 10月与MICROS相继签署了第一、二、三次补充协议。";
         var t0 = EntityWordAnlayzeTool.GetMainWordSentence(x0);

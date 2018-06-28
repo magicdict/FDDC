@@ -73,7 +73,7 @@ public class ContractTraning
             if (TraningDataset.GetContractById(Id).Count == 0) continue;
             var contract = TraningDataset.GetContractById(Id).First();
             if (contract.JiaFang == String.Empty) continue;
-            var root = HTMLEngine.Anlayze(filename);
+            var root = HTMLEngine.Anlayze(filename,"");
             if (!string.IsNullOrEmpty(contract.JiaFang)) JiaFangS.AnlayzeEntitySurroundWords(root, contract.JiaFang);
             if (!string.IsNullOrEmpty(contract.YiFang)) YiFangS.AnlayzeEntitySurroundWords(root, contract.YiFang);
             if (!string.IsNullOrEmpty(contract.ProjectName)) ProjectNameS.AnlayzeEntitySurroundWords(root, contract.ProjectName);
@@ -101,9 +101,9 @@ public class ContractTraning
             var Id = fi.Name.Replace(".html", String.Empty);
             if (TraningDataset.GetContractById(Id).Count == 0) continue;
             var contract = TraningDataset.GetContractById(Id).First();
-            Contract.Extract(filename);
-            if (!string.IsNullOrEmpty(contract.ProjectName)) ProjectNameS.Training(Contract.Dplist, contract.ProjectName);
-            if (!string.IsNullOrEmpty(contract.ContractName)) ContractNameS.Training(Contract.Dplist, contract.ContractName);
+            var c = new Contract(filename);
+            if (!string.IsNullOrEmpty(contract.ProjectName)) ProjectNameS.Training(c.Dplist, contract.ProjectName);
+            if (!string.IsNullOrEmpty(contract.ContractName)) ContractNameS.Training(c.Dplist, contract.ContractName);
         }
         Program.Training.WriteLine("工程名附近词语分析：");
         ProjectNameS.WriteTop(10);

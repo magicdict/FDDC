@@ -446,6 +446,9 @@ public static class Evaluate
 
     static double GetF1(String ItemName, double POS, double ACT, double COR)
     {
+        //POS:标准数据集中该字段不为空的记录数
+        //ACT:选手提交结果中该字段不为空的记录数
+        //COR:主键匹配 且 提交字段值=正确字段值 且 均不为空
         //Recall = COR / POS
         //Precision = COR/ ACT
         //F1 = 2 * Recall * Precision / (Recall + Precision)

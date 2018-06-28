@@ -11,8 +11,8 @@ public static class LocateProperty
         public int Loc;
         //值
         public T Value;
-        //原始值
-        public string RawDate;
+        //类型
+        public string Type;
     }
 
 
@@ -27,12 +27,23 @@ public static class LocateProperty
                 Regex r = new Regex(@"\《.*?\》");
                 foreach (var item in r.Matches(OrgString).ToList())
                 {
-                    list.Add(new LocAndValue<String>() { Loc = sentence.PositionId, Value = item.Value.Substring(1, item.Value.Length - 2) });
+                    list.Add(
+                        new LocAndValue<String>()
+                        {
+                            Loc = sentence.PositionId,
+                            Type = "字符",
+                            Value = item.Value.Substring(1, item.Value.Length - 2)
+                        });
                 }
                 r = new Regex(@"\“.*?\”");
                 foreach (var item in r.Matches(OrgString).ToList())
                 {
-                    list.Add(new LocAndValue<String>() { Loc = sentence.PositionId, Value = item.Value.Substring(1, item.Value.Length - 2) });
+                    list.Add(new LocAndValue<String>()
+                    {
+                        Loc = sentence.PositionId,
+                        Type = "字符",
+                        Value = item.Value.Substring(1, item.Value.Length - 2)
+                    });
                 }
             }
         }
@@ -73,7 +84,12 @@ public static class LocateProperty
                         {
                             ED = DateUtility.GetWorkDay(year, month, day);
                         }
-                        list.Add(new LocAndValue<(DateTime StartDate, DateTime EndDate)>() { Loc = sentence.PositionId, Value = (ST, ED) });
+                        list.Add(new LocAndValue<(DateTime StartDate, DateTime EndDate)>()
+                        {
+                            Loc = sentence.PositionId,
+                            Type = "日期范围",
+                            Value = (ST, ED)
+                        });
                     }
                     if (DateNumberList.Count == 5)
                     {
@@ -91,7 +107,12 @@ public static class LocateProperty
                         {
                             ED = DateUtility.GetWorkDay(year, month, day);
                         }
-                        list.Add(new LocAndValue<(DateTime StartDate, DateTime EndDate)>() { Loc = sentence.PositionId, Value = (ST, ED) });
+                        list.Add(new LocAndValue<(DateTime StartDate, DateTime EndDate)>()
+                        {
+                            Loc = sentence.PositionId,
+                            Type = "日期范围",
+                            Value = (ST, ED)
+                        });
                     }
                     if (DateNumberList.Count == 4)
                     {
@@ -108,7 +129,12 @@ public static class LocateProperty
                         {
                             ED = DateUtility.GetWorkDay(year, month, day);
                         }
-                        list.Add(new LocAndValue<(DateTime StartDate, DateTime EndDate)>() { Loc = sentence.PositionId, Value = (ST, ED) });
+                        list.Add(new LocAndValue<(DateTime StartDate, DateTime EndDate)>()
+                        {
+                            Loc = sentence.PositionId,
+                            Type = "日期范围",
+                            Value = (ST, ED)
+                        });
                     }
                 }
             }
@@ -139,6 +165,7 @@ public static class LocateProperty
                         list.Add(new LocAndValue<DateTime>()
                         {
                             Loc = sentence.PositionId,
+                            Type = "日期",
                             Value = DateUtility.GetWorkDay(year, month, day)
                         });
                     }
@@ -164,6 +191,7 @@ public static class LocateProperty
                     list.Add(new LocAndValue<(String MoneyAmount, String MoneyCurrency)>
                     {
                         Loc = sentence.PositionId,
+                        Type = "金额",
                         Value = money
                     });
                 }

@@ -320,12 +320,12 @@ public class CompanyNameLogic
     }
 
 
-    public static (String FullName, String ShortName) NormalizeCompanyName(string word)
+    public static (String FullName, String ShortName) NormalizeCompanyName(AnnouceDocument doc,string word)
     {
         if (String.IsNullOrEmpty(word)) return (String.Empty, String.Empty);
         var fullname = word.Replace(" ", String.Empty);
         var shortname = String.Empty;
-        foreach (var companyname in AnnouceDocument.companynamelist)
+        foreach (var companyname in doc.companynamelist)
         {
             if (companyname.secFullName == fullname)
             {

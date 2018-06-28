@@ -8,6 +8,7 @@ using static IncreaseStock;
 using static StockChange;
 using JiebaNet.Segmenter;
 using JiebaNet.Segmenter.PosSeg;
+using System.Threading.Tasks;
 
 namespace FDDC
 {
@@ -25,6 +26,8 @@ namespace FDDC
 
         //这个模式下，有问题的数据会输出，正式比赛的时候设置为False，降低召回率！
         public static bool IsDebugMode = false;
+
+        public static bool IsMultiThreadMode = false;
 
         static void Main(string[] args)
         {
@@ -83,17 +86,38 @@ namespace FDDC
                 Console.WriteLine("Start To Extract Info Contract TRAIN");
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong_train.txt", false, utf8WithoutBom);
                 ResultCSV.WriteLine("公告id\t甲方\t乙方\t项目名称\t合同名称\t合同金额上限\t合同金额下限\t联合体成员");
-                var StockChange_Result = new List<struContract>();
-                foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
+                var Contract_Result = new List<struContract>();
+
+                if (IsMultiThreadMode)
                 {
-                    foreach (var item in Contract.Extract(filename))
+                    Parallel.ForEach(System.IO.Directory.GetFiles(ContractPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar), (filename) =>
                     {
-                        StockChange_Result.Add(item);
+                        var contract = new Contract(filename);
+                        foreach (var item in contract.Extract())
+                        {
+                            Contract_Result.Add(item);
+                        }
+                    });
+                    Contract_Result.Sort((x, y) => { return x.id.CompareTo(y.id); });
+                    foreach (var item in Contract_Result)
+                    {
                         ResultCSV.WriteLine(item.ConvertToString(item));
                     }
                 }
+                else
+                {
+                    foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
+                    {
+                        var contract = new Contract(filename);
+                        foreach (var item in contract.Extract())
+                        {
+                            ResultCSV.WriteLine(item.ConvertToString(item));
+                        }
+                    }
+                }
+
                 ResultCSV.Close();
-                Evaluate.EvaluateContract(StockChange_Result);
+                Evaluate.EvaluateContract(Contract_Result);
                 Console.WriteLine("Complete Extract Info Contract");
             }
             if (IsRunContract_TEST)
@@ -103,7 +127,8 @@ namespace FDDC
                 Console.WriteLine("Start To Extract Info Contract TEST");
                 foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TEST + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
                 {
-                    foreach (var item in Contract.Extract(filename))
+                    var contract = new Contract(filename);
+                    foreach (var item in contract.Extract())
                     {
                         ResultCSV.WriteLine(item.ConvertToString(item));
                     }
@@ -122,7 +147,8 @@ namespace FDDC
                 var StockChange_Result = new List<struStockChange>();
                 foreach (var filename in System.IO.Directory.GetFiles(StockChangePath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
                 {
-                    foreach (var item in StockChange.Extract(filename))
+                    var stockchange = new StockChange(filename);
+                    foreach (var item in stockchange.Extract())
                     {
                         StockChange_Result.Add(item);
                         ResultCSV.WriteLine(item.ConvertToString(item));
@@ -139,7 +165,8 @@ namespace FDDC
                 Console.WriteLine("Start To Extract Info StockChange TEST");
                 foreach (var filename in System.IO.Directory.GetFiles(StockChangePath_TEST + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
                 {
-                    foreach (var item in StockChange.Extract(filename))
+                    var stockchange = new StockChange(filename);
+                    foreach (var item in stockchange.Extract())
                     {
                         ResultCSV.WriteLine(item.ConvertToString(item));
                     }
@@ -157,7 +184,8 @@ namespace FDDC
                 var Increase_Result = new List<struIncreaseStock>();
                 foreach (var filename in System.IO.Directory.GetFiles(IncreaseStockPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
                 {
-                    foreach (var item in IncreaseStock.Extract(filename))
+                    var increasestock = new IncreaseStock(filename);
+                    foreach (var item in increasestock.Extract())
                     {
                         Increase_Result.Add(item);
                         ResultCSV.WriteLine(item.ConvertToString(item));
@@ -175,7 +203,8 @@ namespace FDDC
                 Console.WriteLine("Start To Extract Info IncreaseStock TEST");
                 foreach (var filename in System.IO.Directory.GetFiles(IncreaseStockPath_TEST + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
                 {
-                    foreach (var item in IncreaseStock.Extract(filename))
+                    var increasestock = new IncreaseStock(filename);
+                    foreach (var item in increasestock.Extract())
                     {
                         ResultCSV.WriteLine(item.ConvertToString(item));
                     }
@@ -191,8 +220,9 @@ namespace FDDC
             JiebaSegmenter segmenter = new JiebaSegmenter();
             PosSegmenter posSeg = new PosSegmenter(segmenter);
             var c = posSeg.Cut(s0);
+            var contract = new Contract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1450.html");
+            var result = contract.Extract();
             //IncreaseStock.Extract(Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增\html\15304036");
-            Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1450.html");
             //Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\重大合同\html\10808687.html");
             //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\1011117.html");
         }

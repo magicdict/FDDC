@@ -51,7 +51,7 @@ public static class HTMLEngine
 
     static Dictionary<int, List<String>> DetailItemList;
 
-    public static MyRootHtmlNode Anlayze(string htmlfile)
+    public static MyRootHtmlNode Anlayze(string htmlfile, string TextFileName)
     {
         TableId = 0;
         DetailItemId = 0;
@@ -122,11 +122,11 @@ public static class HTMLEngine
             }
         }
 
-        
-        if (File.Exists(AnnouceDocument.TextFileName))
+
+        if (File.Exists(TextFileName))
         {
-            AdjustItemList(root, AnnouceDocument.TextFileName);
-            AdjustTwoLine(root, AnnouceDocument.TextFileName);
+            AdjustItemList(root, TextFileName);
+            AdjustTwoLine(root, TextFileName);
         }
         for (int i = 0; i < root.Children.Count - 1; i++)
         {

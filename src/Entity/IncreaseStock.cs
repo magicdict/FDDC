@@ -8,6 +8,11 @@ using static CompanyNameLogic;
 
 public class IncreaseStock : AnnouceDocument
 {
+    public IncreaseStock(string htmlFileName) : base(htmlFileName)
+    {
+
+    }
+
     public struct struIncreaseStock
     {
         //公告id
@@ -69,9 +74,8 @@ public class IncreaseStock : AnnouceDocument
         }
     }
 
-    public static List<struIncreaseStock> Extract(string htmlFileName)
+    public List<struIncreaseStock> Extract()
     {
-        Init(htmlFileName);
         //认购方式
         var buyMethod = getBuyMethod(root);
         //样本
@@ -83,7 +87,7 @@ public class IncreaseStock : AnnouceDocument
     }
 
 
-    static List<struIncreaseStock> GetMultiTarget(HTMLEngine.MyRootHtmlNode root, struIncreaseStock SampleincreaseStock)
+    List<struIncreaseStock> GetMultiTarget(HTMLEngine.MyRootHtmlNode root, struIncreaseStock SampleincreaseStock)
     {
         var BuyerRule = new TableSearchRule();
         BuyerRule.Name = "认购对象";
@@ -93,13 +97,13 @@ public class IncreaseStock : AnnouceDocument
 
         var BuyNumber = new TableSearchRule();
         BuyNumber.Name = "增发数量";
-        BuyNumber.Rule = new string[] { "配售股数", "认购数量", "认购股数", "认购股份数","发行股份数","配售数量" }.ToList();
+        BuyNumber.Rule = new string[] { "配售股数", "认购数量", "认购股数", "认购股份数", "发行股份数", "配售数量" }.ToList();
         BuyNumber.IsEq = false;             //包含即可
         BuyNumber.Normalize = NumberUtility.NormalizerStockNumber;
 
         var BuyMoney = new TableSearchRule();
         BuyMoney.Name = "增发金额";
-        BuyMoney.Rule = new string[] { "配售金额", "认购金额","获配金额" }.ToList();
+        BuyMoney.Rule = new string[] { "配售金额", "认购金额", "获配金额" }.ToList();
         BuyMoney.IsEq = false;             //包含即可
         BuyMoney.Normalize = MoneyUtility.Format;
 
@@ -111,7 +115,7 @@ public class IncreaseStock : AnnouceDocument
 
         var BuyPrice = new TableSearchRule();
         BuyPrice.Name = "价格";
-        BuyPrice.Rule = new string[] { "认购价格", "配售价格","申购报价" }.ToList();
+        BuyPrice.Rule = new string[] { "认购价格", "配售价格", "申购报价" }.ToList();
         BuyPrice.IsEq = false;             //包含即可
         BuyPrice.Normalize = MoneyUtility.Format;
 
@@ -142,7 +146,7 @@ public class IncreaseStock : AnnouceDocument
             if (!String.IsNullOrEmpty(increase.IncreaseMoney) && increase.IncreaseMoney.Equals("0")) continue;
             if (!String.IsNullOrEmpty(increase.IncreaseMoney) && increase.IncreaseMoney.Contains("|"))
             {
-                increase.IncreaseMoney =  increase.IncreaseMoney.Split("|").Last();
+                increase.IncreaseMoney = increase.IncreaseMoney.Split("|").Last();
             }
 
             //手工计算金额
@@ -159,7 +163,7 @@ public class IncreaseStock : AnnouceDocument
                             if (double.TryParse(increase.IncreaseNumber, out number))
                             {
                                 double money = price * number;
-                                Program.Logger.WriteLine("通过计算获得金额：" + money.ToString());
+                                if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("通过计算获得金额：" + money.ToString());
                             }
                         }
                     }
@@ -197,9 +201,9 @@ public class IncreaseStock : AnnouceDocument
             var edy = 0;
             if (int.TryParse(numbers[3], out edy) && int.TryParse(numbers[0], out sty))
             {
-                if (edy -sty == 1) return "12";
-                if (edy -sty == 3) return "36";
-                Program.Logger.WriteLine("限售期确认：" + orgString);
+                if (edy - sty == 1) return "12";
+                if (edy - sty == 3) return "36";
+                if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("限售期确认：" + orgString);
             }
         }
 
@@ -215,7 +219,7 @@ public class IncreaseStock : AnnouceDocument
         var result = p.ExtractByKeyWordMap(root);
         if (result.Count == 1)
         {
-            Program.Logger.WriteLine("认购方式:" + result[0]);
+            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("认购方式:" + result[0]);
             return result[0];
         }
         return String.Empty;
