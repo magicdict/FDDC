@@ -10,7 +10,6 @@ public class Surround
 
     Dictionary<string, int> LeadingWordDict = new Dictionary<String, int>();
     Dictionary<string, int> LeadingVerbWordDict = new Dictionary<String, int>();
-
     Dictionary<string, int> TrailingWordDict = new Dictionary<String, int>();
 
 
@@ -60,7 +59,7 @@ public class Surround
                             }
                             if (segments[s].Word == "：")
                             {
-                                var leading = "";
+                                var leading = String.Empty;
                                 for (int l = startInx; l < s; l++)
                                 {
                                     leading += segments[l].Word;

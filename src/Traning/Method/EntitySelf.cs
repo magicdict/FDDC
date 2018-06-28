@@ -72,7 +72,7 @@ public class EntitySelf{
                 LastWordDict.Add(lastword, 1);
             }
 
-            var wordflgs = "";
+            var wordflgs = String.Empty;
             foreach (var item in words)
             {
                 wordflgs += item.Flag + "/";

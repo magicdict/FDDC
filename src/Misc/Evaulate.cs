@@ -365,8 +365,8 @@ public static class Evaluate
                         if (!String.IsNullOrEmpty(contract.ProjectName) &&
                             !String.IsNullOrEmpty(contract_Result.ProjectName))
                         {
-                            Program.Evaluator.WriteLine("[" + contract.id + "]正确：" + contract.ProjectName);
-                            Program.Evaluator.WriteLine("[" + contract.id + "]错误：" + contract_Result.ProjectName);
+                            Program.Evaluator.WriteLine("[" + contract.id + "]正确工程名：" + contract.ProjectName);
+                            Program.Evaluator.WriteLine("[" + contract.id + "]错误工程名：" + contract_Result.ProjectName);
                         }
                     }
 
@@ -375,6 +375,15 @@ public static class Evaluate
                         contract.ContractName.NormalizeKey().Equals(contract_Result.ContractName.NormalizeKey()))
                     {
                         COR_ContractName++;
+                    }
+                     else
+                    {
+                        if (!String.IsNullOrEmpty(contract.ContractName) &&
+                            !String.IsNullOrEmpty(contract_Result.ContractName))
+                        {
+                            Program.Evaluator.WriteLine("[" + contract.id + "]正确合同名：" + contract.ContractName);
+                            Program.Evaluator.WriteLine("[" + contract.id + "]错误合同名：" + contract_Result.ContractName);
+                        }
                     }
 
                     if (!String.IsNullOrEmpty(contract.ContractMoneyUpLimit) &&

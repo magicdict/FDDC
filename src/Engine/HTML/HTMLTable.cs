@@ -53,7 +53,7 @@ public class HTMLTable
             {
                 for (int Col = 1; Col < MaxColumn + 1; Col++)
                 {
-                    dict.Add(Row + "," + Col, "");
+                    dict.Add(Row + "," + Col, String.Empty);
                 }
             }
 
@@ -73,7 +73,7 @@ public class HTMLTable
                             //寻找该行下一个需要填充的格子的列号
                             for (int Col = 1; Col < MaxColumn + 1; Col++)
                             {
-                                if (dict[CurrentRow + "," + Col] == "")
+                                if (dict[CurrentRow + "," + Col] == String.Empty)
                                 {
                                     NextNeedToFillColumn = Col;
                                     break;
@@ -82,7 +82,7 @@ public class HTMLTable
 
                             var cellvalue = Normalizer.Normalize(tableData.InnerText);
                             var cellpos = CurrentRow + "," + NextNeedToFillColumn;
-                            if (cellvalue == "")
+                            if (cellvalue == String.Empty)
                             {
                                 cellvalue = "<null>";
                             }
@@ -111,7 +111,7 @@ public class HTMLTable
         }
 
         //表格分页的修正
-        var NeedToModify = "";
+        var NeedToModify = String.Empty;
         foreach (var item in dict)
         {
             if (item.Value == "<null>")
@@ -126,7 +126,7 @@ public class HTMLTable
             }
         }
 
-        if (NeedToModify != "") dict[NeedToModify] = "<rowspan>";
+        if (NeedToModify != String.Empty) dict[NeedToModify] = "<rowspan>";
 
         foreach (var item in dict)
         {
@@ -190,7 +190,7 @@ public class HTMLTable
 
             return dict[pos];
         }
-        return "";
+        return String.Empty;
     }
 
     public String[] GetHeaderRow(int RowNo = 1)
@@ -208,7 +208,7 @@ public class HTMLTable
         bool IsTotalRow = false;
         for (int i = 1; i <= ColumnCount; i++)
         {
-            var x = CellValue(RowNo, i).Replace(" ", "");
+            var x = CellValue(RowNo, i).Replace(" ", String.Empty);
             if (x.Contains("合计") || x.Contains("小计") || x.Contains("总计") ||
                 x == "—" || x == "－" || x == "-" || x == "/" ||
                 x == "--" || x == "——")
@@ -255,11 +255,11 @@ public class HTMLTable
     {
         foreach (var content in root.TableList)
         {
-            var pos = "";
-            var value = "";
+            var pos = String.Empty;
+            var value = String.Empty;
             if (value.IndexOf(keyword) != -1)
             {
-                if (exclude != "")
+                if (exclude != String.Empty)
                 {
                     if (value.IndexOf(exclude) != -1) continue;
                 }
@@ -407,7 +407,7 @@ public class HTMLTable
                 if (RowNo == HeaderRowNo) continue;
                 if (table.IsTotalRow(RowNo)) continue;          //非合计行
                 var target = table.CellValue(RowNo, checkResult[0]);    //主字段非空
-                if (target == "" || target == "<rowspan>" || target == "<colspan>" || target == "<null>") continue;
+                if (target == String.Empty || target == "<rowspan>" || target == "<colspan>" || target == "<null>") continue;
                 if (Rules[0].Rule.Contains(target)) continue;
 
                 var RowData = new CellInfo[Rules.Count];

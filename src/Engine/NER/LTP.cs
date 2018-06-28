@@ -31,9 +31,14 @@ public class LTP
 
         public string relate;
 
+        public override string ToString()
+        {
+            return cont + "/" + relate;
+        }
+
         public struWordDP(string element)
         {
-            var x = RegularTool.GetMultiValueBetweenMark(element, "\"", "\"");
+            var x = RegularTool.GetMultiValueBetweenMark(element,"\"", "\"");
             if (x.Count != 5)
             {
                 Console.WriteLine(element);
@@ -66,12 +71,44 @@ public class LTP
 
         public struWordNER(string element)
         {
-            var x = RegularTool.GetMultiValueBetweenMark(element, "\"", "\"");
+            var x = RegularTool.GetMultiValueBetweenMark(element,"\"", "\"");
             if (x.Count != 4)
             {
                 Console.WriteLine(element);
                 id = int.Parse(x[0]);
                 cont = "\"";    //&quot;
+                pos = x[1];
+                ne = x[2];
+            }
+            else
+            {
+                id = int.Parse(x[0]);
+                cont = x[1];
+                pos = x[2];
+                ne = x[3];
+            }
+        }
+    }
+
+
+    public struct struWordSRL
+    {
+        public int id;
+
+        public string cont;
+
+        public string pos;
+
+        public string ne;
+
+        public struWordSRL(string element)
+        {
+            var x = RegularTool.GetMultiValueBetweenMark(element,"\"", "\"");
+            if (x.Count != 4)
+            {
+                Console.WriteLine(element);
+                id = int.Parse(x[0]);
+                cont = String.Empty;    //&quot;
                 pos = x[1];
                 ne = x[2];
             }
@@ -129,7 +166,7 @@ public class LTP
         var sr = new StreamReader(xmlfilename);
         List<struWordNER> wl = null;
         var pl = new List<List<struWordNER>>();
-        var ner = "";
+        var ner = String.Empty;
         while (!sr.EndOfStream)
         {
             var line = sr.ReadLine().Trim();

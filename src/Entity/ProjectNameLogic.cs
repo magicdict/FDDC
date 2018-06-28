@@ -19,7 +19,7 @@ public class ProjectNameLogic
                 var PreviewEndIdx = -1;
                 for (int baseInd = 0; baseInd < words.Count; baseInd++)
                 {
-                    var FullName = "";
+                    var FullName = String.Empty;
                     if (words[baseInd].Word == "项目" || words[baseInd].Word == "工程" ||
                         words[baseInd].Word == "标段" || words[baseInd].Word == "采购")
                     {
@@ -33,7 +33,7 @@ public class ProjectNameLogic
                             {
                                 //注意，地名可能相连，例如：上海市嘉定
                                 if (NRIdx != 0 && (words[NRIdx - 1].Flag == WordUtility.地名 || WordUtility.DictNSAdjust.Contains(words[NRIdx - 1].Word))) continue;
-                                FullName = "";
+                                FullName = String.Empty;
                                 for (int companyFullNameInd = NRIdx; companyFullNameInd <= baseInd; companyFullNameInd++)
                                 {
                                     FullName += words[companyFullNameInd].Word;
@@ -74,14 +74,14 @@ public class ProjectNameLogic
                         words[baseInd].Word == "工程" ||
                         words[baseInd].Word == "项目")
                     {
-                        var projectName = "";
+                        var projectName = String.Empty;
                         //是否能够在前面找到地名
                         for (int NRIdx = baseInd; NRIdx > -1; NRIdx--)
                         {
                             //地理
                             if (words[NRIdx].Flag == "ns")
                             {
-                                projectName = "";
+                                projectName = String.Empty;
                                 for (int companyFullNameInd = NRIdx; companyFullNameInd <= baseInd; companyFullNameInd++)
                                 {
                                     projectName += words[companyFullNameInd].Word;

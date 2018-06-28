@@ -52,7 +52,7 @@ public class ExtractPropertyByHTML
             Func<String, List<String>> ExtractMethod = (x) =>
             {
                 var strlist = new List<String>();
-                if (Utility.GetStringAfter(x, word) != "") strlist.Add(Utility.GetStringAfter(x, word));
+                if (Utility.GetStringAfter(x, word) != String.Empty) strlist.Add(Utility.GetStringAfter(x, word));
                 return strlist;
             };
             SearchNormalContent(root, ExtractMethod);
@@ -68,7 +68,7 @@ public class ExtractPropertyByHTML
             Func<String, List<String>> ExtractMethod = (x) =>
             {
                 var strlist = new List<String>();
-                if (Utility.GetStringBefore(x, word) != "") strlist.Add(Utility.GetStringBefore(x, word));
+                if (Utility.GetStringBefore(x, word) != String.Empty) strlist.Add(Utility.GetStringBefore(x, word));
                 return strlist;
             };
             SearchNormalContent(root, ExtractMethod);

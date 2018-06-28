@@ -11,7 +11,7 @@ public static class EntityWordAnlayzeTool
 
     public static string GetMainWordSentence(string OrgString)
     {
-        var MainWordSentence = "";
+        var MainWordSentence = String.Empty;
         var pos = new JiebaNet.Segmenter.PosSeg.PosSegmenter();
         var list = pos.Cut(OrgString);
         foreach (var word in list)
@@ -28,7 +28,7 @@ public static class EntityWordAnlayzeTool
 
     public static string TrimEnglish(string OrgString)
     {
-        var MainWordSentence = "";
+        var MainWordSentence = String.Empty;
         var pos = new JiebaNet.Segmenter.PosSeg.PosSegmenter();
         var list = pos.Cut(OrgString);
         foreach (var word in list)
@@ -44,7 +44,7 @@ public static class EntityWordAnlayzeTool
 
     public static string TrimLeadingUL(string OrgString)
     {
-        var MainWordSentence = "";
+        var MainWordSentence = String.Empty;
         var pos = new JiebaNet.Segmenter.PosSeg.PosSegmenter();
         var list = pos.Cut(OrgString);
         var HasStart = false;

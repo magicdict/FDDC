@@ -47,7 +47,7 @@ public class DateUtility
     //将大写数字转小写
     public static string ConvertUpperToLower(string OrgString)
     {
-        if (String.IsNullOrEmpty(OrgString)) return "";
+        if (String.IsNullOrEmpty(OrgString)) return String.Empty;
         //二○一二年十一月三十日
 
         OrgString = OrgString.Replace("二十一", "21");

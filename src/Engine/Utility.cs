@@ -67,9 +67,9 @@ public static class Utility
     public static string GetStringAfter(String SearchLine, String KeyWord, String Exclude = "")
     {
 
-        if (Exclude != "")
+        if (Exclude != String.Empty)
         {
-            if (SearchLine.IndexOf(Exclude) != -1) return "";
+            if (SearchLine.IndexOf(Exclude) != -1) return String.Empty;
         }
 
         int index = SearchLine.IndexOf(KeyWord);
@@ -78,21 +78,21 @@ public static class Utility
             index = index + KeyWord.Length;
             return SearchLine.Substring(index);
         }
-        return "";
+        return String.Empty;
     }
 
     //提取某个关键字前的信息
     public static string GetStringBefore(String SearchLine, String KeyWord, String Exclude = "")
     {
-        if (Exclude != "")
+        if (Exclude != String.Empty)
         {
-            if (SearchLine.IndexOf(Exclude) != -1) return "";
+            if (SearchLine.IndexOf(Exclude) != -1) return String.Empty;
         }
         int index = SearchLine.IndexOf(KeyWord);
         if (index != -1)
         {
             return SearchLine.Substring(0, index);
         }
-        return "";
+        return String.Empty;
     }
 }

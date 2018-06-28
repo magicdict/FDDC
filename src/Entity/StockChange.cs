@@ -111,7 +111,7 @@ public class StockChange : AnnouceDocument
         stockchange.HolderFullName = Name.FullName.NormalizeTextResult();
         if (EntityWordAnlayzeTool.TrimEnglish(stockchange.HolderFullName).Length > ContractTraning.MaxYiFangLength)
         {
-            stockchange.HolderFullName = "";
+            stockchange.HolderFullName = String.Empty;
         }
         stockchange.HolderShortName = Name.ShortName;
         stockchange.ChangeEndDate = GetChangeEndDate(root);
@@ -123,7 +123,7 @@ public class StockChange : AnnouceDocument
             if (!Program.IsDebugMode)
             {
                 //非调试模式
-                stockchange.ChangeEndDate = "";
+                stockchange.ChangeEndDate = String.Empty;
             }
         }
 
@@ -189,7 +189,7 @@ public class StockChange : AnnouceDocument
 
             if(stockchange.HolderFullName.Contains("简称")){
                 stockchange.HolderShortName = Utility.GetStringAfter(stockchange.HolderFullName,"简称");
-                stockchange.HolderShortName = stockchange.HolderShortName.Replace(")","").Replace("“","").Replace("”","");
+                stockchange.HolderShortName = stockchange.HolderShortName.Replace(")",String.Empty).Replace("“",String.Empty).Replace("”",String.Empty);
                 stockchange.HolderFullName = Utility.GetStringBefore(stockchange.HolderFullName,"(");
             }
 
@@ -202,7 +202,7 @@ public class StockChange : AnnouceDocument
                 if (!Program.IsDebugMode)
                 {
                     //非调试模式
-                    stockchange.ChangeEndDate = "";
+                    stockchange.ChangeEndDate = String.Empty;
                 }
             }
 
@@ -211,22 +211,22 @@ public class StockChange : AnnouceDocument
                 //股价区间化的去除
                 if (!(rec[2].RawData.Contains("-") || rec[2].RawData.Contains("~") || rec[2].RawData.Contains("至")))
                 {
-                    stockchange.ChangePrice = rec[2].RawData.Replace(" ", "");
+                    stockchange.ChangePrice = rec[2].RawData.Replace(" ", String.Empty);
                     stockchange.ChangePrice = stockchange.ChangePrice.NormalizeNumberResult();
                 }
             }
             if (!RegularTool.IsUnsign(stockchange.ChangePrice))
             {
-                stockchange.ChangePrice = "";
+                stockchange.ChangePrice = String.Empty;
             }
 
             if (!String.IsNullOrEmpty(rec[3].RawData))
             {
-                stockchange.ChangeNumber = rec[3].RawData.Replace(" ", "");
+                stockchange.ChangeNumber = rec[3].RawData.Replace(" ", String.Empty);
                 stockchange.ChangeNumber = stockchange.ChangeNumber.NormalizeNumberResult();
                 if (!RegularTool.IsUnsign(stockchange.ChangeNumber))
                 {
-                    stockchange.ChangeNumber = "";
+                    stockchange.ChangeNumber = String.Empty;
                 }
             }
 
@@ -293,7 +293,7 @@ public class StockChange : AnnouceDocument
 
                         var strHolderCnt = mt.CellValue(RowIdx + 1, mt.ColumnCount - 1);
                         strHolderCnt = Normalizer.NormalizeNumberResult(strHolderCnt);
-                        var HolderCnt = "";
+                        var HolderCnt = String.Empty;
                         if (!String.IsNullOrEmpty(r.Match(strHolderCnt).Value))
                         {
                             if (mt.CellValue(2, 5).Contains("万"))
@@ -308,7 +308,7 @@ public class StockChange : AnnouceDocument
                         }
 
                         var StrPercent = mt.CellValue(RowIdx + 1, mt.ColumnCount);
-                        var HodlerPercent = "";
+                        var HodlerPercent = String.Empty;
                         if (!String.IsNullOrEmpty(r.Match(StrPercent).Value))
                         {
                             var pecent = Math.Round((double.Parse(r.Match(StrPercent).Value) * 0.01), 4);
@@ -347,7 +347,7 @@ public class StockChange : AnnouceDocument
                 return name;
             }
         }
-        return ("", "");
+        return (String.Empty, String.Empty);
     }
 
 
@@ -365,7 +365,7 @@ public class StockChange : AnnouceDocument
             Program.Logger.WriteLine("候补变动截止日期：[" + item.Value + "]");
             return NormailizeEndChangeDate(item.Value + "日");
         }
-        return "";
+        return String.Empty;
     }
 
 
@@ -387,7 +387,7 @@ public class StockChange : AnnouceDocument
             }
         }
 
-        orgString = orgString.Trim().Replace(",", "");
+        orgString = orgString.Trim().Replace(",", String.Empty);
 
         //XXXX年XX月XX日 - XXXX年XX月XX日
         var NumberList = RegularTool.GetNumberList(orgString);
@@ -481,7 +481,7 @@ public class StockChange : AnnouceDocument
         {
             String Year = Utility.GetStringBefore(orgString, "年");
             String Month = RegularTool.GetValueBetweenString(orgString, "年", "月");
-            String Day = Utility.GetStringAfter(orgString, "月").Replace("日", "");
+            String Day = Utility.GetStringAfter(orgString, "月").Replace("日", String.Empty);
             int year; int month; int day;
             if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
             {

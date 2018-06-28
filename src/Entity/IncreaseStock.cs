@@ -175,7 +175,7 @@ public class IncreaseStock : AnnouceDocument
 
     static string NormalizerFreezeYear(string orgString, string TitleWord)
     {
-        orgString = orgString.Replace(" ", "");
+        orgString = orgString.Replace(" ", String.Empty);
         if (orgString.Equals("十二")) return "12";
         var x1 = Utility.GetStringAfter(orgString, "日起");
         int x2;
@@ -218,7 +218,7 @@ public class IncreaseStock : AnnouceDocument
             Program.Logger.WriteLine("认购方式:" + result[0]);
             return result[0];
         }
-        return "";
+        return String.Empty;
     }
 
 }

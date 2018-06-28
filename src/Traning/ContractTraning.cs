@@ -8,16 +8,16 @@ using JiebaNet.Segmenter.PosSeg;
 public class ContractTraning
 {
     public static int MaxJiaFangLength = 999;
-    public static string MaxJiaFang = "";
+    public static string MaxJiaFang = String.Empty;
 
     public static int MaxYiFangLength = 999;
-    public static string MaxYiFang = "";
+    public static string MaxYiFang = String.Empty;
 
     public static int MaxContractNameLength = 999;
-    public static string MaxContractName = "";
+    public static string MaxContractName = String.Empty;
 
     public static int MaxProjectNameLength = 999;
-    public static string MaxProjectName = "";
+    public static string MaxProjectName = String.Empty;
 
     public static double MinAmount = double.MaxValue;
 
@@ -69,20 +69,42 @@ public class ContractTraning
         foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\html\"))
         {
             var fi = new System.IO.FileInfo(filename);
-            var Id = fi.Name.Replace(".html", "");
+            var Id = fi.Name.Replace(".html", String.Empty);
             if (TraningDataset.GetContractById(Id).Count == 0) continue;
             var contract = TraningDataset.GetContractById(Id).First();
-            if (contract.JiaFang == "") continue;
+            if (contract.JiaFang == String.Empty) continue;
             var root = HTMLEngine.Anlayze(filename);
-            JiaFangS.AnlayzeEntitySurroundWords(root, contract.JiaFang);
-            YiFangS.AnlayzeEntitySurroundWords(root, contract.YiFang);
-            ProjectNameS.AnlayzeEntitySurroundWords(root, contract.ProjectName);
-            ContractNameS.AnlayzeEntitySurroundWords(root, contract.ContractName);
+            if (!string.IsNullOrEmpty(contract.JiaFang)) JiaFangS.AnlayzeEntitySurroundWords(root, contract.JiaFang);
+            if (!string.IsNullOrEmpty(contract.YiFang)) YiFangS.AnlayzeEntitySurroundWords(root, contract.YiFang);
+            if (!string.IsNullOrEmpty(contract.ProjectName)) ProjectNameS.AnlayzeEntitySurroundWords(root, contract.ProjectName);
+            if (!string.IsNullOrEmpty(contract.ContractName)) ContractNameS.AnlayzeEntitySurroundWords(root, contract.ContractName);
         }
         Program.Training.WriteLine("甲方附近词语分析：");
         JiaFangS.WriteTop(10);
         Program.Training.WriteLine("乙方附近词语分析：");
         YiFangS.WriteTop(10);
+        Program.Training.WriteLine("工程名附近词语分析：");
+        ProjectNameS.WriteTop(10);
+        Program.Training.WriteLine("合同名附近词语分析：");
+        ContractNameS.WriteTop(10);
+
+    }
+
+    public static void AnlayzeEntitySurroundWordsLTP()
+    {
+        var ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
+        var ProjectNameS = new LTPTraining();
+        var ContractNameS = new LTPTraining();
+        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\html\"))
+        {
+            var fi = new System.IO.FileInfo(filename);
+            var Id = fi.Name.Replace(".html", String.Empty);
+            if (TraningDataset.GetContractById(Id).Count == 0) continue;
+            var contract = TraningDataset.GetContractById(Id).First();
+            Contract.Extract(filename);
+            if (!string.IsNullOrEmpty(contract.ProjectName)) ProjectNameS.Training(Contract.Dplist, contract.ProjectName);
+            if (!string.IsNullOrEmpty(contract.ContractName)) ContractNameS.Training(Contract.Dplist, contract.ContractName);
+        }
         Program.Training.WriteLine("工程名附近词语分析：");
         ProjectNameS.WriteTop(10);
         Program.Training.WriteLine("合同名附近词语分析：");

@@ -9,7 +9,7 @@ public class IncreaseStockTraning
     public static void TrainingIncreaseTarget()
     {
         TraningDataset.InitIncreaseStock();
-        var PreviewId = "";
+        var PreviewId = String.Empty;
         var PreviewRoot = new HTMLEngine.MyRootHtmlNode();
         foreach (var increase in TraningDataset.IncreaseStockList)
         {

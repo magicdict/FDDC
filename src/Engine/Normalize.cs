@@ -8,7 +8,7 @@ public static class Normalizer
     {
         //去除空白,换行    
         var stringArray = orgString.Trim().Split("\n");
-        string rtn = "";
+        string rtn = String.Empty;
         foreach (var item in stringArray)
         {
             rtn += item.Trim();
@@ -21,7 +21,7 @@ public static class Normalizer
     public static string NormalizeTextResult(this string orgString)
     {
         //HTML符号的过滤
-        orgString = orgString.Trim().Replace(" ", "");
+        orgString = orgString.Trim().Replace(" ", String.Empty);
         if (orgString.Contains("&amp;"))
         {
             orgString = orgString.Replace("&amp;", "&");
@@ -53,7 +53,7 @@ public static class Normalizer
         if (!String.IsNullOrEmpty(orgString))
         {
             //输出数据已经去掉空格，不过，Traing没有去除空格
-            orgString = orgString.Trim().Replace(" ", "").ToLower();
+            orgString = orgString.Trim().Replace(" ", String.Empty).ToLower();
         }
         return orgString;
     }
@@ -63,8 +63,8 @@ public static class Normalizer
     {
         if (!String.IsNullOrEmpty(orgString))
         {
-            orgString = orgString.Trim().Replace(",", "");
-            orgString = orgString.Trim().Replace(" ", "");
+            orgString = orgString.Trim().Replace(",", String.Empty);
+            orgString = orgString.Trim().Replace(" ", String.Empty);
         }
         return orgString;
     }

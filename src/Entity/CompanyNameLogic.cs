@@ -36,8 +36,8 @@ public class CompanyNameLogic
                 var PreviewEndIdx = -1;
                 for (int baseInd = 0; baseInd < words.Count; baseInd++)
                 {
-                    var FullName = "";
-                    var ShortName = "";
+                    var FullName = String.Empty;
+                    var ShortName = String.Empty;
                     var IsSubCompany = false;
                     if (words[baseInd].Word == "国家电网" &&
                         (baseInd + 1) < words.Count &&
@@ -80,7 +80,7 @@ public class CompanyNameLogic
                                 }
                                 if (ShortNameStart != -1 && ShortNameEnd != -1)
                                 {
-                                    ShortName = "";
+                                    ShortName = String.Empty;
                                     for (int i = ShortNameStart; i <= ShortNameEnd; i++)
                                     {
                                         ShortName += words[i].Word;
@@ -90,7 +90,7 @@ public class CompanyNameLogic
                             }
                         }
 
-                        var FirstShortNameWord = "";
+                        var FirstShortNameWord = String.Empty;
                         if (ShortName.Length == 4)
                         {
                             FirstShortNameWord = ShortName.Substring(0, 2);
@@ -111,7 +111,7 @@ public class CompanyNameLogic
                             {
                                 //注意，地名可能相连，例如：上海市嘉定
                                 if (NRIdx != 0 && (words[NRIdx - 1].Flag == WordUtility.地名 || WordUtility.DictNSAdjust.Contains(words[NRIdx - 1].Word))) continue;
-                                FullName = "";
+                                FullName = String.Empty;
                                 for (int companyFullNameInd = NRIdx; companyFullNameInd <= baseInd; companyFullNameInd++)
                                 {
                                     FullName += words[companyFullNameInd].Word;
@@ -147,7 +147,7 @@ public class CompanyNameLogic
                         {
                             if (FirstShortNameIdx == -1) continue;
                             if (posSeg.Cut(ShortName).First().Flag == WordUtility.地名) continue;
-                            FullName = "";
+                            FullName = String.Empty;
                             for (int NRIdx = FirstShortNameIdx; NRIdx <= baseInd; NRIdx++)
                             {
                                 FullName += words[NRIdx].Word;
@@ -165,12 +165,12 @@ public class CompanyNameLogic
                             }
                         }
 
-                        if (FullName != "")
+                        if (FullName != String.Empty)
                         {
-                            FullName = FullName.Replace(" ", "").Trim();
-                            ShortName = ShortName.Replace(" ", "").Trim();
-                            if (ShortName == "公司" || ShortName == "本公司") ShortName = "";
-                            if (ShortName == "")
+                            FullName = FullName.Replace(" ", String.Empty).Trim();
+                            ShortName = ShortName.Replace(" ", String.Empty).Trim();
+                            if (ShortName == "公司" || ShortName == "本公司") ShortName = String.Empty;
+                            if (ShortName == String.Empty)
                             {
                                 var json = GetCompanyNameByFullName(FullName);
                                 ShortName = json.secShortName;
@@ -234,7 +234,7 @@ public class CompanyNameLogic
 
     public static struCompanyName AfterProcessFullName(string FullName)
     {
-        var ShortName = "";
+        var ShortName = String.Empty;
         var CompanyNameTrailingwords = new string[] {
             "（以下简称", "（下称", "（以下称", "（简称", "(以下简称", "(下称", "(以下称", "(简称"
         };
@@ -270,7 +270,7 @@ public class CompanyNameLogic
         //删除前导
         FullName = EntityWordAnlayzeTool.TrimLeadingUL(FullName);
         FullName = CutOtherLeadingWords(FullName);
-        if (ShortName != "")
+        if (ShortName != String.Empty)
         {
             return new struCompanyName() { secFullName = FullName, secShortName = ShortName, Score = 80 };
         }
@@ -315,21 +315,21 @@ public class CompanyNameLogic
                 if (word.EndsWith("公司") || word.Contains("有限合伙")) return word;
             }
         }
-        if (CandidateWords.Count == 0) return "";
+        if (CandidateWords.Count == 0) return String.Empty;
         return CandidateWords[0];
     }
 
 
     public static (String FullName, String ShortName) NormalizeCompanyName(string word)
     {
-        if (String.IsNullOrEmpty(word)) return ("", "");
-        var fullname = word.Replace(" ", "");
-        var shortname = "";
+        if (String.IsNullOrEmpty(word)) return (String.Empty, String.Empty);
+        var fullname = word.Replace(" ", String.Empty);
+        var shortname = String.Empty;
         foreach (var companyname in AnnouceDocument.companynamelist)
         {
             if (companyname.secFullName == fullname)
             {
-                if (shortname == "")
+                if (shortname == String.Empty)
                 {
                     shortname = companyname.secShortName;
                     break;
@@ -351,7 +351,7 @@ public class CompanyNameLogic
             }
         }
 
-        if (shortname == "")
+        if (shortname == String.Empty)
         {
             shortname = CompanyNameLogic.GetCompanyNameByFullName(fullname).secShortName;
         }

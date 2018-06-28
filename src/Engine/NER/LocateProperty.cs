@@ -49,7 +49,7 @@ public static class LocateProperty
             foreach (var sentence in paragrah.Children)
             {
                 var OrgString = sentence.Content;
-                OrgString = DateUtility.ConvertUpperToLower(OrgString).Replace(" ", "");
+                OrgString = DateUtility.ConvertUpperToLower(OrgString).Replace(" ", String.Empty);
                 var datelist = DateUtility.GetRangeDate(OrgString);
                 foreach (var strDate in datelist)
                 {
@@ -125,7 +125,7 @@ public static class LocateProperty
             foreach (var sentence in paragrah.Children)
             {
                 var OrgString = sentence.Content;
-                OrgString = DateUtility.ConvertUpperToLower(OrgString).Replace(" ", "");
+                OrgString = DateUtility.ConvertUpperToLower(OrgString).Replace(" ", String.Empty);
                 var datelist = DateUtility.GetDate(OrgString);
                 foreach (var strDate in datelist)
                 {
@@ -157,7 +157,7 @@ public static class LocateProperty
             foreach (var sentence in paragrah.Children)
             {
                 var OrgString = sentence.Content;
-                OrgString = MoneyUtility.ConvertUpperToLower(OrgString).Replace(" ", "");
+                OrgString = MoneyUtility.ConvertUpperToLower(OrgString).Replace(" ", String.Empty);
                 var Money = MoneyUtility.SeekMoney(OrgString);
                 foreach (var money in Money)
                 {

@@ -93,12 +93,12 @@ public class Contract : AnnouceDocument
         return ContractList;
     }
 
-    public static string contractType = "";
+    public static string contractType = String.Empty;
 
 
     static struContract ExtractSingle(MyRootHtmlNode root, String Id)
     {
-        contractType = "";
+        contractType = String.Empty;
         foreach (var paragrah in root.Children)
         {
             foreach (var item in paragrah.Children)
@@ -114,9 +114,13 @@ public class Contract : AnnouceDocument
                     break;
                 }
             }
-            if (contractType != "") break;
+            if (contractType != String.Empty) break;
         }
 
+        if (contractType == String.Empty)
+        {
+            Console.WriteLine("contractType Null:" + Id);
+        }
 
         var contract = new struContract();
         //公告ID
@@ -159,7 +163,7 @@ public class Contract : AnnouceDocument
         if (contractType == "中标")
         {
             //按照数据分析来看，应该工程名 在中标的时候填写，合同名在合同的时候填写
-            contract.ContractName = "";
+            contract.ContractName = String.Empty;
         }
         else
         {
@@ -169,7 +173,7 @@ public class Contract : AnnouceDocument
                 contract.ContractName = contract.ContractName.TrimStart("“".ToCharArray()).TrimEnd("”".ToCharArray());
             }
             //去掉书名号
-            contract.ContractName = contract.ContractName.Replace("《", "").Replace("》", "");
+            contract.ContractName = contract.ContractName.Replace("《", String.Empty).Replace("》", String.Empty);
             if (contract.ContractName.Contains("（以下简称"))
             {
                 contract.ContractName = Utility.GetStringAfter(contract.ContractName, "（以下简称");
@@ -180,7 +184,7 @@ public class Contract : AnnouceDocument
 
         //金额
         var money = GetMoney();
-        contract.ContractMoneyUpLimit = MoneyUtility.Format(money.MoneyAmount, "");
+        contract.ContractMoneyUpLimit = MoneyUtility.Format(money.MoneyAmount, String.Empty);
         contract.ContractMoneyDownLimit = contract.ContractMoneyUpLimit;
 
         //联合体
@@ -196,9 +200,9 @@ public class Contract : AnnouceDocument
         if (OrgString.Contains("以下简称"))
         {
             OrgString = Utility.GetStringAfter(OrgString, "以下简称");
-            if (OrgString == "")
+            if (OrgString == String.Empty)
             {
-                return "";
+                return String.Empty;
             }
             else
             {
@@ -250,8 +254,8 @@ public class Contract : AnnouceDocument
         foreach (var item in Extractor.CandidateWord)
         {
             var JiaFang = CompanyNameLogic.AfterProcessFullName(item.Value.Trim());
-            JiaFang.secFullName = JiaFang.secFullName.Replace("业主", "").Trim();
-            JiaFang.secFullName = JiaFang.secFullName.Replace("招标单位", "").Trim();
+            JiaFang.secFullName = JiaFang.secFullName.Replace("业主", String.Empty).Trim();
+            JiaFang.secFullName = JiaFang.secFullName.Replace("招标单位", String.Empty).Trim();
             if (EntityWordAnlayzeTool.TrimEnglish(JiaFang.secFullName).Length > ContractTraning.MaxJiaFangLength) continue;
             if (JiaFang.secFullName.Length < 3) continue;     //使用实际长度排除全英文的情况
             Program.Logger.WriteLine("甲方候补词(招标)：[" + JiaFang + "]");
@@ -267,7 +271,7 @@ public class Contract : AnnouceDocument
         foreach (var item in Extractor.CandidateWord)
         {
             var JiaFang = CompanyNameLogic.AfterProcessFullName(item.Value.Trim());
-            JiaFang.secFullName = JiaFang.secFullName.Replace("业主", "").Trim();
+            JiaFang.secFullName = JiaFang.secFullName.Replace("业主", String.Empty).Trim();
             if (EntityWordAnlayzeTool.TrimEnglish(JiaFang.secFullName).Length > ContractTraning.MaxJiaFangLength) continue;
             if (JiaFang.secFullName.Length < 3) continue;     //使用实际长度排除全英文的情况
             Program.Logger.WriteLine("甲方候补词(合同)：[" + JiaFang + "]");
@@ -319,7 +323,7 @@ public class Contract : AnnouceDocument
         {
             var ContractName = item.Value.Trim();
             if (EntityWordAnlayzeTool.TrimEnglish(ContractName).Length > ContractTraning.MaxContractNameLength) continue;
-            if (TrimJianCheng(ContractName) == "") continue;
+            if (TrimJianCheng(ContractName) == String.Empty) continue;
             Program.Logger.WriteLine("合同候补词(合同)：[" + ContractName + "]");
             return ContractName;
         }
@@ -332,7 +336,7 @@ public class Contract : AnnouceDocument
         {
             var ContractName = item.Value.Trim();
             if (EntityWordAnlayzeTool.TrimEnglish(ContractName).Length > ContractTraning.MaxContractNameLength) continue;
-            if (TrimJianCheng(ContractName) == "") continue;
+            if (TrimJianCheng(ContractName) == String.Empty) continue;
             Program.Logger.WriteLine("合同候补词(合同)：[" + ContractName + "]");
             return ContractName;
         }
@@ -341,12 +345,16 @@ public class Contract : AnnouceDocument
         //《》，“”里面的内容
         foreach (var bracket in bracketlist)
         {
+            Program.Logger.WriteLine("合同候补词(合同)：[" + bracket.Value + "]");
+        }
+        foreach (var bracket in bracketlist)
+        {
             if (bracket.Value.EndsWith("合同") ||
                 bracket.Value.EndsWith("确认书") ||
                 bracket.Value.EndsWith("协议") ||
                 bracket.Value.EndsWith("协议书"))
             {
-                Program.Logger.WriteLine("合同候补词(合同)：[" + bracket.Value + "]");
+                Program.Logger.WriteLine("合同：[" + bracket.Value + "]");
                 return bracket.Value;
             }
         }
@@ -385,14 +393,14 @@ public class Contract : AnnouceDocument
         ExtractorHTML.Extract(root);
         foreach (var item in ExtractorHTML.CandidateWord)
         {
-            var ContractName = item.Value.Trim();
+            var ContractName = item.Value.Trim() + "合同";
             if (EntityWordAnlayzeTool.TrimEnglish(ContractName).Length > ContractTraning.MaxContractNameLength) continue;
             if (ContractName.Length <= 4) continue;
             Program.Logger.WriteLine("合同候补词(合同)：[" + item + "]");
             return ContractName;
         }
 
-        return "";
+        return String.Empty;
     }
 
     static string GetProjectName()
@@ -405,7 +413,7 @@ public class Contract : AnnouceDocument
         {
             var ProjectName = item.Value.Trim();
             if (EntityWordAnlayzeTool.TrimEnglish(ProjectName).Length > ContractTraning.MaxContractNameLength) continue;
-            if (TrimJianCheng(ProjectName) == "") continue;
+            if (TrimJianCheng(ProjectName) == String.Empty) continue;
             Program.Logger.WriteLine("项目名称候补词(关键字)：[" + item + "]");
             return ProjectName;
         }
@@ -416,7 +424,7 @@ public class Contract : AnnouceDocument
         {
             var ProjectName = item.Value.Trim();
             if (EntityWordAnlayzeTool.TrimEnglish(ProjectName).Length > ContractTraning.MaxContractNameLength) continue;
-            if (TrimJianCheng(ProjectName) == "") continue;
+            if (TrimJianCheng(ProjectName) == String.Empty) continue;
             Program.Logger.WriteLine("项目名称候补词(关键字)：[" + item + "]");
             return ProjectName;
         }
@@ -498,7 +506,7 @@ public class Contract : AnnouceDocument
         {
             return list[0];
         }
-        return "";
+        return String.Empty;
     }
 
     static (String MoneyAmount, String MoneyCurrency) GetMoney()
@@ -520,13 +528,13 @@ public class Contract : AnnouceDocument
             var moneylist = MoneyUtility.SeekMoney(item.Value);
             AllMoneyList.AddRange(moneylist);
         }
-        if (AllMoneyList.Count == 0) return ("", "");
+        if (AllMoneyList.Count == 0) return (String.Empty, String.Empty);
         foreach (var money in AllMoneyList)
         {
             if (money.MoneyCurrency == "人民币" ||
                 money.MoneyCurrency == "元")
             {
-                var amount = MoneyUtility.Format(money.MoneyAmount, "");
+                var amount = MoneyUtility.Format(money.MoneyAmount, String.Empty);
                 var m = 0.0;
                 if (double.TryParse(amount, out m))
                 {

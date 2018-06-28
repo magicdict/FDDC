@@ -29,11 +29,18 @@ public class ExtractPropertyByDP
         foreach (var key in keys)
         {
             bool isStart = false;
-            string x = "";
+            string x = String.Empty;
             foreach (var paragragh in dplist)
             {
                 foreach (var word in paragragh)
                 {
+                    if (word.cont == "。" || word.cont == "：" || word.cont == "，"){
+                        if (isStart){
+                            x = String.Empty;
+                            isStart = false;
+                            continue;
+                        }
+                    }
                     if (isStart)
                     {
                         if (word.relate == LTP.右附加关系) continue;
@@ -47,7 +54,7 @@ public class ExtractPropertyByDP
                     {
                         if (isStart) CandidateWord.Add(new LocAndValue<string>() { Value = x });
                         isStart = false;
-                        x = "";
+                        x = String.Empty;
                     }
                 }
             }

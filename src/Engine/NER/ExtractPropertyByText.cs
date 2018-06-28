@@ -40,7 +40,7 @@ public class ExtractPropertyByText
             var line = lines[CurrentLineIdx];
             foreach (var word in LeadingColonKeyWordList)
             {
-                if (Utility.GetStringAfter(line, word) != "")
+                if (Utility.GetStringAfter(line, word) != String.Empty)
                 {
                     var result = Utility.GetStringAfter(line, word);
                     if (string.IsNullOrEmpty(result)) continue;
@@ -71,7 +71,7 @@ public class ExtractPropertyByText
             var line = lines[CurrentLineIdx];
             foreach (var word in TrailingWordList)
             {
-                if (Utility.GetStringBefore(line, word) != "")
+                if (Utility.GetStringBefore(line, word) != String.Empty)
                 {
                     var result = Utility.GetStringBefore(line, word);
                     if (string.IsNullOrEmpty(result)) continue;

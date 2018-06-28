@@ -9,7 +9,7 @@ public class MoneyUtility
     //将大写数字转小写
     public static string ConvertUpperToLower(string OrgString)
     {
-        if (String.IsNullOrEmpty(OrgString)) return "";
+        if (String.IsNullOrEmpty(OrgString)) return String.Empty;
         OrgString = OrgString.Replace("〇", "0");
         OrgString = OrgString.Replace("○", "0");    //本次HTML的特殊处理
         OrgString = OrgString.Replace("一", "1");
@@ -39,7 +39,7 @@ public class MoneyUtility
 
     public static List<(String MoneyAmount, String MoneyCurrency)> SeekMoney(string OrgString)
     {
-        OrgString = OrgString.Replace(" ", "");
+        OrgString = OrgString.Replace(" ", String.Empty);
 
         OrgString = OrgString.Replace("〇", "0");
         OrgString = OrgString.Replace("○", "0");    //本次HTML的特殊处理
@@ -72,7 +72,7 @@ public class MoneyUtility
         {
             bool IsCurrencyMark = false;
             detectString = detectString.Substring(LastIndex);
-            var MoneyCurrency = "";
+            var MoneyCurrency = String.Empty;
             //可能同时存在多个关键字，这里选择最前面一个关键字
             var MinIdx = -1;
             foreach (var Currency in CurrencyList)
@@ -94,7 +94,7 @@ public class MoneyUtility
                     }
                 }
             }
-            if (MoneyCurrency == "")
+            if (MoneyCurrency == String.Empty)
             {
                 if (detectString.Contains("￥"))
                 {
@@ -127,7 +127,7 @@ public class MoneyUtility
                 LastIndex = detectString.IndexOf(MoneyCurrency);
             }
             Regex rex = new Regex(@"^\d+");
-            var MoneyAmount = "";
+            var MoneyAmount = String.Empty;
             for (int i = LastIndex - 1; i >= 0; i--)
             {
                 var SingleChar = detectString.Substring(i, 1);
@@ -141,21 +141,21 @@ public class MoneyUtility
                 }
                 else
                 {
-                    MoneyAmount = "";
+                    MoneyAmount = String.Empty;
                     if (LastIndex == i + 1) break;
                     MoneyAmount = detectString.Substring(i + 1, LastIndex - i - 1);
                     MoneyAmount = Normalizer.NormalizeNumberResult(MoneyAmount);
                     if (!rex.IsMatch(MoneyAmount))
                     {
-                        MoneyAmount = "";
+                        MoneyAmount = String.Empty;
                         break;  //暂时认为一定要有阿拉伯数字
                     }
                     MoneyList.Add((MoneyAmount, MoneyCurrency));
-                    MoneyAmount = "";
+                    MoneyAmount = String.Empty;
                     break;
                 }
             }
-            if (MoneyAmount != "") MoneyList.Add((MoneyAmount, MoneyCurrency));
+            if (MoneyAmount != String.Empty) MoneyList.Add((MoneyAmount, MoneyCurrency));
             if (!IsCurrencyMark)
             {
                 LastIndex += MoneyCurrency.Length;
@@ -169,19 +169,19 @@ public class MoneyUtility
     {
         if (!String.IsNullOrEmpty(orgAmountString))
         {
-            orgAmountString = orgAmountString.Trim().Replace(",", "");
-            orgAmountString = orgAmountString.Trim().Replace("，", "");
+            orgAmountString = orgAmountString.Trim().Replace(",", String.Empty);
+            orgAmountString = orgAmountString.Trim().Replace("，", String.Empty);
         }
-        orgAmountString = orgAmountString.Replace("不超过", "");
-        orgAmountString = orgAmountString.Replace("不低于", "");
-        orgAmountString = orgAmountString.Replace("不多于", "");
-        orgAmountString = orgAmountString.Replace("不少于", "");
+        orgAmountString = orgAmountString.Replace("不超过", String.Empty);
+        orgAmountString = orgAmountString.Replace("不低于", String.Empty);
+        orgAmountString = orgAmountString.Replace("不多于", String.Empty);
+        orgAmountString = orgAmountString.Replace("不少于", String.Empty);
 
         foreach (var Currency in CurrencyList)
         {
             if (orgAmountString.EndsWith(Currency))
             {
-                orgAmountString = orgAmountString.Replace(Currency, "");
+                orgAmountString = orgAmountString.Replace(Currency, String.Empty);
                 orgAmountString = orgAmountString.Trim();
                 break;
             }
@@ -200,7 +200,7 @@ public class MoneyUtility
         {
             if (orgAmountString.EndsWith("万"))
             {
-                orgAmountString = orgAmountString.Replace("万", "");
+                orgAmountString = orgAmountString.Replace("万", String.Empty);
                 double x;
                 if (double.TryParse(orgAmountString, out x))
                 {
@@ -212,8 +212,8 @@ public class MoneyUtility
         //惩 本次HTML特殊处理
         if (orgAmountString.EndsWith("亿") || orgAmountString.EndsWith("惩"))
         {
-            orgAmountString = orgAmountString.Replace("亿", "");
-            orgAmountString = orgAmountString.Replace("惩", "");
+            orgAmountString = orgAmountString.Replace("亿", String.Empty);
+            orgAmountString = orgAmountString.Replace("惩", String.Empty);
             double x;
             if (double.TryParse(orgAmountString, out x))
             {
@@ -228,8 +228,8 @@ public class MoneyUtility
                 //惩 本次HTML特殊处理
                 if (orgAmountString.EndsWith("亿") || orgAmountString.EndsWith("惩"))
                 {
-                    orgAmountString = orgAmountString.Replace("亿", "");
-                    orgAmountString = orgAmountString.Replace("惩", "");
+                    orgAmountString = orgAmountString.Replace("亿", String.Empty);
+                    orgAmountString = orgAmountString.Replace("惩", String.Empty);
                     double x;
                     if (double.TryParse(orgAmountString, out x))
                     {

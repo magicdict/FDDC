@@ -43,10 +43,10 @@ public class AnnouceDocument
             TextFileName += ".txt";
         }
         Program.Logger.WriteLine("Start FileName:[" + fi.Name + "]");
-        Id = fi.Name.Replace(".html", "");
+        Id = fi.Name.Replace(".html", String.Empty);
         Program.Logger.WriteLine("公告ID:" + Id);
         root = HTMLEngine.Anlayze(htmlFileName);
-        AnnouceCompanyName = "";
+        AnnouceCompanyName = String.Empty;
 
         var XMLFileName = fi.Name.Replace("html", "xml");
         if (!XMLFileName.EndsWith(".xml"))
@@ -77,7 +77,7 @@ public class AnnouceDocument
                 for (int j = root.Children[i].Children.Count - 1; j >= 0; j--)
                 {
                     var content = root.Children[i].Children[j].Content;
-                    content = content.Replace(" ", "");
+                    content = content.Replace(" ", String.Empty);
                     if (content.EndsWith("有限公司董事会"))
                     {
                         AnnouceCompanyName = content.Substring(0, content.Length - 3);

@@ -32,8 +32,8 @@ namespace FDDC
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             //初始化   
             CompanyNameLogic.LoadCompanyName(@"Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
-            if (IsDebugMode) WordUtility.DictNSAdjust = new string[] { };    //调试模式下，去掉地名调整字典
 
+            //预处理
             //PDFMiner:PDF转TXTbatch
             //PDFToTXT.GetPdf2TxtBatchFile(); return;
             //TXT整理
@@ -41,7 +41,7 @@ namespace FDDC
             //LTP:XML生成Batch
             //PDFToTXT.GetLTPXMLBatchFile(); return;            
             //LTP.Anlayze(@"E:\WorkSpace2018\FDDC2018\1021332.xml"); return;
-
+            if (IsDebugMode) WordUtility.DictNSAdjust = new string[] { };    //调试模式下，去掉地名调整字典
             TraningDataset.InitStockChange();
             TraningDataset.InitContract();
             //通过训练获得各种字段的最大长度，便于抽取的时候做置信度检查
@@ -50,7 +50,7 @@ namespace FDDC
             //ContractTraning.GetListLeadWords();
             //警告：可能所有的Segmenter使用的是共用的词典！
             //下面的训练将把关键字加入到词典中，引发一些问题
-            //ContractTraning.AnlayzeEntitySurroundWords(); Training.Close(); return;
+            //ContractTraning.AnlayzeEntitySurroundWordsLTP(); Training.Close(); return;
             //TraningDataset.InitIncreaseStock();
             Training.Close();
             //UT(); return;
@@ -62,8 +62,8 @@ namespace FDDC
 
         private static void Extract()
         {
-            var IsRunContract = false;
-            var IsRunContract_TEST = true;
+            var IsRunContract = true;
+            var IsRunContract_TEST = false;
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
             var ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_a_20180605" + Path.DirectorySeparatorChar + "重大合同";
 

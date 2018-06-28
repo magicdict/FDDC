@@ -22,7 +22,7 @@ public static class HTMLEngine
         {
             get
             {
-                var strFull = "";
+                var strFull = String.Empty;
                 foreach (var child in Children)
                 {
                     if (child.TableId == -1)
@@ -70,7 +70,7 @@ public static class HTMLEngine
             //跳过#text的节
             if (SecondLayerNode.Name == "div")
             {
-                var title = "";
+                var title = String.Empty;
                 if (SecondLayerNode.Attributes.Contains("title"))
                 {
                     title = SecondLayerNode.Attributes["title"].Value;
@@ -155,7 +155,7 @@ public static class HTMLEngine
         while (!SR.EndOfStream)
         {
             string TxtLine = Normalizer.NormalizeItemListNumber(SR.ReadLine().Trim());
-            TxtLine = TxtLine.Replace(" ", "");    //HTML是去空格的,PDF有空格
+            TxtLine = TxtLine.Replace(" ", String.Empty);    //HTML是去空格的,PDF有空格
             //通过TXT补偿列表分裂的情况
             if (TxtLine.StartsWith("<"))
             {
@@ -195,7 +195,7 @@ public static class HTMLEngine
                                                 //如果上一行和下一行的拼接体不包含：号
                                                 //则用拼接体，然后的话，用文本文件的结果
                                                 TxtLine = CombineLine;
-                                                contentNode.NextBrother.Content = "";
+                                                contentNode.NextBrother.Content = String.Empty;
                                             }
                                         }
                                     }
@@ -221,7 +221,7 @@ public static class HTMLEngine
         while (!SR.EndOfStream)
         {
             string TxtLine = Normalizer.NormalizeItemListNumber(SR.ReadLine().Trim());
-            TxtLine = TxtLine.Replace(" ", "");    //HTML是去空格的,PDF有空格
+            TxtLine = TxtLine.Replace(" ", String.Empty);    //HTML是去空格的,PDF有空格
             if (!String.IsNullOrEmpty(TxtLine)) TxtList.Add(TxtLine);
         }
         for (int i = 1; i < TxtList.Count - 1; i++)
@@ -252,7 +252,7 @@ public static class HTMLEngine
         {
             if (paragraph.ChildNodes[0].Name == "#text")
             {
-                if (subTitle != "")
+                if (subTitle != String.Empty)
                 {
                     var txtnode = new MyHtmlNode();
                     txtnode.Content = subTitle;
@@ -273,7 +273,7 @@ public static class HTMLEngine
                         if (node.ChildNodes.Count == 3 && node.ChildNodes[1].Name == "table")
                         {
                             var tablenode = new MyHtmlNode();
-                            tablenode.Content = "";
+                            tablenode.Content = String.Empty;
                             TableId++;
                             tablenode.TableId = TableId;
                             var tablecontentlist = HTMLTable.GetTable(node.ChildNodes[1], TableId);
@@ -291,19 +291,19 @@ public static class HTMLEngine
                             }
                             else
                             {
-                                if (subTitle != "")
+                                if (subTitle != String.Empty)
                                 {
                                     var contentnode = new MyHtmlNode();
                                     contentnode.Content = subTitle;
                                     root.Children.Add(contentnode);
                                 }
                             }
-                            subTitle = "";
+                            subTitle = String.Empty;
                         }
                     }
                     if (node.Attributes["type"].Value == "paragraph")
                     {
-                        var title = "";
+                        var title = String.Empty;
                         if (node.Attributes.Contains("title"))
                         {
                             title = node.Attributes["title"].Value;
@@ -316,7 +316,7 @@ public static class HTMLEngine
             if (node.Name == "table")
             {
                 var tablenode = new MyHtmlNode();
-                tablenode.Content = "";
+                tablenode.Content = String.Empty;
                 TableId++;
                 tablenode.TableId = TableId;
                 var tablecontentlist = HTMLTable.GetTable(node, TableId);

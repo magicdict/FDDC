@@ -61,37 +61,43 @@ public class PDFToTXT
         var Logger = new StreamWriter("ltp.bat", false, Encoding.GetEncoding("gb2312"));
 
         Logger.WriteLine(@"D:");
-        Logger.WriteLine(@"cd D:\Download\ltp-3.4.0-win-x64-Release\bin\Release");
+        Logger.WriteLine(@"cd D:\Download\ltp-3.3.2-win-x64-Release\bin\Release");
         var ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
 
         Logger.WriteLine("mkdir " + ContractPath_TRAIN + "\\ner");
         Logger.WriteLine("mkdir " + ContractPath_TRAIN + "\\dp");
+        Logger.WriteLine("mkdir " + ContractPath_TRAIN + "\\srl");
         foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\txt\"))
         {
             var nerPath = ContractPath_TRAIN + @"\ner\";
             var dpPath = ContractPath_TRAIN + @"\dp\";
+            var srlPath = ContractPath_TRAIN + @"\srl\";
             var fi = new FileInfo(filename);
             var xml = fi.Name.Replace("txt", "xml");
             if (!xml.Contains("xml")) xml += ".xml";
-            Logger.WriteLine("ltp_test.exe --last-stage ner --input " + filename + " > " + nerPath + xml);
-            Logger.WriteLine("ltp_test.exe --last-stage dp --input " + filename + " > " + dpPath + xml);
+            //Logger.WriteLine("ltp_test.exe --last-stage ner --input " + filename + " > " + nerPath + xml);
+            //Logger.WriteLine("ltp_test.exe --last-stage dp --input " + filename + " > " + dpPath + xml);
+            Logger.WriteLine("ltp_test.exe --input " + filename + " > " + srlPath + xml);
         }
 
         var ContractPath_TEST = Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\重大合同";
         Logger.WriteLine("mkdir " + ContractPath_TEST + "\\ner");
         Logger.WriteLine("mkdir " + ContractPath_TEST + "\\dp");
+        Logger.WriteLine("mkdir " + ContractPath_TEST + "\\srl");
         foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TEST + @"\txt\"))
         {
             var nerPath = ContractPath_TEST + @"\ner\";
             var dpPath = ContractPath_TEST + @"\dp\";
+            var srlPath = ContractPath_TEST + @"\srl\";
             var fi = new FileInfo(filename);
             var xml = fi.Name.Replace("txt", "xml");
             if (!xml.Contains("xml")) xml += ".xml";
-            Logger.WriteLine("ltp_test.exe --last-stage ner --input " + filename + " > " + nerPath + xml);
-            Logger.WriteLine("ltp_test.exe --last-stage dp --input " + filename + " > " + dpPath + xml);
+            //Logger.WriteLine("ltp_test.exe --last-stage ner --input " + filename + " > " + nerPath + xml);
+            //Logger.WriteLine("ltp_test.exe --last-stage dp --input " + filename + " > " + dpPath + xml);
+            Logger.WriteLine("ltp_test.exe --input " + filename + " > " + srlPath + xml);
         }
 
-        Logger.Close(); return;
+        //Logger.Close(); return;
 
         ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持";
         Logger.WriteLine("mkdir " + ContractPath_TRAIN + "\\xml");
@@ -165,7 +171,7 @@ public class PDFToTXT
                 foreach (var line in Lines)
                 {
                     if (line.Equals(" ")) continue;
-                    if (line.Contains("\f")) line.Replace("\f", "");
+                    if (line.Contains("\f")) line.Replace("\f", String.Empty);
                     //是否以空格结尾
                     if (line.EndsWith(" "))
                     {

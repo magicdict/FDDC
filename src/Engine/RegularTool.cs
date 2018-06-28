@@ -22,7 +22,7 @@ public static class RegularTool
     public static string Trimbrackets(string str)
     {
         Regex r = new Regex(@"\(.*?\)");
-        str = r.Replace(str, "");
+        str = r.Replace(str, String.Empty);
         return str;
     }
 
