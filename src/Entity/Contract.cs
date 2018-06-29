@@ -99,8 +99,6 @@ public class Contract : AnnouceDocument
 
     public string contractType = String.Empty;
 
-
-
     struContract ExtractSingle(MyRootHtmlNode root, String Id)
     {
         contractType = String.Empty;
@@ -316,7 +314,7 @@ public class Contract : AnnouceDocument
         e.PropertyType = EntityProperty.enmType.Normal;
         e.MaxLength = ContractTraning.MaxContractNameLength;
         e.LeadingColonKeyWordList = new string[] { "合同名称：" };
-        e.QuotationTrailingWordList = new string[] { "协议书", "合同", "确认书", "协议" };
+        e.QuotationTrailingWordList = new string[] { "协议书", "合同书", "确认书", "合同", "协议" };
         e.QuotationTrailingWordList_IsSkipBracket = true;   //暂时只能选True
         e.MaxLengthCheckPreprocess = str =>
         {
@@ -327,24 +325,22 @@ public class Contract : AnnouceDocument
             return TrimJianCheng(str);
         };
         var strResult = e.Extract(this);
-        if (strResult != "") return strResult;
-
+        if (strResult != "")
+        {
+            if (strResult != "中小企业板信息披露业务备忘录第15号：日常经营重大合同")
+            {
+                return strResult;
+            }
+        }
 
         var ExtractDP = new ExtractPropertyByDP();
         var KeyList = new List<ExtractPropertyByDP.DPKeyWord>();
         KeyList.Add(new ExtractPropertyByDP.DPKeyWord()
         {
-            StartWord = "签署",
-            StartDPValue = new string[] { LTP.核心关系 },
-            EndWord = "合同",
-            EndDPValue = new string[] { LTP.动宾关系 }
-        });
-        KeyList.Add(new ExtractPropertyByDP.DPKeyWord()
-        {
-            StartWord = "签订",
-            StartDPValue = new string[] { LTP.核心关系 },
-            EndWord = "合同",
-            EndDPValue = new string[] { LTP.动宾关系 }
+            StartWord = new string[] { "签署", "签订" },
+            StartDPValue = new string[] { LTP.核心关系, LTP.定中关系, LTP.并列关系 },
+            EndWord = new string[] { "补充协议", "合同书", "合同", "协议书", "协议", },
+            EndDPValue = new string[] { LTP.核心关系, LTP.定中关系, LTP.并列关系, LTP.动宾关系, LTP.主谓关系 }
         });
         ExtractDP.StartWithKey(KeyList, Dplist);
         foreach (var item in ExtractDP.CandidateWord)
@@ -356,11 +352,22 @@ public class Contract : AnnouceDocument
             return ContractName;
         }
 
+        var ExtractorTEXT = new ExtractPropertyByText();
+        var StartArray = new string[] { "签署了", "签订了" };
+        var EndArray = new string[] { "合同" };
+        ExtractorTEXT.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
+        ExtractorTEXT.ExtractFromTextFile(TextFileName);
+        foreach (var item in ExtractorTEXT.CandidateWord)
+        {
+            var ContractName = item.Value.Trim() + "合同";
+            if (EntityWordAnlayzeTool.TrimEnglish(ContractName).Length > ContractTraning.MaxContractNameLength) continue;
+            if (ContractName.Length <= 4) continue;
+            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("合同候补词(合同)：[" + item + "]");
+            return ContractName;
+        }
 
         //一部分无法提取TEXT的情况
         var ExtractorHTML = new ExtractPropertyByHTML();
-        var StartArray = new string[] { "签署了", "签订了" };
-        var EndArray = new string[] { "合同" };
         ExtractorHTML.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
         ExtractorHTML.Extract(root);
         foreach (var item in ExtractorHTML.CandidateWord)
@@ -371,6 +378,9 @@ public class Contract : AnnouceDocument
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("合同候补词(合同)：[" + item + "]");
             return ContractName;
         }
+
+
+
         return String.Empty;
     }
 
@@ -385,7 +395,8 @@ public class Contract : AnnouceDocument
             var ProjectName = item.Value.Trim();
             if (EntityWordAnlayzeTool.TrimEnglish(ProjectName).Length > ContractTraning.MaxContractNameLength) continue;
             if (TrimJianCheng(ProjectName) == String.Empty) continue;
-            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("项目名称候补词(关键字)：[" + item + "]");
+            ProjectName = TrimJianCheng(ProjectName);
+            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("项目名称候补词(关键字)：[" + ProjectName + "]");
             return ProjectName;
         }
 
@@ -396,7 +407,8 @@ public class Contract : AnnouceDocument
             var ProjectName = item.Value.Trim();
             if (EntityWordAnlayzeTool.TrimEnglish(ProjectName).Length > ContractTraning.MaxContractNameLength) continue;
             if (TrimJianCheng(ProjectName) == String.Empty) continue;
-            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("项目名称候补词(关键字)：[" + item + "]");
+            ProjectName = TrimJianCheng(ProjectName);
+            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("项目名称候补词(关键字)：[" + ProjectName + "]");
             return ProjectName;
         }
 
@@ -404,31 +416,10 @@ public class Contract : AnnouceDocument
         var KeyList = new List<ExtractPropertyByDP.DPKeyWord>();
         KeyList.Add(new ExtractPropertyByDP.DPKeyWord()
         {
-            StartWord = "为",
-            StartDPValue = new string[] { LTP.定中关系, LTP.状中结构 },
-            EndWord = "标段",
-            EndDPValue = new string[] { LTP.介宾关系, LTP.动宾关系, LTP.间宾关系 }
-        });
-        KeyList.Add(new ExtractPropertyByDP.DPKeyWord()
-        {
-            StartWord = "为",
-            StartDPValue = new string[] { LTP.定中关系, LTP.状中结构 },
-            EndWord = "标",
-            EndDPValue = new string[] { LTP.介宾关系, LTP.动宾关系, LTP.间宾关系 }
-        });
-        KeyList.Add(new ExtractPropertyByDP.DPKeyWord()
-        {
-            StartWord = "中标",
-            StartDPValue = new string[] { LTP.核心关系 },
-            EndWord = "工程",
-            EndDPValue = new string[] { LTP.介宾关系, LTP.动宾关系, LTP.间宾关系 }
-        });
-        KeyList.Add(new ExtractPropertyByDP.DPKeyWord()
-        {
-            StartWord = "中标",
-            StartDPValue = new string[] { LTP.核心关系 },
-            EndWord = "项目",
-            EndDPValue = new string[] { LTP.介宾关系, LTP.动宾关系, LTP.间宾关系 }
+            StartWord = new string[] { "中标", "为", "参与", "发布", "确定" },
+            StartDPValue = new string[] { LTP.核心关系, LTP.定中关系, LTP.并列关系 },
+            EndWord = new string[] { "采购", "项目", "工程", "标段" },
+            EndDPValue = new string[] { }
         });
         ExtractDP.StartWithKey(KeyList, Dplist);
         foreach (var item in ExtractDP.CandidateWord)
@@ -439,8 +430,6 @@ public class Contract : AnnouceDocument
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("工程候补词：[" + item + "]");
             return ProjectName;
         }
-
-
 
 
         foreach (var bracket in quotationList)

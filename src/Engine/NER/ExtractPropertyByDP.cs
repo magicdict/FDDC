@@ -6,18 +6,25 @@ using System.IO;
 using static LTP;
 using System.Linq;
 
-public class ExtractPropertyByDP
+public class ExtractPropertyByDP : ExtractProperyBase
 {
-    public List<LocAndValue<String>> CandidateWord = new List<LocAndValue<String>>();
     public struct DPKeyWord
     {
-        //关键字
-        public string StartWord;
-        //句型属性
+        /// <summary>
+        /// 开始关键字(不包含在结果中)
+        /// </summary>
+        public string[] StartWord;
+        /// <summary>
+        /// 开始词DP属性指定
+        /// </summary>
         public string[] StartDPValue;
-
-        public string EndWord;
-        //句型属性
+        /// <summary>
+        /// 结束关键字(包含在结果中)
+        /// </summary>
+        public string[] EndWord;
+        /// <summary>
+        /// 结尾词DP属性指定
+        /// </summary>
         public string[] EndDPValue;
     }
 
@@ -34,8 +41,10 @@ public class ExtractPropertyByDP
             {
                 foreach (var word in paragragh)
                 {
-                    if (word.cont == "。" || word.cont == "：" || word.cont == "，"){
-                        if (isStart){
+                    if (word.cont == "。" || word.cont == "：" || word.cont == "，")
+                    {
+                        if (isStart)
+                        {
                             x = String.Empty;
                             isStart = false;
                             continue;
@@ -46,15 +55,24 @@ public class ExtractPropertyByDP
                         if (word.relate == LTP.右附加关系) continue;
                         x += word.cont;
                     }
-                    if (word.cont == key.StartWord && key.StartDPValue.Contains(word.relate))
+                    if (key.StartWord.Contains(word.cont))
                     {
-                        isStart = true;
+                        if (word.relate.Length == 0 ||
+                            (word.relate.Length != 0 && key.StartWord.Contains(word.relate)))
+                        {
+                            isStart = true;
+
+                        }
                     }
-                    if (word.cont == key.EndWord && key.EndDPValue.Contains( word.relate))
+                    if (key.EndWord.Contains(word.cont))
                     {
-                        if (isStart) CandidateWord.Add(new LocAndValue<string>() { Value = x });
-                        isStart = false;
-                        x = String.Empty;
+                        if (word.relate.Length == 0 ||
+                            (word.relate.Length != 0 && key.EndDPValue.Contains(word.relate)))
+                        {
+                            if (isStart) CandidateWord.Add(new LocAndValue<string>() { Value = x });
+                            isStart = false;
+                            x = String.Empty;
+                        }
                     }
                 }
             }

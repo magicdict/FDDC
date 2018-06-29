@@ -4,17 +4,9 @@ using static HTMLEngine;
 using static LocateProperty;
 using System.IO;
 
-public class ExtractPropertyByText
+public class ExtractPropertyByText : ExtractProperyBase
 {
     //候选词
-    public List<LocAndValue<String>> CandidateWord = new List<LocAndValue<String>>();
-
-
-    //先导词（直接取先导词的后面的内容）
-    public string[] LeadingColonKeyWordList = new string[] { };
-
-    //先导词（直接取先导词的后面的内容）
-    public string[] TrailingWordList = new string[] { };
 
     #region 常规文本
     public void ExtractFromTextFile(string filename)
@@ -22,6 +14,7 @@ public class ExtractPropertyByText
         if (!File.Exists(filename)) return;
         CandidateWord.Clear();
         if (LeadingColonKeyWordList.Length > 0) ExtractTextByColonKeyWord(filename);
+        if (StartEndFeature.Length > 0) ExtractByStartEndStringFeature(filename);
     }
 
     public void ExtractTextByColonKeyWord(string filename)
@@ -85,8 +78,30 @@ public class ExtractPropertyByText
             }
         }
     }
+    void ExtractByStartEndStringFeature(string filename)
+    {
+        var lines = new List<String>();
+        var sr = new StreamReader(filename);
+        while (!sr.EndOfStream)
+        {
+            var line = sr.ReadLine();
+            if (!String.IsNullOrEmpty(line)) lines.Add(line);
+        }
+        sr.Close();
+        foreach (var word in StartEndFeature)
+        {
+            for (int CurrentLineIdx = 0; CurrentLineIdx < lines.Count; CurrentLineIdx++)
+            {
+                var line = lines[CurrentLineIdx];
+                var list = RegularTool.GetMultiValueBetweenString(line, word.StartWith, word.EndWith);
+                foreach (var item in list)
+                {
+                    CandidateWord.Add(new LocAndValue<string>(){ Value = item});
+                }
+            };
+        }
+
+    }
 
     #endregion
-
-
 }
