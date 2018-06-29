@@ -15,8 +15,13 @@ public static class LocateProperty
         public string Type;
     }
 
-
-    public static List<LocAndValue<String>> LocateBracket(HTMLEngine.MyRootHtmlNode root)
+    /// <summary>
+    /// 引号和书名号内容提取
+    /// </summary>
+    /// <param name="root">原始HTML</param>
+    /// <param name="IsSkipBracket">是否忽略括号内部的内容</param>
+    /// <returns></returns>
+    public static List<LocAndValue<String>> LocateQuotation(HTMLEngine.MyRootHtmlNode root, bool IsSkipBracket = true)
     {
         var list = new List<LocAndValue<String>>();
         foreach (var paragrah in root.Children)
@@ -24,20 +29,40 @@ public static class LocateProperty
             foreach (var sentence in paragrah.Children)
             {
                 var OrgString = sentence.Content;
+                var BracketList = RegularTool.GetChineseBrackets(OrgString);
                 Regex r = new Regex(@"\《.*?\》");
                 foreach (var item in r.Matches(OrgString).ToList())
                 {
-                    list.Add(
-                        new LocAndValue<String>()
+                    bool IsContentInBracket = false;
+                    foreach (var bracketItem in BracketList)
+                    {
+                        if (bracketItem.Contains(item.Value))
                         {
-                            Loc = sentence.PositionId,
-                            Type = "字符",
-                            Value = item.Value.Substring(1, item.Value.Length - 2)
-                        });
+                            IsContentInBracket = true;
+                            break;
+                        }
+                    }
+                    if (IsSkipBracket && IsContentInBracket) continue;
+                    list.Add(new LocAndValue<String>()
+                    {
+                        Loc = sentence.PositionId,
+                        Type = "字符",
+                        Value = item.Value.Substring(1, item.Value.Length - 2)
+                    });
                 }
                 r = new Regex(@"\“.*?\”");
                 foreach (var item in r.Matches(OrgString).ToList())
                 {
+                    bool IsContentInBracket = false;
+                    foreach (var bracketItem in BracketList)
+                    {
+                        if (bracketItem.Contains(item.Value))
+                        {
+                            IsContentInBracket = true;
+                            break;
+                        }
+                    }
+                    if (IsSkipBracket && IsContentInBracket) continue;
                     list.Add(new LocAndValue<String>()
                     {
                         Loc = sentence.PositionId,

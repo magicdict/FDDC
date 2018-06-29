@@ -245,9 +245,16 @@ public class CompanyNameLogic
             if (FullName.Contains(trailing))
             {
                 //获取简称
-                var tmp = RegularTool.GetChinesebrackets(FullName);
-                ShortName = RegularTool.GetChineseConno(tmp);
-                if (!String.IsNullOrEmpty(ShortName)) ShortName = ShortName.Substring(1, ShortName.Length - 2);
+                var BracketsList = RegularTool.GetChineseBrackets(FullName);
+                foreach (var bracketItem in BracketsList)
+                {
+                    var ShortNameList = RegularTool.GetChineseQuotation(bracketItem);
+                    if (ShortNameList.Count > 0)
+                    {
+                        ShortName = ShortNameList.First();
+                        if (!String.IsNullOrEmpty(ShortName)) ShortName = ShortName.Substring(1, ShortName.Length - 2);
+                    }
+                }
                 FullName = Utility.GetStringBefore(FullName, trailing);
             }
         }
@@ -320,7 +327,7 @@ public class CompanyNameLogic
     }
 
 
-    public static (String FullName, String ShortName) NormalizeCompanyName(AnnouceDocument doc,string word)
+    public static (String FullName, String ShortName) NormalizeCompanyName(AnnouceDocument doc, string word)
     {
         if (String.IsNullOrEmpty(word)) return (String.Empty, String.Empty);
         var fullname = word.Replace(" ", String.Empty);

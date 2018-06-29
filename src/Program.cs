@@ -39,7 +39,7 @@ namespace FDDC
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             //初始化   
             CompanyNameLogic.LoadCompanyName(@"Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
-
+           
             //预处理
             //PDFMiner:PDF转TXTbatch
             //PDFToTXT.GetPdf2TxtBatchFile(); return;
@@ -220,12 +220,11 @@ namespace FDDC
 
         private static void UT()
         {
-            var s0 = "国家电网公司";
-            JiebaSegmenter segmenter = new JiebaSegmenter();
-            PosSegmenter posSeg = new PosSegmenter(segmenter);
-            var c = posSeg.Cut(s0);
-            var contract = new Contract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1450.html");
-            var result = contract.Extract();
+            var s0 = "公司子公司山东省路桥集团有限公司（简称“路桥集团”）与山东高速建设集团有限公司（简称“建设集团”）就蓬莱西海岸海洋文化旅游产业聚集区区域建设用海工程项目（简称“本项目”）签署了前期工作委托协议（简称“本协议”）。";
+            var BracketList = RegularTool.GetChineseBrackets(s0);    
+            //var s1 = RegularTool.TrimChineseBrackets(s0);
+            //var contract = new Contract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1450.html");
+            //var result = contract.Extract();
             //IncreaseStock.Extract(Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增\html\15304036");
             //Contract.Extract(Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\重大合同\html\10808687.html");
             //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\1011117.html");

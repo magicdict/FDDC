@@ -29,7 +29,11 @@ public class EntityProperty
     /// <summary>
     /// 括号尾部词
     /// </summary>
-    public string[] BracketTrailingWordList;
+    public string[] QuotationTrailingWordList;
+    /// <summary>
+    /// 从引号或者书名号里提取某个关键字结尾的词语
+    /// </summary>
+    public bool QuotationTrailingWordList_IsSkipBracket = true;
 
     /// <summary>
     /// 做最大长度时候用的预处理（不改变值）
@@ -130,20 +134,20 @@ public class EntityProperty
             }
         }
 
-        if (BracketTrailingWordList != null)
+        if (QuotationTrailingWordList != null)
         {
             //接下来《》，“” 优先
-            foreach (var bracket in doc.bracketlist)
+            foreach (var bracket in doc.quotationList)
             {
-                if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("合同候补词(合同)：[" + bracket.Value + "]");
+                if (!Program.IsMultiThreadMode) Program.Logger.WriteLine(PropertyName + " 候补词：[" + bracket.Value + "]");
             }
-            foreach (var bracket in doc.bracketlist)
+            foreach (var bracket in doc.quotationList)
             {
-                foreach (var word in BracketTrailingWordList)
+                foreach (var word in QuotationTrailingWordList)
                 {
                     if (bracket.Value.EndsWith(word))
                     {
-                        if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("合同：[" + bracket.Value + "]");
+                        if (!Program.IsMultiThreadMode) Program.Logger.WriteLine(PropertyName + "：[" + bracket.Value + "]");
                         return bracket.Value;
                     }
                 }

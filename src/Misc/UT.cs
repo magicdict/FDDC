@@ -17,7 +17,7 @@ public static class UT
         PosSegmenter posSeg = new PosSegmenter(segmenter);
         var c = posSeg.Cut(s0);
         s0 = s0.NormalizeTextResult();
-        s0 = RegularTool.Trimbrackets(s0);
+        s0 = RegularTool.TrimBrackets(s0);
        /*  var SProjectName = new Surround();
         var root = HTMLEngine.Anlayze(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1044779.html");
         var Contract = TraningDataset.GetContractById("1044779")[0];

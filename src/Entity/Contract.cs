@@ -145,7 +145,7 @@ public class Contract : AnnouceDocument
         contract.YiFang = CompanyNameLogic.AfterProcessFullName(contract.YiFang).secFullName;
         contract.YiFang = contract.YiFang.NormalizeTextResult();
         //按照规定除去括号
-        contract.YiFang = RegularTool.Trimbrackets(contract.YiFang);
+        contract.YiFang = RegularTool.TrimBrackets(contract.YiFang);
 
 
         //项目
@@ -196,7 +196,7 @@ public class Contract : AnnouceDocument
         contract.UnionMember = GetUnionMember(contract.YiFang);
         contract.UnionMember = contract.UnionMember.NormalizeTextResult();
         //按照规定除去括号
-        contract.UnionMember = RegularTool.Trimbrackets(contract.UnionMember);
+        contract.UnionMember = RegularTool.TrimBrackets(contract.UnionMember);
         return contract;
     }
 
@@ -316,7 +316,8 @@ public class Contract : AnnouceDocument
         e.PropertyType = EntityProperty.enmType.Normal;
         e.MaxLength = ContractTraning.MaxContractNameLength;
         e.LeadingColonKeyWordList = new string[] { "合同名称：" };
-        e.BracketTrailingWordList = new string[] { "协议书", "合同", "确认书", "协议" };
+        e.QuotationTrailingWordList = new string[] { "协议书", "合同", "确认书", "协议" };
+        e.QuotationTrailingWordList_IsSkipBracket = true;   //暂时只能选True
         e.MaxLengthCheckPreprocess = str =>
         {
             return EntityWordAnlayzeTool.TrimEnglish(str);
@@ -370,7 +371,6 @@ public class Contract : AnnouceDocument
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("合同候补词(合同)：[" + item + "]");
             return ContractName;
         }
-
         return String.Empty;
     }
 
@@ -443,7 +443,7 @@ public class Contract : AnnouceDocument
 
 
 
-        foreach (var bracket in bracketlist)
+        foreach (var bracket in quotationList)
         {
             if (bracket.Value.EndsWith("工程") ||
                 bracket.Value.EndsWith("标段"))
@@ -470,12 +470,6 @@ public class Contract : AnnouceDocument
             if (EntityWordAnlayzeTool.TrimEnglish(ProjectName).Length > ContractTraning.MaxContractNameLength) continue;
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("工程名称候补词（《XXX》）：[" + item + "]");
             return ProjectName;
-        }
-
-        var list = ProjectNameLogic.GetProjectName(root);
-        if (list.Count > 0)
-        {
-            return list[0];
         }
         return String.Empty;
     }

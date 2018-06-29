@@ -6,20 +6,30 @@ using System.Text.RegularExpressions;
 public static class RegularTool
 {
 
-    public static string GetChinesebrackets(string str)
+    public static List<string> GetChineseBrackets(string str)
     {
         Regex r = new Regex(@"\（.*?\）");
-        return r.Match(str).Value;
+        return r.Matches(str).Select(x => { return x.Value; }).ToList();
     }
-    public static string GetChineseConno(string str)
+    public static List<string> GetBrackets(string str)
+    {
+        Regex r = new Regex(@"\（.*?\）");
+        return r.Matches(str).Select(x => { return x.Value; }).ToList();
+    }
+    public static List<string> GetChineseQuotation(string str)
     {
         Regex r = new Regex(@"\“.*?\”");
-        return r.Match(str).Value;
+        return r.Matches(str).Select(x => { return x.Value; }).ToList();
     }
 
+    public static string TrimChineseBrackets(string str)
+    {
+        Regex r = new Regex(@"\（.*?\）");
+        str = r.Replace(str, String.Empty);
+        return str;
+    }
 
-
-    public static string Trimbrackets(string str)
+    public static string TrimBrackets(string str)
     {
         Regex r = new Regex(@"\(.*?\)");
         str = r.Replace(str, String.Empty);

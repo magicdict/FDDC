@@ -19,7 +19,7 @@ public class AnnouceDocument
     //金额
     public List<LocAndValue<(String MoneyAmount, String MoneyCurrency)>> moneylist;
 
-    public List<LocAndValue<String>> bracketlist;
+    public List<LocAndValue<String>> quotationList;
 
     public List<String> Nerlist;
 
@@ -105,8 +105,8 @@ public class AnnouceDocument
         //公告中出现的最后一个日期作为公告发布日
         if (datelist.Count > 0) AnnouceDate = datelist.Last().Value;
 
-        bracketlist = LocateProperty.LocateBracket(root);
-        foreach (var m in bracketlist)
+        quotationList = LocateProperty.LocateQuotation(root, true);
+        foreach (var m in quotationList)
         {
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("位置：" + m.Loc);
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("括号内容：" + m.Value);
@@ -160,7 +160,7 @@ public class AnnouceDocument
         {
             if (item.Loc == PosId) paragragh.moneylist.Add(item);
         }
-        foreach (var item in bracketlist)
+        foreach (var item in quotationList)
         {
             if (item.Loc == PosId) paragragh.bracketlist.Add(item);
         }
