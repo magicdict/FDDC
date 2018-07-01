@@ -201,6 +201,10 @@ public class CompanyNameLogic
 
     public static void LoadCompanyName(string JSONfilename)
     {
+        if (!File.Exists(JSONfilename)){
+            Console.WriteLine("Can't find CompanyName Json file");
+            return;
+        }
         JObject o = JObject.Parse(File.ReadAllText(JSONfilename));
         JArray list = (JArray)o["data"];
         List<struCompanyName> company = list.ToObject<List<struCompanyName>>();

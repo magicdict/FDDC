@@ -55,6 +55,33 @@ public class PDFToTXT
         Logger.Close();
     }
 
+    public static void GetLTPXMLBatchFileMac()
+    {
+        var Logger = new StreamWriter("ltp.sh", false, Encoding.GetEncoding("utf-8"));
+        var ContractPath_TRAIN = "/Users/hu/Desktop/FDDCTraing/TrainingText";
+        Logger.WriteLine("mkdir /Users/hu/Desktop/FDDCTraing/TrainingSrl");
+        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN))
+        {
+            var srlPath = "/Users/hu/Desktop/FDDCTraing/TrainingSrl/";
+            var fi = new FileInfo(filename);
+            var xml = fi.Name.Replace("txt", "xml");
+            if (!xml.Contains("xml")) xml += ".xml";
+            Logger.WriteLine("./ltp_test --input " + filename + " > " + srlPath + xml);
+        }
+
+        var ContractPath_TEST = "/Users/hu/Desktop/FDDCTraing/TestText";
+        Logger.WriteLine("mkdir /Users/hu/Desktop/FDDCTraing/TestSrl");
+        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TEST))
+        {
+            var srlPath = "/Users/hu/Desktop/FDDCTraing/TestSrl/";
+            var fi = new FileInfo(filename);
+            var xml = fi.Name.Replace("txt", "xml");
+            if (!xml.Contains("xml")) xml += ".xml";
+            Logger.WriteLine("./ltp_test --input " + filename + " > " + srlPath + xml);
+        }
+        Logger.Close();
+    }
+
 
     public static void GetLTPXMLBatchFile()
     {

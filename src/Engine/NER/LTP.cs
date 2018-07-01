@@ -259,7 +259,7 @@ public class LTP
         var sr = new StreamReader(xmlfilename);
         List<struWordSRL> wl = new List<struWordSRL>();
         var al = new List<struWordSRLARG>();
-        var ner = String.Empty;
+        var srl = String.Empty;
         while (!sr.EndOfStream)
         {
             var line = sr.ReadLine().Trim();
@@ -267,12 +267,12 @@ public class LTP
             {
                 foreach (var arg in al)
                 {
-                    ner = "";
+                    srl = "[" + arg.type + "]:";
                     for (int i = arg.Begin; i <= arg.End; i++)
                     {
-                        ner += wl[i].cont;
+                        srl += wl[i].cont;
                     }
-                    SRLList.Add(ner);
+                    SRLList.Add(srl);
                 }
                 al.Clear();
                 wl.Clear();
@@ -290,16 +290,16 @@ public class LTP
 
         foreach (var arg in al)
         {
-            ner = "";
+            srl = "[" + arg.type + "]:";
             for (int i = arg.Begin; i <= arg.End; i++)
             {
-                ner += wl[i].cont;
+                srl += wl[i].cont;
             }
-            SRLList.Add(ner);
+            SRLList.Add(srl);
         }
         sr.Close();
         return SRLList;
     }
 
-#endregion
+    #endregion
 }

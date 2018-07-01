@@ -20,9 +20,9 @@ namespace FDDC
         public static StreamWriter Evaluator = new StreamWriter("Evaluator.log");
         public static StreamWriter Score = new StreamWriter(@"Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
         //WIN
-        public static String DocBase = @"E:\WorkSpace2018\FDDC2018";
+        //public static String DocBase = @"E:\WorkSpace2018\FDDC2018";
         //MAC
-        //public static String DocBase = @"/Users/hu/Desktop/FDDCTraing";
+        public static String DocBase = @"/Users/hu/Desktop/FDDCTraing";
 
         /// <summary>
         /// 这个模式下，有问题的数据会输出，正式比赛的时候设置为False，降低召回率！
@@ -31,7 +31,7 @@ namespace FDDC
         /// <summary>
         /// 多线程模式
         /// </summary>
-        public static bool IsMultiThreadMode = true;
+        public static bool IsMultiThreadMode = false;
 
         static void Main(string[] args)
         {
@@ -39,7 +39,6 @@ namespace FDDC
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             //初始化   
             CompanyNameLogic.LoadCompanyName(@"Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
-
             //预处理
             //PDFMiner:PDF转TXTbatch
             //PDFToTXT.GetPdf2TxtBatchFile(); return;
@@ -242,13 +241,24 @@ namespace FDDC
 
         private static void UT()
         {
+            var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
+            foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + Path.DirectorySeparatorChar + "srl" + Path.DirectorySeparatorChar))
+            {
+                var Srllist = LTP.AnlayzeSRL(filename);
+                var fi = new FileInfo(filename);
+                if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("Name：" + fi.Name);
+                foreach (var m in Srllist)
+                {
+                    if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("SRL：" + m);
+                }
+            }
             //var s0 = "公司子公司山东省路桥集团有限公司（简称“路桥集团”）与山东高速建设集团有限公司（简称“建设集团”）就蓬莱西海岸海洋文化旅游产业聚集区区域建设用海工程项目（简称“本项目”）签署了前期工作委托协议（简称“本协议”）。";
             //var BracketList = RegularTool.GetChineseBrackets(s0);
             //var s1 = RegularTool.TrimChineseBrackets(s0);
             //var contract = new Contract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1450.html");
             //var result = contract.Extract();
             //IncreaseStock.Extract(Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增\html\15304036");
-            new Contract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\797495.html").Extract();
+            //new Contract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\797495.html").Extract();
             //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\1011117.html");
         }
     }
