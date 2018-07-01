@@ -73,7 +73,7 @@ public class ContractTraning
             if (TraningDataset.GetContractById(Id).Count == 0) continue;
             var contract = TraningDataset.GetContractById(Id).First();
             if (contract.JiaFang == String.Empty) continue;
-            var root = new HTMLEngine().Anlayze(filename,"");
+            var root = new HTMLEngine().Anlayze(filename, "");
             if (!string.IsNullOrEmpty(contract.JiaFang)) JiaFangS.AnlayzeEntitySurroundWords(root, contract.JiaFang);
             if (!string.IsNullOrEmpty(contract.YiFang)) YiFangS.AnlayzeEntitySurroundWords(root, contract.YiFang);
             if (!string.IsNullOrEmpty(contract.ProjectName)) ProjectNameS.AnlayzeEntitySurroundWords(root, contract.ProjectName);
@@ -177,49 +177,53 @@ public class ContractTraning
         Program.Training.WriteLine("最大工程(除去英语)长度:" + MaxProjectNameLength);
         Program.Training.WriteLine("最大工程(除去英语):" + MaxProjectName);
         Program.Training.WriteLine("最小金额:" + MinAmount);
-        //新建北京至石家庄铁路客运专线石家庄枢纽(北京局代建部分)站场工程一个标段
-        //新建大塔至四眼井铁路吴四圪堵至四眼井段站前工程wssg-1标段
+
     }
+
+
+    public static CI JiaFangCI;
+    public static CI YiFangCI;
+    public static CI ContractNameCI;
+    public static CI ProjectNameCI;
 
     //实体自身特性分析
     public static void EntityWordPerperty()
     {
-        var posSeg = new PosSegmenter();
-        //首单词统计
-        var FirstWordPos = new Dictionary<String, int>();
-        var WordLength = new Dictionary<int, int>();
 
         Program.Training.WriteLine("甲方统计：");
-        EntitySelf.Init();
+        var JiaFangS = new EntitySelf();
         foreach (var contract in TraningDataset.ContractList)
         {
-            EntitySelf.PutEntityWordPerperty(contract.JiaFang);
+            JiaFangS.PutEntityWordPerperty(contract.JiaFang);
         }
-        EntitySelf.WriteFirstAndLengthWordToLog();
+        JiaFangS.WriteFirstAndLengthWordToLog();
+        JiaFangCI = JiaFangS.GetCI();
 
         Program.Training.WriteLine("乙方统计：");
-        EntitySelf.Init();
+        var YiFangS = new EntitySelf();
         foreach (var contract in TraningDataset.ContractList)
         {
-            EntitySelf.PutEntityWordPerperty(contract.YiFang);
+            YiFangS.PutEntityWordPerperty(contract.YiFang);
         }
-        EntitySelf.WriteFirstAndLengthWordToLog();
-
+        YiFangS.WriteFirstAndLengthWordToLog();
+        YiFangCI = YiFangS.GetCI();
 
         Program.Training.WriteLine("合同统计：");
-        EntitySelf.Init();
+        var ContractS = new EntitySelf();
         foreach (var contract in TraningDataset.ContractList)
         {
-            EntitySelf.PutEntityWordPerperty(contract.ContractName);
+            ContractS.PutEntityWordPerperty(contract.ContractName);
         }
-        EntitySelf.WriteFirstAndLengthWordToLog();
+        ContractS.WriteFirstAndLengthWordToLog();
+        ContractNameCI = ContractS.GetCI();
 
         Program.Training.WriteLine("工程统计：");
-        EntitySelf.Init();
+        var ProjectNameS = new EntitySelf();
         foreach (var contract in TraningDataset.ContractList)
         {
-            EntitySelf.PutEntityWordPerperty(contract.ProjectName);
+            ProjectNameS.PutEntityWordPerperty(contract.ProjectName);
         }
-        EntitySelf.WriteFirstAndLengthWordToLog();
+        ProjectNameS.WriteFirstAndLengthWordToLog();
+        ProjectNameCI = ProjectNameS.GetCI();
     }
 }

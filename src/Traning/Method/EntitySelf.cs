@@ -4,20 +4,21 @@ using System.Linq;
 using FDDC;
 using JiebaNet.Segmenter.PosSeg;
 
-public class EntitySelf{
-        static PosSegmenter posSeg = new PosSegmenter();
+public class EntitySelf
+{
+    PosSegmenter posSeg = new PosSegmenter();
     //首单词词性
-    static Dictionary<String, int> FirstWordPosDict = new Dictionary<String, int>();
+    Dictionary<String, int> FirstWordPosDict = new Dictionary<String, int>();
     //长度
-    static Dictionary<int, int> WordLengthDict = new Dictionary<int, int>();
+    Dictionary<int, int> WordLengthDict = new Dictionary<int, int>();
     //词数
-    static Dictionary<int, int> WordCountDict = new Dictionary<int, int>();
+    Dictionary<int, int> WordCountDict = new Dictionary<int, int>();
     //最后一个单词
-    static Dictionary<String, int> LastWordDict = new Dictionary<String, int>();
+    Dictionary<String, int> LastWordDict = new Dictionary<String, int>();
     //POS组合
-    static Dictionary<String, int> WordFlgsDict = new Dictionary<String, int>();
+    Dictionary<String, int> WordFlgsDict = new Dictionary<String, int>();
 
-    public static void Init()
+    public void Init()
     {
         FirstWordPosDict.Clear();
         WordLengthDict.Clear();
@@ -26,7 +27,7 @@ public class EntitySelf{
         WordFlgsDict.Clear();
     }
 
-    public static void PutEntityWordPerperty(string Word)
+    public void PutEntityWordPerperty(string Word)
     {
         if (String.IsNullOrEmpty(Word)) return;
         var words = posSeg.Cut(Word);
@@ -85,11 +86,19 @@ public class EntitySelf{
             {
                 WordFlgsDict.Add(wordflgs, 1);
             }
-
         }
     }
 
-    public static void WriteFirstAndLengthWordToLog()
+    public CI GetCI()
+    {
+        var ci = new CI();
+        ci.WordLengthScore = Utility.FindTop(5, WordLengthDict);
+        ci.FirstWordPosScore = Utility.FindTop(5, FirstWordPosDict);
+        return ci;
+    }
+
+
+    public void WriteFirstAndLengthWordToLog()
     {
         Program.Training.WriteLine("首词词性统计：");
         Utility.FindTop(5, FirstWordPosDict);

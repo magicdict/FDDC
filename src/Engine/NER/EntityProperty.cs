@@ -18,6 +18,11 @@ public class EntityProperty
         Normal,     //普通文本
     }
 
+    /// <summary>
+    /// 可信度
+    /// </summary>
+    public CI Confidence ;
+
     //最大长度
     public int MaxLength = -1;
     //最小长度

@@ -206,7 +206,10 @@ public class Contract : AnnouceDocument
         }
         return OrgString;
     }
-
+    /// <summary>
+    /// 获得甲方
+    /// </summary>
+    /// <returns></returns>
     string GetJiaFang()
     {
         var ExtractorText = new ExtractPropertyByText();
@@ -274,6 +277,10 @@ public class Contract : AnnouceDocument
         }
         return CompanyNameLogic.MostLikeCompanyName(CandidateWord);
     }
+    /// <summary>
+    /// 获得乙方
+    /// </summary>
+    /// <returns></returns>
     string GetYiFang()
     {
         var Extractor = new ExtractPropertyByText();
@@ -307,6 +314,10 @@ public class Contract : AnnouceDocument
         }
         return AnnouceCompanyName;
     }
+    /// <summary>
+    /// 获得合同名
+    /// </summary>
+    /// <returns></returns>
     string GetContractName()
     {
         var e = new EntityProperty();
@@ -383,7 +394,10 @@ public class Contract : AnnouceDocument
 
         return String.Empty;
     }
-
+    /// <summary>
+    /// 获得工程名
+    /// </summary>
+    /// <returns></returns>
     string GetProjectName()
     {
         var ExtractorText = new ExtractPropertyByText();
@@ -462,7 +476,10 @@ public class Contract : AnnouceDocument
         }
         return String.Empty;
     }
-
+    /// <summary>
+    /// 获得金额
+    /// </summary>
+    /// <returns></returns>
     (String MoneyAmount, String MoneyCurrency) GetMoney()
     {
         var Extractor = new ExtractPropertyByHTML();
@@ -503,7 +520,11 @@ public class Contract : AnnouceDocument
         if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("金额候补词：[" + AllMoneyList[0].MoneyAmount + ":" + AllMoneyList[0].MoneyCurrency + "]");
         return AllMoneyList[0];
     }
-
+    /// <summary>
+    /// 获得联合体
+    /// </summary>
+    /// <param name="YiFang">乙方</param>
+    /// <returns></returns>
     string GetUnionMember(String YiFang)
     {
         var paragrahlist = ExtractPropertyByHTML.FindWordCnt("联合体", root);

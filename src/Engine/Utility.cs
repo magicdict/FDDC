@@ -11,8 +11,9 @@ public static class Utility
 {
 
     //寻找Top5
-    public static void FindTop<T>(int n, Dictionary<T, int> dict)
+    public static Dictionary<T, int> FindTop<T>(int n, Dictionary<T, int> dict)
     {
+        var result = new Dictionary<T, int>();
         var Rank = dict.Values.ToList();
         Rank.Sort();
         Rank.Reverse();
@@ -23,10 +24,12 @@ public static class Utility
         {
             if (dict[key] >= limit)
             {
+                result.Add(key, dict[key] * 100);
                 var percent = (dict[key] * 100 / Total) + "%";
                 Program.Training.WriteLine(key + "(" + percent + ")");
             }
         }
+        return result;
     }
 
     public static T FindTopOne<T>(Dictionary<T, int> dict)
