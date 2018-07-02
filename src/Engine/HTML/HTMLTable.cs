@@ -6,6 +6,11 @@ using static HTMLEngine;
 
 public class HTMLTable
 {
+    public const string strNullValue = "<null>";
+    public const string strRowSpan = "rowspan";
+    public const string strRowSpanValue = "<rowspan>";
+    public const string strColSpan = "colspan";
+    public const string strColSpanValue = "<colspan>";
     public int RowCount = 0;
     public int ColumnCount = 0;
 
@@ -32,9 +37,9 @@ public class HTMLTable
                     {
                         if (tableData.Name == "td")
                         {
-                            if (tableData.Attributes["colspan"] != null)
+                            if (tableData.Attributes[strColSpan] != null)
                             {
-                                xc += int.Parse(tableData.Attributes["colspan"].Value);
+                                xc += int.Parse(tableData.Attributes[strColSpan].Value);
                             }
                             else
                             {
@@ -84,23 +89,23 @@ public class HTMLTable
                             var cellpos = CurrentRow + "," + NextNeedToFillColumn;
                             if (cellvalue == String.Empty)
                             {
-                                cellvalue = "<null>";
+                                cellvalue = strNullValue;
                             }
                             dict[CurrentRow + "," + NextNeedToFillColumn] = cellvalue;
-                            if (tableData.Attributes["rowspan"] != null)
+                            if (tableData.Attributes[strRowSpan] != null)
                             {
                                 //具有RowSpan特性的情况
-                                for (int i = 1; i < int.Parse(tableData.Attributes["rowspan"].Value); i++)
+                                for (int i = 1; i < int.Parse(tableData.Attributes[HTMLTable.strRowSpan].Value); i++)
                                 {
-                                    dict[(CurrentRow + i) + "," + NextNeedToFillColumn] = "<rowspan>";
+                                    dict[(CurrentRow + i) + "," + NextNeedToFillColumn] = strRowSpanValue;
                                 }
                             }
-                            if (tableData.Attributes["colspan"] != null)
+                            if (tableData.Attributes[strColSpan] != null)
                             {
-                                //具有RowSpan特性的情况
-                                for (int i = 1; i < int.Parse(tableData.Attributes["colspan"].Value); i++)
+                                //具有ColSpan特性的情况
+                                for (int i = 1; i < int.Parse(tableData.Attributes[strColSpan].Value); i++)
                                 {
-                                    dict[CurrentRow + "," + (NextNeedToFillColumn + i)] = "<colspan>";
+                                    dict[CurrentRow + "," + (NextNeedToFillColumn + i)] = strColSpanValue;
                                 }
                             }
                         }
@@ -114,19 +119,19 @@ public class HTMLTable
         var NeedToModify = String.Empty;
         foreach (var item in dict)
         {
-            if (item.Value == "<null>")
+            if (item.Value == strNullValue)
             {
                 var Row = int.Parse(item.Key.Split(",")[0]) - 1;
                 var Column = item.Key.Split(",")[1];
                 if (Row == 0) continue;
-                if (dict[Row + "," + Column] == "<rowspan>")
+                if (dict[Row + "," + Column] == strRowSpanValue)
                 {
                     NeedToModify = item.Key;
                 }
             }
         }
 
-        if (NeedToModify != String.Empty) dict[NeedToModify] = "<rowspan>";
+        if (NeedToModify != String.Empty) dict[NeedToModify] = strRowSpanValue;
 
         foreach (var item in dict)
         {
@@ -160,30 +165,30 @@ public class HTMLTable
         if (dict.ContainsKey(pos))
         {
             var content = dict[pos];
-            if (content == "<rowspan>")
+            if (content == strRowSpanValue)
             {
-                //向上寻找非"<rowspan>"的内容
+                //向上寻找非<rowspan>的内容
                 for (int i = RowPos - 1; i >= 0; i--)
                 {
                     pos = i + "," + ColPos;
                     if (dict.ContainsKey(pos))
                     {
                         content = dict[pos];
-                        if (content != "<rowspan>") return content;
+                        if (content != strRowSpanValue) return content;
                     }
                 }
             }
 
-            if (content == "<colspan>")
+            if (content == strColSpanValue)
             {
-                //向上寻找非"<rowspan>"的内容
+                //向上寻找非<colspan>的内容
                 for (int i = ColPos - 1; i >= 0; i--)
                 {
                     pos = RowPos + "," + i;
                     if (dict.ContainsKey(pos))
                     {
                         content = dict[pos];
-                        if (content != "<colspan>") return content;
+                        if (content != strColSpanValue) return content;
                     }
                 }
             }
@@ -225,7 +230,7 @@ public class HTMLTable
             {
                 var pos = RowNo + "," + ColNo;
                 if (!dict.ContainsKey(pos)) return false;
-                if (dict[pos] == "<rowspan>" || dict[pos] == "<colspan>")
+                if (dict[pos] == strRowSpanValue || dict[pos] == strColSpanValue)
                 {
                     RowSpanCnt++;
                 }
@@ -407,7 +412,7 @@ public class HTMLTable
                 if (RowNo == HeaderRowNo) continue;
                 if (table.IsTotalRow(RowNo)) continue;          //非合计行
                 var target = table.CellValue(RowNo, checkResult[0]);    //主字段非空
-                if (target == String.Empty || target == "<rowspan>" || target == "<colspan>" || target == "<null>") continue;
+                if (target == String.Empty || target == strRowSpanValue || target == strColSpanValue || target == strNullValue) continue;
                 if (Rules[0].Rule.Contains(target)) continue;
 
                 var RowData = new CellInfo[Rules.Count];
@@ -419,7 +424,7 @@ public class HTMLTable
                     RowData[checkItemIdx].Row = RowNo;
                     RowData[checkItemIdx].Column = ColNo;
 
-                    if (table.CellValue(RowNo, ColNo).Equals("<null>")) continue;
+                    if (table.CellValue(RowNo, ColNo).Equals(strNullValue)) continue;
                     RowData[checkItemIdx].RawData = table.CellValue(RowNo, ColNo);
                     if (Rules[checkItemIdx].Normalize != null)
                     {
@@ -458,7 +463,7 @@ public class HTMLTable
                 {
                     if (!String.IsNullOrEmpty(Row[i].RawData))
                     {
-                        if (String.IsNullOrEmpty(Rec[i].RawData) || Rec[i].RawData == "<null>")
+                        if (String.IsNullOrEmpty(Rec[i].RawData) || Rec[i].RawData == strNullValue)
                         {
                             Rec[i].RawData = Row[i].RawData;
                         }

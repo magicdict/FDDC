@@ -122,7 +122,7 @@ public class HTMLEngine
             }
         }
 
-
+        //根据文本文件内容进行调整
         if (File.Exists(TextFileName))
         {
             AdjustItemList(root, TextFileName);
@@ -146,9 +146,76 @@ public class HTMLEngine
         }
         root.TableList = TableList;
         root.DetailItemList = DetailItemList;
+
+        //表格的处理
+        FixSpiltTable(root);
         return root;
     }
+    /// <summary>
+    /// /// 分页表格的修复
+    /// </summary>
+    /// <param name="root"></param>
+    static void FixSpiltTable(MyRootHtmlNode root)
+    {
+        //1.是否存在连续表格 NextBrother
+        for (int i = 0; i < root.Children.Count; i++)
+        {
+            for (int j = 0; j < root.Children[i].Children.Count; j++)
+            {
+                var node = root.Children[i].Children[j];
+                if (node.TableId != -1)
+                {
+                    if (node.NextBrother != null)
+                    {
+                        if (node.NextBrother.TableId != -1)
+                        {
+                            var nextnode = node.NextBrother;
+                            var table = new HTMLTable(root.TableList[node.TableId]);
+                            var nexttable = new HTMLTable(root.TableList[nextnode.TableId]);
+                            Console.WriteLine("First  Table:" + table.RowCount + "X" + table.ColumnCount);
+                            Console.WriteLine("Second Table:" + nexttable.RowCount + "X" + nexttable.ColumnCount);
+                            if (table.ColumnCount != nexttable.ColumnCount) continue;
+                            Console.WriteLine("Two Tables Has Same Column Count!");
+                            //2.连续表格的后一个，往往是有<NULL>的行
+                            bool hasnull = false;
+                            for (int nullcell = 1; nullcell <= table.ColumnCount; nullcell++)
+                            {
+                                if (nexttable.CellValue(1, nullcell) == HTMLTable.strNullValue)
+                                {
+                                    hasnull = true;
+                                    break;
+                                }
+                            }
+                            if (hasnull)
+                            {
+                                var offset = table.RowCount;
+                                //修改第二张表格的数据
+                                foreach (var item in root.TableList[nextnode.TableId])
+                                {
+                                    var tablerec = item.Split("|");
+                                    var pos = tablerec[0].Split(",");
+                                    var value = tablerec[1];
+                                    var newtablerec = node.TableId + "," + 
+                                                      (offset + int.Parse(pos[1])) + "," +
+                                                      pos[2] + "|" + value;
+                                    root.TableList[node.TableId].Add(newtablerec);
+                                }
+                                root.TableList[nextnode.TableId].Clear();
+                                nextnode.TableId = -1;
+                                Console.WriteLine("Found Split Tables!!");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
+    /// <summary>
+    /// 调整条目项内容
+    /// </summary>
+    /// <param name="root"></param>
+    /// <param name="txtfilename"></param>
     static void AdjustItemList(MyRootHtmlNode root, string txtfilename)
     {
         var SR = new StreamReader(txtfilename);
@@ -211,6 +278,11 @@ public class HTMLEngine
         SR.Close();
     }
 
+    /// <summary>
+    /// 行调整
+    /// </summary>
+    /// <param name="root"></param>
+    /// <param name="txtfilename"></param>
     static void AdjustTwoLine(MyRootHtmlNode root, string txtfilename)
     {
         //Line Before:招标人：国家电网公司
@@ -244,6 +316,12 @@ public class HTMLEngine
         SR.Close();
     }
 
+    /// <summary>
+    /// 段落分析
+    /// </summary>
+    /// <param name="paragraph"></param>
+    /// <param name="root"></param>
+    /// <param name="subTitle"></param>
     void AnlayzeParagraph(HtmlNode paragraph, MyHtmlNode root, String subTitle = "")
     {
         //原始HTML的第二阶层无法保证嵌套结构是正确的，
@@ -281,6 +359,7 @@ public class HTMLEngine
                                 var tablecontentlist = HTMLTable.GetTable(child, TableId);
                                 TableList.Add(TableId, tablecontentlist);
                                 root.Children.Add(tablenode);
+                                continue;
                             }
                             if (child.Name == "hidden") continue;
                             var content = Normalizer.Normalize(child.InnerText);
