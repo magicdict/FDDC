@@ -141,12 +141,12 @@ public class StockChange : AnnouceDocument
     {
         var StockHolderRule = new TableSearchRule();
         StockHolderRule.Name = "股东全称";
-        StockHolderRule.Rule = new string[] { "股东名称" }.ToList();
+        StockHolderRule.Rule = new string[] { "股东名称","名称" }.ToList();
         StockHolderRule.IsEq = true;
 
         var ChangeDateRule = new TableSearchRule();
         ChangeDateRule.Name = "变动截止日期";
-        ChangeDateRule.Rule = new string[] { "减持期间", "增持期间", "减持股份期间", "增持股份期间",
+        ChangeDateRule.Rule = new string[] { "日期","减持期间", "增持期间", "减持股份期间", "增持股份期间",
                                              "减持时间", "增持时间", "减持股份时间", "增持股份时间" }.ToList();
         ChangeDateRule.IsEq = false;
         ChangeDateRule.Normalize = NormailizeEndChangeDate;
@@ -336,7 +336,7 @@ public class StockChange : AnnouceDocument
         {
             var FullName = CompanyNameLogic.AfterProcessFullName(word.Value);
             if (FullName.Score == 80) return (FullName.secFullName, FullName.secShortName);
-            var name = CompanyNameLogic.NormalizeCompanyName(this,FullName.secFullName);
+            var name = CompanyNameLogic.NormalizeCompanyName(this, FullName.secFullName);
             if (!String.IsNullOrEmpty(name.FullName) && !String.IsNullOrEmpty(name.ShortName))
             {
                 return name;
@@ -344,7 +344,7 @@ public class StockChange : AnnouceDocument
         }
         foreach (var word in Extractor.CandidateWord)
         {
-            var name = CompanyNameLogic.NormalizeCompanyName(this,word.Value);
+            var name = CompanyNameLogic.NormalizeCompanyName(this, word.Value);
             if (!String.IsNullOrEmpty(name.FullName))
             {
                 return name;
@@ -374,6 +374,7 @@ public class StockChange : AnnouceDocument
 
     public string NormailizeEndChangeDate(string orgString, string keyword = "")
     {
+
         var format = "yyyy-MM-dd";
         if (orgString.StartsWith("到")) orgString = orgString.Substring(1);
         if (orgString.Contains("（")) orgString = Utility.GetStringBefore(orgString, "（");
@@ -457,11 +458,20 @@ public class StockChange : AnnouceDocument
             }
             if (orgString.IndexOf("年") != -1 && orgString.IndexOf("月") != -1)
             {
+                /*  
+                    数据主要应用于“股东增减持”类型公告的抽取，对于“变动截止日期”字段，存在少量公告中只公布了月份，未公布具体的日期。对这种情况的处理标准为： 
+                    如果该月份在公告发布月份的前面，变动截止日期为该月份最后1个交易日；
+                    如果该月份是公告发布的月份，变动截止日期为公告发布日期（见本次更新表格）；
+                */
                 String Year = NumberList[0];
                 String Month = NumberList[1];
                 int year; int month;
                 if (int.TryParse(Year, out year) && int.TryParse(Month, out month))
                 {
+                    //获得公告时间
+                    if (year == this.AnnouceDate.Year && month == this.AnnouceDate.Month){
+                        return AnnouceDate.ToString(format);
+                    }    
                     var d = DateUtility.GetWorkDay(year, month, -1);
                     return d.ToString(format);
                 }

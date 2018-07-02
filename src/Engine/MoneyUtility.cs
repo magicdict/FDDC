@@ -160,6 +160,11 @@ public class MoneyUtility
             {
                 LastIndex += MoneyCurrency.Length;
             }
+            else
+            {
+                //"￥"在字符串末尾的时候，如果不及时退出，会发生死循环！
+                if (MoneyAmount == String.Empty) break;
+            }
         }
         return MoneyList;
     }

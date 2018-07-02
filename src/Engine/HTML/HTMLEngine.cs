@@ -270,19 +270,20 @@ public class HTMLEngine
                 {
                     if (node.Attributes["type"].Value == "content")
                     {
-                        if (node.ChildNodes.Count == 3 && node.ChildNodes[1].Name == "table")
+                        foreach (var child in node.ChildNodes)
                         {
-                            var tablenode = new MyHtmlNode();
-                            tablenode.Content = String.Empty;
-                            TableId++;
-                            tablenode.TableId = TableId;
-                            var tablecontentlist = HTMLTable.GetTable(node.ChildNodes[1], TableId);
-                            TableList.Add(TableId, tablecontentlist);
-                            root.Children.Add(tablenode);
-                        }
-                        else
-                        {
-                            var content = Normalizer.Normalize(node.InnerText);
+                            if (child.Name == "table")
+                            {
+                                var tablenode = new MyHtmlNode();
+                                tablenode.Content = String.Empty;
+                                TableId++;
+                                tablenode.TableId = TableId;
+                                var tablecontentlist = HTMLTable.GetTable(child, TableId);
+                                TableList.Add(TableId, tablecontentlist);
+                                root.Children.Add(tablenode);
+                            }
+                            if (child.Name == "hidden") continue;
+                            var content = Normalizer.Normalize(child.InnerText);
                             if (!String.IsNullOrEmpty(content))
                             {
                                 var contentnode = new MyHtmlNode();

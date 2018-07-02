@@ -39,6 +39,8 @@ namespace FDDC
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             //初始化   
             CompanyNameLogic.LoadCompanyName(@"Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
+            //增减持公告日期的读入
+            ImportPublishTime();
             //预处理
             //PDFMiner:PDF转TXTbatch
             //PDFToTXT.GetPdf2TxtBatchFile(); return;
@@ -50,6 +52,7 @@ namespace FDDC
             if (IsDebugMode) WordUtility.DictNSAdjust = new string[] { };    //调试模式下，去掉地名调整字典
             TraningDataset.InitStockChange();
             TraningDataset.InitContract();
+            TraningDataset.InitIncreaseStock();
             //通过训练获得各种字段的最大长度，便于抽取的时候做置信度检查
             ContractTraning.TraningMaxLenth();
             ContractTraning.EntityWordPerperty();
@@ -57,7 +60,6 @@ namespace FDDC
             //警告：可能所有的Segmenter使用的是共用的词典！
             //下面的训练将把关键字加入到词典中，引发一些问题
             //ContractTraning.AnlayzeEntitySurroundWordsLTP(); Training.Close(); return;
-            //TraningDataset.InitIncreaseStock();
             Training.Close();
             //UT(); return;
             Extract();
@@ -66,14 +68,23 @@ namespace FDDC
             Evaluator.Close();
         }
 
+        /// <summary>
+        /// 增减持公告发布日期
+        /// </summary>
+        /// <typeparam name="String"></typeparam>
+        /// <typeparam name="String"></typeparam>
+        /// <returns></returns>
+        public static Dictionary<String, String> PublishTime = new Dictionary<String, String>();
+
+
         private static void Extract()
         {
-            var IsRunContract = true;
+            var IsRunContract = false;
             var IsRunContract_TEST = false;
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
             var ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_a_20180605" + Path.DirectorySeparatorChar + "重大合同";
 
-            var IsRunStockChange = false;
+            var IsRunStockChange = true;
             var IsRunStockChange_TEST = false;
             var StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
             var StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_a_20180605" + Path.DirectorySeparatorChar + "增减持";
@@ -239,9 +250,30 @@ namespace FDDC
             }
         }
 
+        private static void ImportPublishTime()
+        {
+            foreach (var csvfilename in System.IO.Directory.GetFiles(DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_public_time_20180629"))
+            {
+                if (csvfilename.EndsWith(".csv"))
+                {
+                    var sr = new StreamReader(csvfilename);
+                    sr.ReadLine();  //Skip Header
+                    while (!sr.EndOfStream)
+                    {
+                        var line = sr.ReadLine().Split(",");
+                        PublishTime.Add(line[1], line[0]);
+                    }
+                }
+            }
+        }
+
         private static void UT()
         {
-            var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
+
+            new StockChange(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20265487.html").Extract();
+            return;
+
+            var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518\\round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
             foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + Path.DirectorySeparatorChar + "srl" + Path.DirectorySeparatorChar))
             {
                 var Srllist = LTP.AnlayzeSRL(filename);
@@ -259,7 +291,6 @@ namespace FDDC
             //var result = contract.Extract();
             //IncreaseStock.Extract(Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增\html\15304036");
             //new Contract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\797495.html").Extract();
-            //StockChange.Extract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\1011117.html");
         }
     }
 }

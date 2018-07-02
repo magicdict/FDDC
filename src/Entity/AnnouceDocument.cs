@@ -103,7 +103,17 @@ public class AnnouceDocument
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("日期：" + m.Value.ToString("yyyy-MM-dd"));
         }
         //公告中出现的最后一个日期作为公告发布日
-        if (datelist.Count > 0) AnnouceDate = datelist.Last().Value;
+        if (Program.PublishTime.ContainsKey(Id))
+        {
+            int year = int.Parse(Program.PublishTime[Id].Substring(0, 4));
+            int month = int.Parse(Program.PublishTime[Id].Substring(5, 2));
+            int day = int.Parse(Program.PublishTime[Id].Substring(8, 2));
+            AnnouceDate = new DateTime(year, month, day);
+        }
+        else
+        {
+            if (datelist.Count > 0) AnnouceDate = datelist.Last().Value;
+        }
 
         quotationList = LocateProperty.LocateQuotation(root, true);
         foreach (var m in quotationList)
