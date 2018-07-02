@@ -20,9 +20,9 @@ namespace FDDC
         public static StreamWriter Evaluator = new StreamWriter("Evaluator.log");
         public static StreamWriter Score = new StreamWriter(@"Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
         //WIN
-        //public static String DocBase = @"E:\WorkSpace2018\FDDC2018";
+        public static String DocBase = @"E:\WorkSpace2018\FDDC2018";
         //MAC
-        public static String DocBase = @"/Users/hu/Desktop/FDDCTraing";
+        //public static String DocBase = @"/Users/hu/Desktop/FDDCTraing";
 
         /// <summary>
         /// 这个模式下，有问题的数据会输出，正式比赛的时候设置为False，降低召回率！
