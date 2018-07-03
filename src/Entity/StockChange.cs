@@ -141,12 +141,12 @@ public class StockChange : AnnouceDocument
     {
         var StockHolderRule = new TableSearchRule();
         StockHolderRule.Name = "股东全称";
-        StockHolderRule.Rule = new string[] { "股东名称","名称" }.ToList();
+        StockHolderRule.Rule = new string[] { "股东名称","名称","增持主体" }.ToList();
         StockHolderRule.IsEq = true;
 
         var ChangeDateRule = new TableSearchRule();
         ChangeDateRule.Name = "变动截止日期";
-        ChangeDateRule.Rule = new string[] { "日期","减持期间", "增持期间", "减持股份期间", "增持股份期间",
+        ChangeDateRule.Rule = new string[] { "买卖时间","日期","减持期间", "增持期间", "减持股份期间", "增持股份期间",
                                              "减持时间", "增持时间", "减持股份时间", "增持股份时间" }.ToList();
         ChangeDateRule.IsEq = false;
         ChangeDateRule.Normalize = NormailizeEndChangeDate;
@@ -154,7 +154,7 @@ public class StockChange : AnnouceDocument
 
         var ChangePriceRule = new TableSearchRule();
         ChangePriceRule.Name = "变动价格";
-        ChangePriceRule.Rule = new string[] { "减持均价", "增持均价", "减持价格", "增持价格" }.ToList();
+        ChangePriceRule.Rule = new string[] { "成交均价","减持均价", "增持均价", "减持价格", "增持价格" }.ToList();
         ChangePriceRule.IsEq = false;
         ChangePriceRule.Normalize = (x, y) =>
         {
@@ -167,7 +167,7 @@ public class StockChange : AnnouceDocument
 
         var ChangeNumberRule = new TableSearchRule();
         ChangeNumberRule.Name = "变动数量";
-        ChangeNumberRule.Rule = new string[] { "减持股数", "增持股数", "减持数量", "增持数量" }.ToList();
+        ChangeNumberRule.Rule = new string[] { "成交数量","减持股数", "增持股数", "减持数量", "增持数量" }.ToList();
         ChangeNumberRule.IsEq = false;
         ChangeNumberRule.Normalize = NumberUtility.NormalizerStockNumber;
 

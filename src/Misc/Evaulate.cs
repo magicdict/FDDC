@@ -4,6 +4,7 @@ using System;
 using static StockChange;
 using static Contract;
 using FDDC;
+using System.Linq;
 
 public static class Evaluate
 {
@@ -220,6 +221,17 @@ public static class Evaluate
                 }
             }
         }
+
+        var IDList = TraningDataset.StockChangeList.Select((x) => { return x.id; }).Distinct().ToList();
+        foreach (var id in IDList)
+        {
+            var trainingCnt = TraningDataset.StockChangeList.Count((x)=>{return x.id == id;});
+            var resultCnt = result.Count((x)=>{return x.id == id;});
+            if (Math.Abs(trainingCnt - resultCnt) > 5) {
+                Program.Evaluator.WriteLine("ID:" + id + " Training:" + trainingCnt + "  Result:" + resultCnt);
+            }
+        }
+
         var F1_ID = GetF1("公告ID", POS_ID, ACT_ID, COR_ID);
         var F1_HolderFullName = GetF1("股东全称", POS_HolderFullName, ACT_HolderFullName, COR_HolderFullName);
         var F1_HolderName = GetF1("股东简称", POS_HolderShortName, ACT_HolderShortName, COR_HolderShortName);
@@ -376,7 +388,7 @@ public static class Evaluate
                     {
                         COR_ContractName++;
                     }
-                     else
+                    else
                     {
                         if (!String.IsNullOrEmpty(contract.ContractName) &&
                             !String.IsNullOrEmpty(contract_Result.ContractName))

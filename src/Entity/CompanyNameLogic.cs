@@ -202,7 +202,8 @@ public class CompanyNameLogic
 
     public static void LoadCompanyName(string JSONfilename)
     {
-        if (!File.Exists(JSONfilename)){
+        if (!File.Exists(JSONfilename))
+        {
             Console.WriteLine("Can't find CompanyName Json file");
             return;
         }
@@ -341,7 +342,8 @@ public class CompanyNameLogic
         {
             if (companyname.secFullName == fullname)
             {
-                if (shortname == String.Empty)
+                //注意：这里可能出现两个具有相同FullName，但是某个没有ShortName的可能性！
+                if (shortname == String.Empty && !String.IsNullOrEmpty(companyname.secShortName))
                 {
                     shortname = companyname.secShortName;
                     break;

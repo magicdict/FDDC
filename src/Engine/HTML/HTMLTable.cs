@@ -192,8 +192,14 @@ public class HTMLTable
                     }
                 }
             }
-
-            return dict[pos];
+            if (!dict.ContainsKey(pos))
+            {
+                Console.WriteLine("Error!!!Position Not Found:" + pos);
+            }
+            else
+            {
+                return dict[pos];
+            }
         }
         return String.Empty;
     }
@@ -315,9 +321,24 @@ public class HTMLTable
             var checkResult = new int[Rules.Count];
             var HeaderRowNo = -1;
             String[] HeaderRow = null;
+            var IsFirstRowOneCell = false;
             for (int TestRowHeader = 1; TestRowHeader < table.RowCount; TestRowHeader++)
             {
                 checkResult = new int[Rules.Count];
+                var IsOneColumnRow = true;
+                for (int i = 2; i <= table.ColumnCount; i++)
+                {
+                    if (table.CellValue(TestRowHeader, i) != (table.CellValue(TestRowHeader, 1)))
+                    {
+                        IsOneColumnRow = false;
+                        break;
+                    }
+                }
+                if (IsOneColumnRow)
+                {
+                    if (TestRowHeader == 1) IsFirstRowOneCell = true;
+                    continue;
+                }
                 HeaderRow = table.GetHeaderRow(TestRowHeader);
                 for (int checkItemIdx = 0; checkItemIdx < Rules.Count; checkItemIdx++)
                 {
@@ -378,14 +399,15 @@ public class HTMLTable
                 }
                 if (checkResult[0] != 0)
                 {
-                    if (TestRowHeader == 1)
+                    if (TestRowHeader == 1 || IsFirstRowOneCell)
                     {
                         HeaderRowNo = TestRowHeader;
                         break;
                     }
                     else
                     {
-                        //对于非首行的时候，进行严格的检查,暂时要求全匹配
+                        //对于标题栏非首行的情况，如果不是首行是一个大的整行合并单元格，则做严格检查
+                        //进行严格的检查,暂时要求全匹配
                         var IsOK = true;
                         for (int i = 0; i < Rules.Count; i++)
                         {
@@ -407,7 +429,7 @@ public class HTMLTable
             //主字段没有找到，下一张表
             if (HeaderRowNo == -1) continue;
 
-            for (int RowNo = 1; RowNo <= table.RowCount; RowNo++)
+            for (int RowNo = HeaderRowNo; RowNo <= table.RowCount; RowNo++)
             {
                 if (RowNo == HeaderRowNo) continue;
                 if (table.IsTotalRow(RowNo)) continue;          //非合计行
@@ -490,6 +512,45 @@ public class HTMLTable
     /// <param name="root"></param>
     public static void FixSpiltTable(MyRootHtmlNode root, AnnouceDocument doc)
     {
+
+        for (int NextTableId = 2; NextTableId <= doc.root.TableList.Count; NextTableId++)
+        {
+            //第二张表，第一行存在NULL
+            foreach (var item in doc.root.TableList[NextTableId])
+            {
+                var tablerec = item.Split("|");
+                var pos = tablerec[0].Split(",");
+                var value = tablerec[1];
+                var row = int.Parse(pos[1]);
+                if (row == 1 && value == strNullValue)
+                {
+                    var table = new HTMLTable(doc.root.TableList[NextTableId - 1]);
+                    var nexttable = new HTMLTable(doc.root.TableList[NextTableId]);
+                    //合并表
+                    var offset = table.RowCount;
+                    //修改第二张表格的数据
+                    foreach (var Nextitem in root.TableList[NextTableId])
+                    {
+                        tablerec = Nextitem.Split("|");
+                        pos = tablerec[0].Split(",");
+                        value = tablerec[1];
+                        var newtablerec = (NextTableId - 1) + "," + (offset + int.Parse(pos[1])) + "," + pos[2] + "|" + value;
+                        root.TableList[NextTableId - 1].Add(newtablerec);
+                    }
+                    root.TableList[NextTableId].Clear();
+                    for (int i = 0; i < root.Children.Count; i++)
+                    {
+                        for (int j = 0; j < root.Children[i].Children.Count; j++)
+                        {
+                            var node = root.Children[i].Children[j];
+                            if (node.TableId == NextTableId) node.TableId = -1;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
         //1.是否存在连续表格 NextBrother
         for (int i = 0; i < root.Children.Count; i++)
         {
@@ -577,7 +638,22 @@ public class HTMLTable
                             }
 
 
-                            if (hasnull || ComboCompanyNameColumnNo != -1)
+                            //特殊业务处理:增减持
+                            bool specaillogic = false;
+                            if (doc.GetType() == typeof(StockChange))
+                            {
+                                //增减持无表头的特殊处理
+                                for (int spCell = 1; spCell <= table.ColumnCount; spCell++)
+                                {
+                                    if (nexttable.CellValue(1, spCell) == "集中竞价交易" || nexttable.CellValue(1, spCell) == "竞价交易")
+                                    {
+                                        specaillogic = true;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (hasnull || ComboCompanyNameColumnNo != -1 || specaillogic)
                             {
                                 var offset = table.RowCount;
                                 //修改第二张表格的数据
@@ -627,6 +703,37 @@ public class HTMLTable
                 }
             }
         }
+
+        for (int tableId = 1; tableId <= root.TableList.Count; tableId++)
+        {
+            var table = root.TableList[tableId];
+            for (int checkItemIdx = 0; checkItemIdx < table.Count; checkItemIdx++)
+            {
+                var tablerec = table[checkItemIdx].Split("|");
+                var pos = tablerec[0].Split(",");
+                var value = tablerec[1].Replace(" ", "");
+                var row = int.Parse(pos[1]);
+                var col = int.Parse(pos[2]);
+                if (value == strNullValue && row != 1)
+                {
+                    //上一行是RowSpan，或者下一行是RowSpan，则这行也是RowSpan
+                    var pre = tableId.ToString() + "," + (row - 1).ToString() + "," + col.ToString() + "|" + strRowSpanValue;
+                    if (table.Contains(pre))
+                    {
+                        table[checkItemIdx] = tablerec[0] + "|" + strRowSpanValue;
+                    }
+                    else
+                    {
+                        var next = tableId.ToString() + "," + (row + 1).ToString() + "," + col.ToString() + "|" + strRowSpanValue;
+                        if (table.Contains(next))
+                        {
+                            table[checkItemIdx] = tablerec[0] + "|" + strRowSpanValue;
+                        }
+                    }
+                }
+            }
+        }
+
     }
 
 }
