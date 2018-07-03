@@ -141,7 +141,7 @@ public class StockChange : AnnouceDocument
     {
         var StockHolderRule = new TableSearchRule();
         StockHolderRule.Name = "股东全称";
-        StockHolderRule.Rule = new string[] { "股东名称","名称","增持主体" }.ToList();
+        StockHolderRule.Rule = new string[] { "股东名称", "名称", "增持主体", "增持人", "减持主体", "减持人" }.ToList();
         StockHolderRule.IsEq = true;
 
         var ChangeDateRule = new TableSearchRule();
@@ -154,7 +154,7 @@ public class StockChange : AnnouceDocument
 
         var ChangePriceRule = new TableSearchRule();
         ChangePriceRule.Name = "变动价格";
-        ChangePriceRule.Rule = new string[] { "成交均价","减持均价", "增持均价", "减持价格", "增持价格" }.ToList();
+        ChangePriceRule.Rule = new string[] { "成交均价", "减持均价", "增持均价", "减持价格", "增持价格" }.ToList();
         ChangePriceRule.IsEq = false;
         ChangePriceRule.Normalize = (x, y) =>
         {
@@ -167,7 +167,7 @@ public class StockChange : AnnouceDocument
 
         var ChangeNumberRule = new TableSearchRule();
         ChangeNumberRule.Name = "变动数量";
-        ChangeNumberRule.Rule = new string[] { "成交数量","减持股数", "增持股数", "减持数量", "增持数量" }.ToList();
+        ChangeNumberRule.Rule = new string[] { "成交数量", "减持股数", "增持股数", "减持数量", "增持数量" }.ToList();
         ChangeNumberRule.IsEq = false;
         ChangeNumberRule.Normalize = NumberUtility.NormalizerStockNumber;
 
@@ -178,8 +178,36 @@ public class StockChange : AnnouceDocument
         Rules.Add(ChangeNumberRule);
 
         var result = HTMLTable.GetMultiInfo(root, Rules, false);
+
+        if (result.Count == 0)
+        {
+            //没有抽取到任何数据
+            Rules.Clear();
+            Rules.Add(ChangeDateRule);
+            Rules.Add(ChangePriceRule);
+            Rules.Add(ChangeNumberRule);
+            result = HTMLTable.GetMultiInfo(root, Rules, false);
+            if (result.Count == 0)
+            {
+                return new List<struStockChange>();
+            }
+            var NewResult = new List<CellInfo[]>();
+            var Name = GetHolderName(this.root);
+            if (String.IsNullOrEmpty(Name.FullName) && String.IsNullOrEmpty(Name.ShortName))
+            {
+                return new List<struStockChange>();
+            }
+            foreach (var item in result)
+            {
+                NewResult.Add(new CellInfo[] {
+                new CellInfo() {
+                    RawData = String.IsNullOrEmpty(Name.FullName)?Name.ShortName:Name.FullName
+                } , item[0], item[1], item[2] });
+            }
+        }
+
         //只写在最后一条记录的地方,不过必须及时过滤掉不存在的记录
-        result.Reverse();
+        result.Reverse();   //TODO:这个逻辑好要吗？
         var stockchangelist = new List<struStockChange>();
         foreach (var rec in result)
         {
@@ -469,9 +497,10 @@ public class StockChange : AnnouceDocument
                 if (int.TryParse(Year, out year) && int.TryParse(Month, out month))
                 {
                     //获得公告时间
-                    if (year == this.AnnouceDate.Year && month == this.AnnouceDate.Month){
+                    if (year == this.AnnouceDate.Year && month == this.AnnouceDate.Month)
+                    {
                         return AnnouceDate.ToString(format);
-                    }    
+                    }
                     var d = DateUtility.GetWorkDay(year, month, -1);
                     return d.ToString(format);
                 }

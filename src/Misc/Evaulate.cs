@@ -98,6 +98,16 @@ public static class Evaluate
                 }
             }
         }
+        var IDList = TraningDataset.IncreaseStockList.Select((x) => { return x.id; }).Distinct().ToList();
+        foreach (var id in IDList)
+        {
+            var trainingCnt = TraningDataset.IncreaseStockList.Count((x)=>{return x.id == id;});
+            var resultCnt = result.Count((x)=>{return x.id == id;});
+            if (Math.Abs(trainingCnt - resultCnt) > 5) {
+                Program.Evaluator.WriteLine("ID:" + id + " Training:" + trainingCnt + "  Result:" + resultCnt);
+            }
+        }
+
         var F1_ID = GetF1("公告ID", POS_ID, ACT_ID, COR_ID);
         var F1_PublishTarget = GetF1("增发对象", POS_PublishTarget, ACT_PublishTarget, COR_PublishTarget);
         var F1_IncreaseNumber = GetF1("增发数量", POS_IncreaseNumber, ACT_IncreaseNumber, COR_IncreaseNumber);

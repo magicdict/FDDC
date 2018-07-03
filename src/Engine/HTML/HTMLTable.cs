@@ -312,6 +312,13 @@ public class HTMLTable
         return true;
     }
 
+    /// <summary>
+    /// 从表格中抽取信息
+    /// </summary>
+    /// <param name="root"></param>
+    /// <param name="Rules"></param>
+    /// <param name="IsMeger"></param>
+    /// <returns></returns>
     public static List<CellInfo[]> GetMultiInfo(HTMLEngine.MyRootHtmlNode root, List<TableSearchRule> Rules, bool IsMeger)
     {
         var Container = new List<CellInfo[]>();
