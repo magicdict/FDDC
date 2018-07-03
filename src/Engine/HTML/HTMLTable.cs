@@ -484,5 +484,149 @@ public class HTMLTable
         }
         return dict.Values.ToList();
     }
+    /// <summary>
+    /// /// 分页表格的修复
+    /// </summary>
+    /// <param name="root"></param>
+    public static void FixSpiltTable(MyRootHtmlNode root, AnnouceDocument doc)
+    {
+        //1.是否存在连续表格 NextBrother
+        for (int i = 0; i < root.Children.Count; i++)
+        {
+            for (int j = 0; j < root.Children[i].Children.Count; j++)
+            {
+                var node = root.Children[i].Children[j];
+                if (node.TableId != -1)
+                {
+                    if (node.NextBrother != null)
+                    {
+                        if (node.NextBrother.TableId != -1)
+                        {
+                            var nextnode = node.NextBrother;
+                            var table = new HTMLTable(root.TableList[node.TableId]);
+                            var nexttable = new HTMLTable(root.TableList[nextnode.TableId]);
+                            Console.WriteLine("First  Table:" + table.RowCount + "X" + table.ColumnCount);
+                            Console.WriteLine("Second Table:" + nexttable.RowCount + "X" + nexttable.ColumnCount);
+                            if (table.ColumnCount != nexttable.ColumnCount) continue;
+                            Console.WriteLine("Two Tables Has Same Column Count!");
+                            //2.连续表格的后一个，往往是有<NULL>的行
+                            bool hasnull = false;
+                            for (int nullcell = 1; nullcell <= table.ColumnCount; nullcell++)
+                            {
+                                if (nexttable.CellValue(1, nullcell) == HTMLTable.strNullValue)
+                                {
+                                    hasnull = true;
+                                    break;
+                                }
+                            }
+
+                            var ComboCompanyName = "";
+                            var ComboCompanyNameColumnNo = -1;
+                            var CompanyFullNameList = doc.companynamelist.Select((x) => { return x.secFullName; }).Distinct().ToList();
+                            //两表同列的元素，是否有能够合并成为公司名称的？注意，需要去除空格！！
+                            int MaxColumn = table.ColumnCount;
+                            for (int col = 1; col <= MaxColumn; col++)
+                            {
+                                int TableAMaxRow = table.RowCount;
+                                int TableBMaxRow = nexttable.RowCount;
+                                for (int RowCntA = 1; RowCntA < TableAMaxRow; RowCntA++)
+                                {
+                                    for (int RowCntB = 1; RowCntB < TableBMaxRow; RowCntB++)
+                                    {
+                                        var valueA = table.CellValue(RowCntA, col).Replace(" ", "");
+                                        var valueB = nexttable.CellValue(RowCntB, col).Replace(" ", "");
+                                        if (valueA != "" && valueB != "")
+                                        {
+                                            var value = valueA + valueB;
+                                            if (CompanyFullNameList.Contains(value))
+                                            {
+                                                ComboCompanyName = value;
+                                                ComboCompanyNameColumnNo = col;
+                                                Console.WriteLine("Found FullName:" + value);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (ComboCompanyNameColumnNo != -1) break;
+                                }
+                                if (ComboCompanyNameColumnNo != -1) break;
+                            }
+                            if (ComboCompanyNameColumnNo != -1)
+                            {
+                                //补完:注意，不能全部补！！A表以公司名开头，B表以公司名结尾
+                                for (int k = 0; k < root.TableList[node.TableId].Count; k++)
+                                {
+                                    var tablerec = root.TableList[node.TableId][k].Split("|");
+                                    var value = tablerec[1].Replace(" ", "");
+                                    //A表以公司名开头
+                                    if (ComboCompanyName.StartsWith(value))
+                                    {
+                                        root.TableList[node.TableId][k] = tablerec[0] + "|" + ComboCompanyName;
+                                    }
+                                }
+                                for (int k = 0; k < root.TableList[nextnode.TableId].Count; k++)
+                                {
+                                    var tablerec = root.TableList[nextnode.TableId][k].Split("|");
+                                    var value = tablerec[1].Replace(" ", "");
+                                    //A表以公司名开头
+                                    if (ComboCompanyName.EndsWith(value))
+                                    {
+                                        root.TableList[nextnode.TableId][k] = tablerec[0] + "|" + ComboCompanyName;
+                                    }
+                                }
+                            }
+
+
+                            if (hasnull || ComboCompanyNameColumnNo != -1)
+                            {
+                                var offset = table.RowCount;
+                                //修改第二张表格的数据
+                                foreach (var item in root.TableList[nextnode.TableId])
+                                {
+                                    var tablerec = item.Split("|");
+                                    var pos = tablerec[0].Split(",");
+                                    var value = tablerec[1];
+                                    var newtablerec = node.TableId + "," + (offset + int.Parse(pos[1])) + "," + pos[2] + "|" + value;
+                                    root.TableList[node.TableId].Add(newtablerec);
+                                }
+                                root.TableList[nextnode.TableId].Clear();
+                                nextnode.TableId = -1;
+                                Console.WriteLine("Found Split Tables!!");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public static void FixNullValue(MyRootHtmlNode root, AnnouceDocument doc)
+    {
+        var CompanyFullNameList = doc.companynamelist.Select((x) => { return x.secFullName; }).Distinct().ToList();
+        var CompanyShortNameList = doc.companynamelist.Select((x) => { return x.secShortName; }).Distinct().ToList();
+        for (int tableId = 1; tableId <= root.TableList.Count; tableId++)
+        {
+            var table = root.TableList[tableId];
+            for (int checkItemIdx = 0; checkItemIdx < table.Count; checkItemIdx++)
+            {
+                var tablerec = table[checkItemIdx].Split("|");
+                var pos = tablerec[0].Split(",");
+                var value = tablerec[1].Replace(" ", "");
+                var col = int.Parse(pos[2]);
+                if (CompanyFullNameList.Contains(value) || CompanyShortNameList.Contains(value))
+                {
+                    for (int fixIdx = 0; fixIdx < table.Count; fixIdx++)
+                    {
+                        var nullvalue = table[fixIdx].Split("|")[1];
+                        var nullcol = int.Parse(table[fixIdx].Split("|")[0].Split(",")[2]);
+                        if (nullvalue.Equals(strNullValue) && col == nullcol)
+                        {
+                            table[fixIdx] = table[fixIdx].Split("|")[0] + "|" + value;
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 }

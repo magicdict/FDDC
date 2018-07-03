@@ -137,6 +137,11 @@ public class AnnouceDocument
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("公司名称：" + cn.secFullName);
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("公司简称：" + cn.secShortName);
         }
+
+        //表格的处理(表分页)
+        HTMLTable.FixSpiltTable(root, this);
+        //NULL的对应
+        HTMLTable.FixNullValue(root, this);
     }
 
 

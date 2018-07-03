@@ -54,6 +54,7 @@ public class CompanyNameLogic
                     }
                     if (
                          words[baseInd].Word == "有限公司" ||
+                        (words[baseInd].Word == "公司" && baseInd != 0 && words[baseInd - 1].Word == "有限责任") ||
                         (words[baseInd].Word == "公司" && baseInd != 0 && words[baseInd - 1].Word == "承包") ||
                         (words[baseInd].Word == "有限" && baseInd != words.Count - 1 && words[baseInd + 1].Word == "合伙")
                        )

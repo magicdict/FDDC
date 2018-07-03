@@ -84,13 +84,13 @@ namespace FDDC
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
             var ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_a_20180605" + Path.DirectorySeparatorChar + "重大合同";
 
-            var IsRunStockChange = true;
+            var IsRunStockChange = false;
             var IsRunStockChange_TEST = false;
             var StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
             var StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_a_20180605" + Path.DirectorySeparatorChar + "增减持";
 
             var IsRunIncreaseStock = false;
-            var IsRunIncreaseStock_TEST = false;
+            var IsRunIncreaseStock_TEST = true;
             var IncreaseStockPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "定增";
             var IncreaseStockPath_TEST = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_test_a_20180605" + Path.DirectorySeparatorChar + "定增";
 
@@ -270,7 +270,7 @@ namespace FDDC
         private static void UT()
         {
 
-            new StockChange(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20265487.html").Extract();
+            new StockChange(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\20475180.html").Extract();
             return;
 
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518\\round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
