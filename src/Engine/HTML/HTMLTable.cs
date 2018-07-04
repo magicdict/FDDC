@@ -395,12 +395,13 @@ public partial class HTMLTable
 
                             //特殊业务处理:增减持
                             bool specaillogic = false;
+                            var BuyMethod = new string[]{"集中竞价交易","竞价交易","大宗交易","约定式购回"}.ToList();
                             if (doc.GetType() == typeof(StockChange))
                             {
                                 //增减持无表头的特殊处理
                                 for (int spCell = 1; spCell <= table.ColumnCount; spCell++)
                                 {
-                                    if (nexttable.CellValue(1, spCell) == "集中竞价交易" || nexttable.CellValue(1, spCell) == "竞价交易")
+                                    if (BuyMethod.Contains(nexttable.CellValue(1, spCell)))
                                     {
                                         specaillogic = true;
                                         break;

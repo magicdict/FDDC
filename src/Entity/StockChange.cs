@@ -155,7 +155,7 @@ public class StockChange : AnnouceDocument
 
         var ChangePriceRule = new TableSearchRule();
         ChangePriceRule.Name = "变动价格";
-        ChangePriceRule.Title = new string[] { "成交均价", "减持均价", "增持均价", "减持价格", "增持价格" }.ToList();
+        ChangePriceRule.Title = new string[] { "成交均价", "减持价格", "增持价格", "减持均", "增持均" }.ToList();
         ChangePriceRule.IsTitleEq = false;
         ChangePriceRule.Normalize = (x, y) =>
         {
@@ -171,6 +171,7 @@ public class StockChange : AnnouceDocument
         ChangeNumberRule.Title = new string[] { "成交数量", "减持股数", "增持股数", "减持数量", "增持数量" }.ToList();
         ChangeNumberRule.IsTitleEq = false;
         ChangeNumberRule.Normalize = NumberUtility.NormalizerStockNumber;
+
 
         var Rules = new List<TableSearchRule>();
         Rules.Add(StockHolderRule);
@@ -201,10 +202,8 @@ public class StockChange : AnnouceDocument
             }
             foreach (var item in result)
             {
-                NewResult.Add(new CellInfo[] {
-                new CellInfo() {
-                    RawData = String.IsNullOrEmpty(Name.FullName)?Name.ShortName:Name.FullName
-                } , item[0], item[1], item[2] });
+                NewResult.Add(new CellInfo[]
+                {new CellInfo() {RawData = String.IsNullOrEmpty(Name.FullName)?Name.ShortName:Name.FullName} , item[0], item[1], item[2] });
             }
             result = NewResult;
         }
@@ -274,8 +273,10 @@ public class StockChange : AnnouceDocument
             }
             if (!RegularTool.IsUnsign(stockchange.ChangePrice))
             {
+                if (!String.IsNullOrEmpty(stockchange.ChangePrice)) Console.WriteLine("Error ChangePrice:[" + stockchange.ChangePrice + "]");
                 stockchange.ChangePrice = String.Empty;
             }
+
 
             if (!String.IsNullOrEmpty(rec[3].RawData))
             {
@@ -283,12 +284,14 @@ public class StockChange : AnnouceDocument
                 stockchange.ChangeNumber = stockchange.ChangeNumber.NormalizeNumberResult();
                 if (!RegularTool.IsUnsign(stockchange.ChangeNumber))
                 {
+                    if (!String.IsNullOrEmpty(stockchange.ChangeNumber)) Console.WriteLine("Error ChangeNumber:[" + stockchange.ChangeNumber + "]");
                     stockchange.ChangeNumber = String.Empty;
                 }
             }
 
             //基本上所有的有效记录都有股东名和截至日期，所以，这里这么做，可能对于极少数没有截至日期的数据有伤害，但是对于整体指标来说是好的
             if (string.IsNullOrEmpty(stockchange.HolderFullName) || string.IsNullOrEmpty(stockchange.ChangeEndDate)) continue;
+            if (stockchange.ChangeNumber == "0" || stockchange.ChangePrice == "0") continue;
             stockchangelist.Add(stockchange);
         }
 
@@ -366,15 +369,12 @@ public class StockChange : AnnouceDocument
         {
             HoldList = GetHolderAfter3rdStep();
         }
-        if (HoldList.Count == 0)
-        {
-            HoldList = GetHolderAfter4thStep();
-        }
         return HoldList;
     }
 
     private static string getAfterpercent(string StrPercent)
     {
+        if (string.IsNullOrEmpty(StrPercent)) return "";
         Regex r = new Regex(@"\d+\.?\d*");
         if (!String.IsNullOrEmpty(r.Match(StrPercent).Value))
         {
@@ -386,6 +386,7 @@ public class StockChange : AnnouceDocument
 
     private static string getAfterstock(string Title, string strHolderCnt)
     {
+        if (string.IsNullOrEmpty(strHolderCnt)) return "";
         Regex r = new Regex(@"\d+\.?\d*");
         var HolderCnt = String.Empty;
         if (!String.IsNullOrEmpty(r.Match(strHolderCnt).Value))
@@ -455,7 +456,7 @@ public class StockChange : AnnouceDocument
                     if (PercentCol == 5 && !value5.Contains("%")) value5 += "%";
                     if (RegularTool.IsNumeric(value4) && RegularTool.IsPercent(value5))
                     {
-                        Console.WriteLine("GetHolderAfter2ndStep:" + value1);
+                        //Console.WriteLine("GetHolderAfter2ndStep:" + value1);
                         HoldList.Add(new struHoldAfter()
                         {
                             Name = value1,
@@ -488,7 +489,7 @@ public class StockChange : AnnouceDocument
         HoldNumberAfterChangeRule.Title = new string[] {
              "持股股数","持股股数",
              "持股数量","持股数量",
-             "持股总数","持股总数"
+             "持股总数","持股总数","股数"
         }.ToList();
         HoldNumberAfterChangeRule.IsTitleEq = false;
 
@@ -515,7 +516,7 @@ public class StockChange : AnnouceDocument
                 string HolderCnt = getAfterstock(item[1].Title, strHolderCnt);
                 var StrPercent = item[2].RawData;
                 var HodlerPercent = getAfterpercent(StrPercent);
-                Console.WriteLine("GetHolderAfter3rdStep:" + HolderName);
+                //Console.WriteLine("GetHolderAfter3rdStep:" + HolderName);
                 HoldList.Add(new struHoldAfter()
                 {
                     Name = HolderName,
@@ -525,69 +526,45 @@ public class StockChange : AnnouceDocument
                 });
             }
         }
-
-        return HoldList;
-    }
-
-    List<struHoldAfter> GetHolderAfter4thStep()
-    {
-        var HoldList = new List<struHoldAfter>();
-
-        var HoldNumberAfterChangeRule = new TableSearchRule();
-        HoldNumberAfterChangeRule.Name = "变动后持股数";
-        HoldNumberAfterChangeRule.IsRequire = true;
-        HoldNumberAfterChangeRule.SuperTitle = new string[] { "减持后", "增持后" }.ToList();
-        HoldNumberAfterChangeRule.IsSuperTitleEq = false;
-        HoldNumberAfterChangeRule.Title = new string[] {
-             "持股股数","持股股数",
-             "持股数量","持股数量",
-             "持股总数","持股总数"
-        }.ToList();
-        HoldNumberAfterChangeRule.IsTitleEq = false;
-
-
-        var HoldPercentAfterChangeRule = new TableSearchRule();
-        HoldPercentAfterChangeRule.Name = "变动后持股数比例";
-        HoldPercentAfterChangeRule.IsRequire = true;
-        HoldPercentAfterChangeRule.SuperTitle = HoldNumberAfterChangeRule.SuperTitle;
-        HoldPercentAfterChangeRule.IsSuperTitleEq = false;
-        HoldPercentAfterChangeRule.Title = new string[] { "比例" }.ToList();
-        HoldPercentAfterChangeRule.IsTitleEq = false;
-
-        var StockHolderRule = new TableSearchRule();
-        StockHolderRule.Name = "股东全称";
-        StockHolderRule.SuperTitle = new string[] { "股东名称", "名称", "增持主体", "增持人", "减持主体", "减持人" }.ToList();
-        StockHolderRule.IsSuperTitleEq = true;
-        StockHolderRule.IsRequire = true;
-
-        var Rules = new List<TableSearchRule>();
-        Rules.Add(HoldNumberAfterChangeRule);
-        Rules.Add(HoldPercentAfterChangeRule);
-        Rules.Add(StockHolderRule);
-        var result = HTMLTable.GetMultiInfo(root, Rules, false);
-        if (result.Count != 0)
+        else
         {
-            foreach (var item in result)
+
+            StockHolderRule.SuperTitle = StockHolderRule.Title;
+            StockHolderRule.IsSuperTitleEq = true;
+            StockHolderRule.Title = null;
+            StockHolderRule.IsTitleEq = false;
+
+            Rules = new List<TableSearchRule>();
+            Rules.Add(HoldNumberAfterChangeRule);
+            Rules.Add(HoldPercentAfterChangeRule);
+            Rules.Add(StockHolderRule);
+            result = HTMLTable.GetMultiInfo(root, Rules, false);
+            if (result.Count != 0)
             {
-                var HolderName = item[2].RawData;
-                var strHolderCnt = item[0].RawData;
-                strHolderCnt = Normalizer.NormalizeNumberResult(strHolderCnt);
-                string HolderCnt = getAfterstock(item[1].Title, strHolderCnt);
-                var StrPercent = item[1].RawData;
-                var HodlerPercent = getAfterpercent(StrPercent);
-                Console.WriteLine("GetHolderAfter4thStep:" + HolderName);
-                HoldList.Add(new struHoldAfter()
+                foreach (var item in result)
                 {
-                    Name = HolderName,
-                    Count = HolderCnt,
-                    Percent = HodlerPercent,
-                    Used = false
-                });
+                    var HolderName = item[2].RawData;
+                    var strHolderCnt = item[0].RawData;
+                    strHolderCnt = Normalizer.NormalizeNumberResult(strHolderCnt);
+                    string HolderCnt = getAfterstock(item[1].Title, strHolderCnt);
+                    var StrPercent = item[1].RawData;
+                    var HodlerPercent = getAfterpercent(StrPercent);
+                    //Console.WriteLine("GetHolderAfter4thStep:" + HolderName);
+                    HoldList.Add(new struHoldAfter()
+                    {
+                        Name = HolderName,
+                        Count = HolderCnt,
+                        Percent = HodlerPercent,
+                        Used = false
+                    });
+                }
             }
         }
 
         return HoldList;
     }
+
+
 
 
     (String FullName, String ShortName) GetHolderName(HTMLEngine.MyRootHtmlNode root)
