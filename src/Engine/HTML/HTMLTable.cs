@@ -4,7 +4,7 @@ using System.Linq;
 using HtmlAgilityPack;
 using static HTMLEngine;
 
-public class HTMLTable
+public partial class HTMLTable
 {
     public const string strNullValue = "<null>";
     public const string strRowSpan = "rowspan";
@@ -194,7 +194,7 @@ public class HTMLTable
             }
             if (!dict.ContainsKey(pos))
             {
-                Console.WriteLine("Error!!!Position Not Found:" + pos);
+                //Console.WriteLine("Error!!!Position Not Found:" + pos);
             }
             else
             {
@@ -247,272 +247,6 @@ public class HTMLTable
     }
 
 
-    public struct CellInfo
-    {
-        public int TableId;
-
-        public int Row;
-
-        public int Column;
-
-        public string RawData;
-    }
-
-
-    public List<CellInfo> CandidateCell = new List<CellInfo>();
-
-    //在所有的表格中，寻找包含指定内容的单元格
-    public void searchKeyWordAtTable(MyRootHtmlNode root, string keyword, string exclude = "")
-    {
-        foreach (var content in root.TableList)
-        {
-            var pos = String.Empty;
-            var value = String.Empty;
-            if (value.IndexOf(keyword) != -1)
-            {
-                if (exclude != String.Empty)
-                {
-                    if (value.IndexOf(exclude) != -1) continue;
-                }
-                var cellInfo = new CellInfo();
-                cellInfo.RawData = value;
-                cellInfo.Column = int.Parse(pos.Split(",")[0]);
-                cellInfo.Row = int.Parse(pos.Split(",")[1]);
-                cellInfo.Column = int.Parse(pos.Split(",")[2]);
-                CandidateCell.Add(cellInfo);
-            }
-        }
-    }
-
-
-    public struct TableSearchRule
-    {
-        public string Name;
-
-        public List<String> Rule;
-
-        public bool IsEq;
-
-        public List<String> Exclude;
-
-        public Func<String, String, String> Normalize;
-
-    }
-
-
-    public static bool IsSameContent(CellInfo[] Row1, CellInfo[] Row2)
-    {
-        for (int i = 0; i < Row1.Length; i++)
-        {
-            if (String.IsNullOrEmpty(Row1[i].RawData) && String.IsNullOrEmpty(Row2[i].RawData)) continue;
-            if (String.IsNullOrEmpty(Row1[i].RawData)) return false;
-            if (String.IsNullOrEmpty(Row2[i].RawData)) return false;
-            if (!Row1[i].RawData.Equals(Row2[i].RawData)) return false;
-        }
-        return true;
-    }
-
-    /// <summary>
-    /// 从表格中抽取信息
-    /// </summary>
-    /// <param name="root"></param>
-    /// <param name="Rules"></param>
-    /// <param name="IsMeger"></param>
-    /// <returns></returns>
-    public static List<CellInfo[]> GetMultiInfo(HTMLEngine.MyRootHtmlNode root, List<TableSearchRule> Rules, bool IsMeger)
-    {
-        var Container = new List<CellInfo[]>();
-        for (int tableIndex = 0; tableIndex < root.TableList.Count; tableIndex++)
-        {
-            var table = new HTMLTable(root.TableList[tableIndex + 1]);
-            var checkResult = new int[Rules.Count];
-            var HeaderRowNo = -1;
-            String[] HeaderRow = null;
-            var IsFirstRowOneCell = false;
-            for (int TestRowHeader = 1; TestRowHeader < table.RowCount; TestRowHeader++)
-            {
-                checkResult = new int[Rules.Count];
-                var IsOneColumnRow = true;
-                for (int i = 2; i <= table.ColumnCount; i++)
-                {
-                    if (table.CellValue(TestRowHeader, i) != (table.CellValue(TestRowHeader, 1)))
-                    {
-                        IsOneColumnRow = false;
-                        break;
-                    }
-                }
-                if (IsOneColumnRow)
-                {
-                    if (TestRowHeader == 1) IsFirstRowOneCell = true;
-                    continue;
-                }
-                HeaderRow = table.GetHeaderRow(TestRowHeader);
-                for (int checkItemIdx = 0; checkItemIdx < Rules.Count; checkItemIdx++)
-                {
-                    //在每个行首单元格检索
-                    for (int ColIndex = 0; ColIndex < HeaderRow.Length; ColIndex++)
-                    {
-                        if (Rules[checkItemIdx].IsEq)
-                        {
-                            //相等模式：规则里面没有该词语
-                            if (!Rules[checkItemIdx].Rule.Contains(HeaderRow[ColIndex])) continue;
-                            if (Rules[checkItemIdx].Exclude != null)
-                            {
-                                var isOK = true;
-                                foreach (var word in Rules[checkItemIdx].Exclude)
-                                {
-                                    if (HeaderRow[ColIndex].Contains(word))
-                                    {
-                                        isOK = false;
-                                        break;
-                                    }
-                                }
-                                if (!isOK) continue;
-                            }
-                        }
-                        else
-                        {
-                            bool IsMatch = false;
-                            //包含模式
-                            foreach (var r in Rules[checkItemIdx].Rule)
-                            {
-                                if (HeaderRow[ColIndex].Contains(r))
-                                {
-                                    IsMatch = true;
-                                    break;
-                                }
-                            }
-                            if (!IsMatch) continue;
-                            if (Rules[checkItemIdx].Exclude != null)
-                            {
-                                var isOK = true;
-                                foreach (var word in Rules[checkItemIdx].Exclude)
-                                {
-                                    if (HeaderRow[ColIndex].Contains(word))
-                                    {
-                                        isOK = false;
-                                        break;
-                                    }
-                                }
-                                if (!isOK) continue;
-                            }
-                        }
-                        //找到列位置
-                        checkResult[checkItemIdx] = ColIndex + 1;
-                        break;
-                    }
-                    //主字段没有找到，其他不用找了
-                    if (checkResult[0] == 0) break;
-                }
-                if (checkResult[0] != 0)
-                {
-                    if (TestRowHeader == 1 || IsFirstRowOneCell)
-                    {
-                        HeaderRowNo = TestRowHeader;
-                        break;
-                    }
-                    else
-                    {
-                        //对于标题栏非首行的情况，如果不是首行是一个大的整行合并单元格，则做严格检查
-                        //进行严格的检查,暂时要求全匹配
-                        var IsOK = true;
-                        for (int i = 0; i < Rules.Count; i++)
-                        {
-                            if (checkResult[i] == 0)
-                            {
-                                IsOK = false;
-                                break;
-                            }
-                        }
-                        if (IsOK)
-                        {
-                            HeaderRowNo = TestRowHeader;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            //主字段没有找到，下一张表
-            if (HeaderRowNo == -1) continue;
-
-            for (int RowNo = HeaderRowNo; RowNo <= table.RowCount; RowNo++)
-            {
-                if (RowNo == HeaderRowNo) continue;
-                if (table.IsTotalRow(RowNo)) continue;          //非合计行
-                var target = table.CellValue(RowNo, checkResult[0]);    //主字段非空
-                if (target == String.Empty || target == strRowSpanValue || target == strColSpanValue || target == strNullValue) continue;
-                if (Rules[0].Rule.Contains(target)) continue;
-
-                var RowData = new CellInfo[Rules.Count];
-                for (int checkItemIdx = 0; checkItemIdx < Rules.Count; checkItemIdx++)
-                {
-                    if (checkResult[checkItemIdx] == 0) continue;
-                    var ColNo = checkResult[checkItemIdx];
-                    RowData[checkItemIdx].TableId = tableIndex + 1;
-                    RowData[checkItemIdx].Row = RowNo;
-                    RowData[checkItemIdx].Column = ColNo;
-
-                    if (table.CellValue(RowNo, ColNo).Equals(strNullValue)) continue;
-                    RowData[checkItemIdx].RawData = table.CellValue(RowNo, ColNo);
-                    if (Rules[checkItemIdx].Normalize != null)
-                    {
-                        RowData[checkItemIdx].RawData = Rules[checkItemIdx].Normalize(RowData[checkItemIdx].RawData, HeaderRow[ColNo - 1]);
-                    }
-
-                }
-
-                var HasSame = false;
-                foreach (var existRow in Container)
-                {
-                    if (IsSameContent(existRow, RowData))
-                    {
-                        HasSame = true;
-                        break;
-                    }
-                }
-                if (!HasSame) Container.Add(RowData);
-            }
-        }
-        if (IsMeger) Container = MergerMultiInfo(Container);
-        return Container;
-    }
-
-    static List<CellInfo[]> MergerMultiInfo(List<CellInfo[]> rows)
-    {
-        var dict = new Dictionary<String, CellInfo[]>();
-        foreach (var Row in rows)
-        {
-            var key = Row[0].RawData;
-            if (dict.ContainsKey(key))
-            {
-                //已经有了相同Key的记录
-                var Rec = dict[key];
-                for (int i = 1; i < Rec.Length; i++)
-                {
-                    if (!String.IsNullOrEmpty(Row[i].RawData))
-                    {
-                        if (String.IsNullOrEmpty(Rec[i].RawData) || Rec[i].RawData == strNullValue)
-                        {
-                            Rec[i].RawData = Row[i].RawData;
-                        }
-                        else
-                        {
-                            if (!Rec[i].RawData.Equals(Row[i].RawData))
-                            {
-                                Rec[i].RawData += "|" + Row[i].RawData;
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            {
-                dict.Add(key, Row);
-            }
-        }
-        return dict.Values.ToList();
-    }
     /// <summary>
     /// /// 分页表格的修复
     /// </summary>
@@ -522,17 +256,31 @@ public class HTMLTable
 
         for (int NextTableId = 2; NextTableId <= doc.root.TableList.Count; NextTableId++)
         {
-            //第二张表，第一行存在NULL
             foreach (var item in doc.root.TableList[NextTableId])
             {
+                var FirstTablePos = -1;
+                var SecondTablePos = -1;
+                foreach (var p in root.Children)
+                {
+                    foreach (var s in p.Children)
+                    {
+                        if (s.TableId == NextTableId - 1) FirstTablePos = s.PositionId;
+                        if (s.TableId == NextTableId) SecondTablePos = s.PositionId;
+                    }
+                }
+
+                if (SecondTablePos - FirstTablePos > 200) continue;
+
                 var tablerec = item.Split("|");
                 var pos = tablerec[0].Split(",");
                 var value = tablerec[1];
                 var row = int.Parse(pos[1]);
+                //第二张表，第一行存在NULL
                 if (row == 1 && value == strNullValue)
                 {
                     var table = new HTMLTable(doc.root.TableList[NextTableId - 1]);
                     var nexttable = new HTMLTable(doc.root.TableList[NextTableId]);
+                    if (table.ColumnCount != nexttable.ColumnCount) continue;
                     //合并表
                     var offset = table.RowCount;
                     //修改第二张表格的数据
@@ -573,10 +321,10 @@ public class HTMLTable
                             var nextnode = node.NextBrother;
                             var table = new HTMLTable(root.TableList[node.TableId]);
                             var nexttable = new HTMLTable(root.TableList[nextnode.TableId]);
-                            Console.WriteLine("First  Table:" + table.RowCount + "X" + table.ColumnCount);
-                            Console.WriteLine("Second Table:" + nexttable.RowCount + "X" + nexttable.ColumnCount);
+                            //Console.WriteLine("First  Table:" + table.RowCount + "X" + table.ColumnCount);
+                            //Console.WriteLine("Second Table:" + nexttable.RowCount + "X" + nexttable.ColumnCount);
                             if (table.ColumnCount != nexttable.ColumnCount) continue;
-                            Console.WriteLine("Two Tables Has Same Column Count!");
+                            //Console.WriteLine("Two Tables Has Same Column Count!");
                             //2.连续表格的后一个，往往是有<NULL>的行
                             bool hasnull = false;
                             for (int nullcell = 1; nullcell <= table.ColumnCount; nullcell++)
@@ -610,7 +358,7 @@ public class HTMLTable
                                             {
                                                 ComboCompanyName = value;
                                                 ComboCompanyNameColumnNo = col;
-                                                Console.WriteLine("Found FullName:" + value);
+                                                //Console.WriteLine("Found FullName:" + value);
                                                 break;
                                             }
                                         }
@@ -674,7 +422,7 @@ public class HTMLTable
                                 }
                                 root.TableList[nextnode.TableId].Clear();
                                 nextnode.TableId = -1;
-                                Console.WriteLine("Found Split Tables!!");
+                                //Console.WriteLine("Found Split Tables!!");
                             }
                         }
                     }

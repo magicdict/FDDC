@@ -63,6 +63,12 @@ public static class RegularTool
         return Regex.IsMatch(value, @"^\d*[.]?\d*$");
     }
 
+    public static bool IsPercent(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return false;
+        return Regex.IsMatch(value, @"^\d*[.]?\d*%$");
+    }
+
     public static List<string> GetMultiValueBetweenMark(string str, string s, string e)
     {
         var strList = new List<string>();

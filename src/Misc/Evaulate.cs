@@ -101,9 +101,10 @@ public static class Evaluate
         var IDList = TraningDataset.IncreaseStockList.Select((x) => { return x.id; }).Distinct().ToList();
         foreach (var id in IDList)
         {
-            var trainingCnt = TraningDataset.IncreaseStockList.Count((x)=>{return x.id == id;});
-            var resultCnt = result.Count((x)=>{return x.id == id;});
-            if (Math.Abs(trainingCnt - resultCnt) > 5) {
+            var trainingCnt = TraningDataset.IncreaseStockList.Count((x) => { return x.id == id; });
+            var resultCnt = result.Count((x) => { return x.id == id; });
+            if (Math.Abs(trainingCnt - resultCnt) > 5)
+            {
                 Program.Evaluator.WriteLine("ID:" + id + " Training:" + trainingCnt + "  Result:" + resultCnt);
             }
         }
@@ -187,43 +188,50 @@ public static class Evaluate
         foreach (var stockchange in TraningDataset.StockChangeList)
         {
             var key = stockchange.GetKey();
-            foreach (var increase_Result in result)
+            foreach (var stockchange_Result in result)
             {
-                var key_Result = increase_Result.GetKey();
+                var key_Result = stockchange_Result.GetKey();
                 if (key.Equals(key_Result))
                 {
                     COR_ID++;
                     COR_HolderFullName++;
                     COR_ChangeEndDate++;
                     if (!String.IsNullOrEmpty(stockchange.HolderShortName) &&
-                        !String.IsNullOrEmpty(increase_Result.HolderShortName) &&
-                        stockchange.HolderShortName.NormalizeKey().Equals(increase_Result.HolderShortName.NormalizeKey()))
+                        !String.IsNullOrEmpty(stockchange_Result.HolderShortName) &&
+                        stockchange.HolderShortName.NormalizeKey().Equals(stockchange_Result.HolderShortName.NormalizeKey()))
                     {
                         COR_HolderShortName++;
                     }
 
                     if (!String.IsNullOrEmpty(stockchange.ChangePrice) &&
-                        !String.IsNullOrEmpty(increase_Result.ChangePrice) &&
-                        stockchange.ChangePrice.Equals(increase_Result.ChangePrice))
+                        !String.IsNullOrEmpty(stockchange_Result.ChangePrice) &&
+                        stockchange.ChangePrice.Equals(stockchange_Result.ChangePrice))
                     {
                         COR_ChangePrice++;
                     }
 
                     if (!String.IsNullOrEmpty(stockchange.ChangeNumber) &&
-                        !String.IsNullOrEmpty(increase_Result.ChangeNumber) &&
-                        stockchange.ChangeNumber.Equals(increase_Result.ChangeNumber))
+                        !String.IsNullOrEmpty(stockchange_Result.ChangeNumber) &&
+                        stockchange.ChangeNumber.Equals(stockchange_Result.ChangeNumber))
                     {
                         COR_ChangeNumber++;
                     }
                     if (!String.IsNullOrEmpty(stockchange.HoldNumberAfterChange) &&
-                        !String.IsNullOrEmpty(increase_Result.HoldNumberAfterChange) &&
-                        stockchange.HoldNumberAfterChange.Equals(increase_Result.HoldNumberAfterChange))
+                        !String.IsNullOrEmpty(stockchange_Result.HoldNumberAfterChange) &&
+                        stockchange.HoldNumberAfterChange.Equals(stockchange_Result.HoldNumberAfterChange))
                     {
                         COR_HoldNumberAfterChange++;
                     }
+                    else
+                    {
+                        if (!String.IsNullOrEmpty(stockchange.HoldNumberAfterChange) && String.IsNullOrEmpty(stockchange_Result.HoldNumberAfterChange))
+                        {
+                            Program.Evaluator.WriteLine("[" + stockchange.id + "]未发现持股数：" + stockchange.HoldNumberAfterChange);
+                        }
+                    }
                     if (!String.IsNullOrEmpty(stockchange.HoldPercentAfterChange) &&
-                        !String.IsNullOrEmpty(increase_Result.HoldPercentAfterChange) &&
-                        stockchange.HoldPercentAfterChange.Equals(increase_Result.HoldPercentAfterChange))
+                        !String.IsNullOrEmpty(stockchange_Result.HoldPercentAfterChange) &&
+                        stockchange.HoldPercentAfterChange.Equals(stockchange_Result.HoldPercentAfterChange))
                     {
                         COR_HoldPercentAfterChange++;
                     }
@@ -235,9 +243,10 @@ public static class Evaluate
         var IDList = TraningDataset.StockChangeList.Select((x) => { return x.id; }).Distinct().ToList();
         foreach (var id in IDList)
         {
-            var trainingCnt = TraningDataset.StockChangeList.Count((x)=>{return x.id == id;});
-            var resultCnt = result.Count((x)=>{return x.id == id;});
-            if (Math.Abs(trainingCnt - resultCnt) > 5) {
+            var trainingCnt = TraningDataset.StockChangeList.Count((x) => { return x.id == id; });
+            var resultCnt = result.Count((x) => { return x.id == id; });
+            if (Math.Abs(trainingCnt - resultCnt) > 5)
+            {
                 Program.Evaluator.WriteLine("ID:" + id + " Training:" + trainingCnt + "  Result:" + resultCnt);
             }
         }

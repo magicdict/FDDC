@@ -61,7 +61,10 @@ namespace FDDC
             //下面的训练将把关键字加入到词典中，引发一些问题
             //ContractTraning.AnlayzeEntitySurroundWordsLTP(); Training.Close(); return;
             Training.Close();
-            //UT(); return;
+            
+            //new StockChange(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\300393.html").Extract();
+            //return;
+            
             Extract();
             Logger.Close();
             Score.Close();
@@ -218,13 +221,33 @@ namespace FDDC
                 ResultCSV.WriteLine("公告id\t增发对象\t增发数量\t增发金额\t锁定期\t认购方式");
                 Console.WriteLine("Start To Extract Info IncreaseStock TRAIN");
                 var Increase_Result = new List<struIncreaseStock>();
-                foreach (var filename in System.IO.Directory.GetFiles(IncreaseStockPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
+
+                if (IsMultiThreadMode)
                 {
-                    var increasestock = new IncreaseStock(filename);
-                    foreach (var item in increasestock.Extract())
+                    Parallel.ForEach(System.IO.Directory.GetFiles(IncreaseStockPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar), (filename) =>
                     {
-                        Increase_Result.Add(item);
+                        var increasestock = new IncreaseStock(filename);
+                        foreach (var item in increasestock.Extract())
+                        {
+                            Increase_Result.Add(item);
+                        }
+                    });
+                    Increase_Result.Sort((x, y) => { return x.id.CompareTo(y.id); });
+                    foreach (var item in Increase_Result)
+                    {
                         ResultCSV.WriteLine(item.ConvertToString(item));
+                    }
+                }
+                else
+                {
+                    foreach (var filename in System.IO.Directory.GetFiles(IncreaseStockPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
+                    {
+                        var increasestock = new IncreaseStock(filename);
+                        foreach (var item in increasestock.Extract())
+                        {
+                            Increase_Result.Add(item);
+                            ResultCSV.WriteLine(item.ConvertToString(item));
+                        }
                     }
                 }
                 ResultCSV.Close();
@@ -269,10 +292,6 @@ namespace FDDC
 
         private static void UT()
         {
-
-            new StockChange(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持\html\9874695.html").Extract();
-            return;
-
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518\\round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
             foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + Path.DirectorySeparatorChar + "srl" + Path.DirectorySeparatorChar))
             {

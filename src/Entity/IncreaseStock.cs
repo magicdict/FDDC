@@ -92,31 +92,32 @@ public class IncreaseStock : AnnouceDocument
         var BuyerRule = new TableSearchRule();
         BuyerRule.Name = "认购对象";
         //"投资者名称","股东名称"
-        BuyerRule.Rule = new string[] { "发行对象", "认购对象", "发行对象名称" }.ToList();
-        BuyerRule.IsEq = true;
+        BuyerRule.Title = new string[] { "发行对象", "认购对象", "发行对象名称" }.ToList();
+        BuyerRule.IsTitleEq = true;
+        BuyerRule.IsRequire = true;
 
         var BuyNumber = new TableSearchRule();
         BuyNumber.Name = "增发数量";
-        BuyNumber.Rule = new string[] { "配售股数", "认购数量", "认购股数", "认购股份数", "发行股份数", "配售数量" }.ToList();
-        BuyNumber.IsEq = false;             //包含即可
+        BuyNumber.Title = new string[] { "配售股数", "认购数量", "认购股数", "认购股份数", "发行股份数", "配售数量" }.ToList();
+        BuyNumber.IsTitleEq = false;             //包含即可
         BuyNumber.Normalize = NumberUtility.NormalizerStockNumber;
 
         var BuyMoney = new TableSearchRule();
         BuyMoney.Name = "增发金额";
-        BuyMoney.Rule = new string[] { "配售金额", "认购金额", "获配金额" }.ToList();
-        BuyMoney.IsEq = false;             //包含即可
+        BuyMoney.Title = new string[] { "配售金额", "认购金额", "获配金额" }.ToList();
+        BuyMoney.IsTitleEq = false;             //包含即可
         BuyMoney.Normalize = MoneyUtility.Format;
 
         var FreezeYear = new TableSearchRule();
         FreezeYear.Name = "锁定期";
-        FreezeYear.Rule = new string[] { "锁定期", "限售期" }.ToList();
-        FreezeYear.IsEq = false;             //包含即可
+        FreezeYear.Title = new string[] { "锁定期", "限售期" }.ToList();
+        FreezeYear.IsTitleEq = false;             //包含即可
         FreezeYear.Normalize = NormalizerFreezeYear;
 
         var BuyPrice = new TableSearchRule();
         BuyPrice.Name = "价格";
-        BuyPrice.Rule = new string[] { "认购价格", "配售价格", "申购报价" }.ToList();
-        BuyPrice.IsEq = false;             //包含即可
+        BuyPrice.Title = new string[] { "认购价格", "配售价格", "申购报价" }.ToList();
+        BuyPrice.IsTitleEq = false;             //包含即可
         BuyPrice.Normalize = MoneyUtility.Format;
 
         var Rules = new List<TableSearchRule>();

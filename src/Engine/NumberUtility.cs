@@ -2,6 +2,7 @@ using System;
 
 public class NumberUtility
 {
+
     //股数的处理
     public static string NormalizerStockNumber(string orgString, string TitleWord)
     {
