@@ -191,7 +191,7 @@ public class Contract : AnnouceDocument
         contract.ContractMoneyDownLimit = contract.ContractMoneyUpLimit;
 
         //联合体
-        contract.UnionMember = GetUnionMember(contract.YiFang);
+        contract.UnionMember = GetUnionMember(contract.JiaFang, contract.YiFang);
         contract.UnionMember = contract.UnionMember.NormalizeTextResult();
         //按照规定除去括号
         contract.UnionMember = RegularTool.TrimBrackets(contract.UnionMember);
@@ -520,13 +520,37 @@ public class Contract : AnnouceDocument
         if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("金额候补词：[" + AllMoneyList[0].MoneyAmount + ":" + AllMoneyList[0].MoneyCurrency + "]");
         return AllMoneyList[0];
     }
+
     /// <summary>
     /// 获得联合体
     /// </summary>
+    /// <param name="JiaFang">甲方</param>
     /// <param name="YiFang">乙方</param>
     /// <returns></returns>
-    string GetUnionMember(String YiFang)
+    string GetUnionMember(String JiaFang, String YiFang)
     {
+        var Extractor = new ExtractPropertyByText();
+        Extractor.LeadingColonKeyWordListInChineseBrackets = new string[] { "联合体成员：" };
+        Extractor.ExtractFromTextFile(this.TextFileName);
+        foreach (var union in Extractor.CandidateWord)
+        {
+            return union.Value;
+        }
+        var ExtractDP = new ExtractPropertyByDP();
+        var KeyList = new List<ExtractPropertyByDP.DPKeyWord>();
+        KeyList.Add(new ExtractPropertyByDP.DPKeyWord()
+        {
+            StartWord = new string[] { "与", },
+            StartDPValue = new string[] { LTP.核心关系, LTP.定中关系, LTP.并列关系 },
+            EndWord = new string[] { "联合体" },
+            EndDPValue = new string[] { }
+        });
+        ExtractDP.StartWithKey(KeyList, Dplist);
+        foreach (var union in ExtractDP.CandidateWord)
+        {
+            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("联合体候补词：[" + union + "]");
+            return union.Value;
+        }
         var paragrahlist = ExtractPropertyByHTML.FindWordCnt("联合体", root);
         var Union = new List<String>();
         foreach (var paragrahId in paragrahlist)
@@ -537,7 +561,7 @@ public class Contract : AnnouceDocument
                 {
                     if (!Union.Contains(comp.secFullName))
                     {
-                        if (!comp.secFullName.Equals(YiFang))
+                        if (!comp.secFullName.Equals(YiFang) && !comp.secFullName.Equals(JiaFang))
                         {
                             Union.Add(comp.secFullName);
                         }

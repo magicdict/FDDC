@@ -11,6 +11,12 @@ public class ExtractProperyBase
     //先导词（直接取先导词的后面的内容）
     public string[] LeadingColonKeyWordList = new string[] { };
 
+    /// <summary>
+    /// //先导词（在中文括号之中）
+    /// </summary>
+    public string[] LeadingColonKeyWordListInChineseBrackets = new string[] { };
+
+
     //先导词（直接取先导词的后面的内容）
     public string[] TrailingWordList = new string[] { };
 
@@ -31,7 +37,7 @@ public class ExtractProperyBase
         public List<String> CandidateWord;
     }
 
-        //符号包裹特征
+    //符号包裹特征
     public struct struMarkFeature
     {
         //需要提取的内容，外部的开始符号

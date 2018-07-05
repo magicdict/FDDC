@@ -6,6 +6,20 @@ using System.Text.RegularExpressions;
 public static class RegularTool
 {
 
+    public static List<String> GetValueInChineseBracketsLeadingKeyWord(string OrgString, String KeyWord)
+    {
+        var WordList = new List<String>();
+        var BucketWords = RegularTool.GetChineseBrackets(OrgString);
+        foreach (var word in BucketWords)
+        {
+            var value = Utility.GetStringAfter(word.Substring(1, word.Length - 2), KeyWord);
+            if (value != String.Empty)
+            {
+                WordList.Add(value);
+            }
+        }
+        return WordList;
+    }
     public static List<string> GetChineseBrackets(string str)
     {
         Regex r = new Regex(@"\（.*?\）");

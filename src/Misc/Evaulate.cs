@@ -445,6 +445,14 @@ public static class Evaluate
                     }
                     else
                     {
+
+                        if (!String.IsNullOrEmpty(contract.UnionMember) &&
+                        !String.IsNullOrEmpty(contract_Result.UnionMember))
+                        {
+                            Program.Evaluator.WriteLine("[" + contract.id + "]正确联合体：" + contract.UnionMember);
+                            Program.Evaluator.WriteLine("[" + contract.id + "]错误联合体：" + contract_Result.UnionMember);
+
+                        }
                         if (!String.IsNullOrEmpty(contract.UnionMember) && String.IsNullOrEmpty(contract_Result.UnionMember))
                         {
                             Program.Evaluator.WriteLine("[" + contract.id + "]未发现联合体：" + contract.UnionMember);

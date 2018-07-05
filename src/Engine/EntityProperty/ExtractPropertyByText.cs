@@ -15,6 +15,7 @@ public class ExtractPropertyByText : ExtractProperyBase
         CandidateWord.Clear();
         if (LeadingColonKeyWordList.Length > 0) ExtractTextByColonKeyWord(filename);
         if (StartEndFeature.Length > 0) ExtractByStartEndStringFeature(filename);
+        if (LeadingColonKeyWordListInChineseBrackets.Length > 0) ExtractTextByInChineseBracketsColonKeyWord(filename);
     }
 
     public void ExtractTextByColonKeyWord(string filename)
@@ -47,6 +48,36 @@ public class ExtractPropertyByText : ExtractProperyBase
             }
         }
     }
+
+    public void ExtractTextByInChineseBracketsColonKeyWord(string filename)
+    {
+        var lines = new List<String>();
+        var sr = new StreamReader(filename);
+        while (!sr.EndOfStream)
+        {
+            var line = sr.ReadLine();
+            if (!String.IsNullOrEmpty(line)) lines.Add(line);
+        }
+        sr.Close();
+
+        for (int CurrentLineIdx = 0; CurrentLineIdx < lines.Count; CurrentLineIdx++)
+        {
+            var line = lines[CurrentLineIdx];
+            foreach (var word in LeadingColonKeyWordListInChineseBrackets)
+            {
+                var result = RegularTool.GetValueInChineseBracketsLeadingKeyWord(line, word);
+                foreach (var item in result)
+                {
+                    CandidateWord.Add(new LocAndValue<string>()
+                    {
+                        Loc = CurrentLineIdx,
+                        Value = item
+                    });
+                }
+            }
+        }
+    }
+
 
     public void ExtractTextByTrailingKeyWord(string filename)
     {
@@ -96,7 +127,7 @@ public class ExtractPropertyByText : ExtractProperyBase
                 var list = RegularTool.GetMultiValueBetweenString(line, word.StartWith, word.EndWith);
                 foreach (var item in list)
                 {
-                    CandidateWord.Add(new LocAndValue<string>(){ Value = item});
+                    CandidateWord.Add(new LocAndValue<string>() { Value = item });
                 }
             };
         }

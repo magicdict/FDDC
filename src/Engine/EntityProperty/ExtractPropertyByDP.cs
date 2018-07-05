@@ -29,16 +29,20 @@ public class ExtractPropertyByDP : ExtractProperyBase
     }
 
 
-
+    /// <summary>
+    /// 使用开始结束关键字进行抽取
+    /// </summary>
+    /// <param name="keys"></param>
+    /// <param name="dplist"></param>
     public void StartWithKey(List<DPKeyWord> keys, List<List<struWordDP>> dplist)
     {
 
         foreach (var key in keys)
         {
-            bool isStart = false;
-            string x = String.Empty;
             foreach (var paragragh in dplist)
             {
+                bool isStart = false;
+                string x = String.Empty;
                 foreach (var word in paragragh)
                 {
                     if (word.cont == "。" || word.cont == "：" || word.cont == "，")
@@ -57,17 +61,14 @@ public class ExtractPropertyByDP : ExtractProperyBase
                     }
                     if (key.StartWord.Contains(word.cont))
                     {
-                        if (word.relate.Length == 0 ||
-                            (word.relate.Length != 0 && key.StartWord.Contains(word.relate)))
+                        if (key.StartDPValue.Length == 0 || (key.StartDPValue.Length != 0 && key.StartDPValue.Contains(word.relate)))
                         {
                             isStart = true;
-
                         }
                     }
                     if (key.EndWord.Contains(word.cont))
                     {
-                        if (word.relate.Length == 0 ||
-                            (word.relate.Length != 0 && key.EndDPValue.Contains(word.relate)))
+                        if (key.EndDPValue.Length == 0 || (key.EndDPValue.Length != 0 && key.EndDPValue.Contains(word.relate)))
                         {
                             if (isStart) CandidateWord.Add(new LocAndValue<string>() { Value = x });
                             isStart = false;
@@ -77,7 +78,5 @@ public class ExtractPropertyByDP : ExtractProperyBase
                 }
             }
         }
-
-
     }
 }
