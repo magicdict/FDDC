@@ -31,7 +31,7 @@ public class ExtractPropertyByText : ExtractProperyBase
 
         for (int CurrentLineIdx = 0; CurrentLineIdx < lines.Count; CurrentLineIdx++)
         {
-            var line = lines[CurrentLineIdx];
+            var line = lines[CurrentLineIdx].Replace(" ","");
             foreach (var word in LeadingColonKeyWordList)
             {
                 if (Utility.GetStringAfter(line, word) != String.Empty)

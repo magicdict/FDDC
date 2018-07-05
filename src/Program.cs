@@ -18,8 +18,10 @@ namespace FDDC
         public static StreamWriter Training = new StreamWriter("Training.log");
         public static StreamWriter Logger = new StreamWriter("Log.log");
         public static StreamWriter Evaluator = new StreamWriter("Evaluator.log");
-        public static StreamWriter Score = new StreamWriter(@"Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
-        //WIN
+        public static StreamWriter Score; 
+        /// <summary>
+        /// Windows
+        /// </summary>
         public static String DocBase = @"E:\WorkSpace2018\FDDC2018";
         //MAC
         //public static String DocBase = @"/Users/hu/Desktop/FDDCTraing";
@@ -62,7 +64,7 @@ namespace FDDC
             //ContractTraning.AnlayzeEntitySurroundWordsLTP(); Training.Close(); return;
             Training.Close();
             
-            //new Contract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1627641.html").Extract();
+            //new Contract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1367983.html").Extract();
             //return;
             
             Extract();
@@ -82,6 +84,7 @@ namespace FDDC
 
         private static void Extract()
         {
+            Score = new StreamWriter(@"Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
             var IsRunContract = true;
             var IsRunContract_TEST = false;
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
