@@ -10,7 +10,13 @@ using static ExtractProperyBase;
 public static class Utility
 {
 
-    //寻找Top5
+    /// <summary>
+    /// 返回前N位的百分比字典
+    /// </summary>
+    /// <param name="n"></param>
+    /// <param name="dict"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
     public static Dictionary<T, int> FindTop<T>(int n, Dictionary<T, int> dict)
     {
         var result = new Dictionary<T, int>();
@@ -24,9 +30,9 @@ public static class Utility
         {
             if (dict[key] >= limit)
             {
-                result.Add(key, dict[key] * 100);
                 var percent = (dict[key] * 100 / Total) + "%";
                 Program.Training.WriteLine(key + "(" + percent + ")");
+                result.Add(key, (int)(dict[key] * 100 / Total));
             }
         }
         return result;

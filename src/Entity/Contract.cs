@@ -260,7 +260,7 @@ public partial class Contract : AnnouceDocument
             JiaFang.secFullName = JiaFang.secFullName.Replace("招标单位", String.Empty).Trim();
             if (EntityWordAnlayzeTool.TrimEnglish(JiaFang.secFullName).Length > ContractTraning.MaxJiaFangLength) continue;
             if (JiaFang.secFullName.Length < 3) continue;     //使用实际长度排除全英文的情况
-            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("甲方候补词(招标)：[" + JiaFang + "]");
+            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("甲方候补词(招标)：[" + JiaFang.secFullName + "]");
             CandidateWord.Add(JiaFang.secFullName);
         }
 
@@ -277,7 +277,7 @@ public partial class Contract : AnnouceDocument
             if (JiaFang.secFullName.Contains("招标代理")) continue; //特殊业务规则
             if (EntityWordAnlayzeTool.TrimEnglish(JiaFang.secFullName).Length > ContractTraning.MaxJiaFangLength) continue;
             if (JiaFang.secFullName.Length < 3) continue;     //使用实际长度排除全英文的情况
-            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("甲方候补词(合同)：[" + JiaFang + "]");
+            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("甲方候补词(合同)：[" + JiaFang.secFullName + "]");
             CandidateWord.Add(JiaFang.secFullName);
         }
         return CompanyNameLogic.MostLikeCompanyName(CandidateWord);
@@ -326,6 +326,7 @@ public partial class Contract : AnnouceDocument
     string GetContractName()
     {
         var e = new EntityProperty();
+        e.PropertyType = EntityProperty.enmType.Normal;
         e.PropertyName = "合同名称";
         e.PropertyType = EntityProperty.enmType.Normal;
         e.MaxLength = ContractTraning.MaxContractNameLength;
@@ -343,7 +344,8 @@ public partial class Contract : AnnouceDocument
         e.DpKeyWordList = KeyList;
         var StartArray = new string[] { "签署了", "签订了" };
         var EndArray = new string[] { "合同" };
-        e.StartEndStringFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
+        e.ExternalStartEndStringFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
+        e.ExternalStartEndStringFeatureCandidatePreprocess = (x) => { return x + "合同"; };
         e.MaxLengthCheckPreprocess = str =>
         {
             return EntityWordAnlayzeTool.TrimEnglish(str);
@@ -354,10 +356,25 @@ public partial class Contract : AnnouceDocument
         };
         e.ExcludeWordList = new string[] { "中小企业板信息披露业务备忘录第15号：日常经营重大合同" };
         e.Extract(this);
+
+        //是否所有的候选词里面包括（测试集无法使用）
+        var contractlist = TraningDataset.ContractList.Where((x) => { return x.id == this.Id; });
+        if (contractlist.Count() > 0)
+        {
+            var contract = contractlist.First();
+            var contractname = contract.ContractName;
+            if (!String.IsNullOrEmpty(contractname))
+            {
+                e.CheckIsCandidateContainsTarget(contractname);
+            }
+        }
+        //置信度
+        e.Confidence = ContractTraning.ContractNameCI;
+        e.EvaluateCI();
         if (e.LeadingColonKeyWordCandidate.Count > 0) return e.LeadingColonKeyWordCandidate[0];
         if (e.QuotationTrailingCandidate.Count > 0) return e.QuotationTrailingCandidate[0];
         if (e.DpKeyWordCandidate.Count > 0) return e.DpKeyWordCandidate[0];
-        if (e.StartEndStringFeatureCandidate.Count > 0) return e.StartEndStringFeatureCandidate[0] + "合同";
+        if (e.ExternalStartEndStringFeatureCandidate.Count > 0) return e.ExternalStartEndStringFeatureCandidate[0] + "合同";
         return String.Empty;
     }
     /// <summary>
@@ -436,7 +453,7 @@ public partial class Contract : AnnouceDocument
             var ProjectName = item.Value.Trim();
             if (EntityWordAnlayzeTool.TrimEnglish(ProjectName).Length > ContractTraning.MaxProjectNameLength) continue;
             if (ProjectName.Length <= 4) continue;
-            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("工程候补词：[" + item + "]");
+            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("工程候补词：[" + ProjectName + "]");
             return ProjectName;
         }
 

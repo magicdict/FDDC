@@ -15,10 +15,20 @@ namespace FDDC
     class Program
     {
         public static Encoding utf8WithoutBom = new System.Text.UTF8Encoding(false);
-        public static StreamWriter Training = new StreamWriter("Training.log");
-        public static StreamWriter Logger = new StreamWriter("Log.log");
-        public static StreamWriter Evaluator = new StreamWriter("Evaluator.log");
-        public static StreamWriter Score; 
+        /// <summary>
+        /// 增减持公告发布日期
+        /// </summary>
+        /// <typeparam name="String"></typeparam>
+        /// <typeparam name="String"></typeparam>
+        /// <returns></returns>
+        public static Dictionary<String, String> PublishTime = new Dictionary<String, String>();
+        public static StreamWriter Training;
+        public static StreamWriter Logger;
+        public static StreamWriter Evaluator;
+
+        public static StreamWriter CIRecord;
+
+        public static StreamWriter Score;
         /// <summary>
         /// Windows
         /// </summary>
@@ -37,6 +47,7 @@ namespace FDDC
 
         static void Main(string[] args)
         {
+            Logger = new StreamWriter("Log.log");
             //全局编码    
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             //初始化   
@@ -44,14 +55,21 @@ namespace FDDC
             //增减持公告日期的读入
             ImportPublishTime();
             //预处理
-            //PDFMiner:PDF转TXTbatch
-            //PDFToTXT.GetPdf2TxtBatchFile(); return;
-            //TXT整理
-            //PDFToTXT.FormatTxtFile(); return;
-            //LTP:XML生成Batch
-            //PDFToTXT.GetLTPXMLBatchFile(); return;            
-            //LTP.Anlayze(@"E:\WorkSpace2018\FDDC2018\1021332.xml"); return;
             if (IsDebugMode) WordUtility.DictNSAdjust = new string[] { };    //调试模式下，去掉地名调整字典
+            Traning();
+            CIRecord =  new StreamWriter("CI.log");
+            Evaluator = new StreamWriter("Evaluator.log");
+            Score = new StreamWriter(@"Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
+            Extract();
+            CIRecord.Close();
+            Score.Close();
+            Evaluator.Close();
+            Logger.Close();
+        }
+
+        private static void Traning()
+        {
+            Training = new StreamWriter("Training.log");
             TraningDataset.InitStockChange();
             TraningDataset.InitContract();
             TraningDataset.InitIncreaseStock();
@@ -63,28 +81,20 @@ namespace FDDC
             //下面的训练将把关键字加入到词典中，引发一些问题
             //ContractTraning.AnlayzeEntitySurroundWordsLTP(); Training.Close(); return;
             Training.Close();
-            
-            //new Contract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1367983.html").Extract();
-            //return;
-            
-            Extract();
-            Logger.Close();
-            Score.Close();
-            Evaluator.Close();
         }
 
-        /// <summary>
-        /// 增减持公告发布日期
-        /// </summary>
-        /// <typeparam name="String"></typeparam>
-        /// <typeparam name="String"></typeparam>
-        /// <returns></returns>
-        public static Dictionary<String, String> PublishTime = new Dictionary<String, String>();
-
+        private static void GetBatchFile()
+        {
+            //PDFMiner:PDF转TXTbatch
+            PDFToTXT.GetPdf2TxtBatchFile();
+            //TXT整理
+            PDFToTXT.FormatTxtFile();
+            //LTP:XML生成Batch
+            PDFToTXT.GetLTPXMLBatchFile();
+        }
 
         private static void Extract()
         {
-            Score = new StreamWriter(@"Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
             var IsRunContract = true;
             var IsRunContract_TEST = false;
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";

@@ -39,7 +39,8 @@ public static class Normalizer
             orgString = orgString.Replace("&gt;", ">");
         }
         orgString = ClearTrailing(orgString);
-        orgString = orgString.ToLower();    //new CultureInfo("zh-cn") 也无法将中文括号变成普通括号
+        orgString = orgString.ToLower();    
+        //new CultureInfo("zh-cn") 也无法将中文括号变成普通括号
         orgString = orgString.Replace("（", "(");
         orgString = orgString.Replace("）", ")");
         orgString = orgString.Replace("～", "~");

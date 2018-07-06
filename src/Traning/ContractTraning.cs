@@ -181,10 +181,10 @@ public class ContractTraning
     }
 
 
-    public static CI JiaFangCI;
-    public static CI YiFangCI;
-    public static CI ContractNameCI;
-    public static CI ProjectNameCI;
+    public static CIBase JiaFangCI;
+    public static CIBase YiFangCI;
+    public static CIBase ContractNameCI;
+    public static CIBase ProjectNameCI;
 
     //实体自身特性分析
     public static void EntityWordPerperty()

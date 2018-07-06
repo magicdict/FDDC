@@ -25,10 +25,7 @@ public class EntityProperty
         Normal,     //普通文本
     }
 
-    /// <summary>
-    /// 可信度
-    /// </summary>
-    public CI Confidence;
+
 
     /// <summary>
     /// 最大长度
@@ -48,6 +45,12 @@ public class EntityProperty
     /// </summary>
     public Func<String, String> MinLengthCheckPreprocess;
 
+
+    /// <summary>
+    /// 候选词预处理
+    /// </summary>
+    public Func<String, String> CandidatePreprocess;
+
     /// <summary>
     /// 冒号前导词
     /// </summary>
@@ -62,10 +65,12 @@ public class EntityProperty
     ///  书名号和引号尾部词
     /// </summary>
     public string[] QuotationTrailingWordList;
+
     /// <summary>
     /// 从引号或者书名号里提取某个关键字结尾的词语
     /// </summary>
     public bool QuotationTrailingWordList_IsSkipBracket = true;
+
     /// <summary>
     /// 书名号和引号候选词
     /// </summary>
@@ -84,19 +89,19 @@ public class EntityProperty
     /// <returns></returns>
     public List<string> DpKeyWordCandidate = new List<string>();
 
+    /// <summary>
+    /// 候选词预处理
+    /// </summary>
+    public Func<String, String> ExternalStartEndStringFeatureCandidatePreprocess;
+    public struStartEndStringFeature[] ExternalStartEndStringFeature;
 
-    public struStartEndStringFeature[] StartEndStringFeature;
-
-    public List<string> StartEndStringFeatureCandidate = new List<string>();
+    public List<string> ExternalStartEndStringFeatureCandidate = new List<string>();
 
     /// <summary>
     /// 不能包含的词语列表
     /// </summary>
     public string[] ExcludeWordList;
-    /// <summary>
-    /// 候选词预处理
-    /// </summary>
-    public Func<String, String> CandidatePreprocess;
+
 
     public void Extract(AnnouceDocument doc)
     {
@@ -173,29 +178,39 @@ public class EntityProperty
             }
         }
 
-        if (StartEndStringFeature != null)
+        if (ExternalStartEndStringFeature != null)
         {
             var ExtractorTEXT = new ExtractPropertyByText();
-            ExtractorTEXT.StartEndFeature = StartEndStringFeature;
+            ExtractorTEXT.StartEndFeature = ExternalStartEndStringFeature;
             ExtractorTEXT.ExtractFromTextFile(doc.TextFileName);
             foreach (var item in ExtractorTEXT.CandidateWord)
             {
-                var PropertyValue = CheckCandidate(item.Value);
+                var PropertyValue = item.Value;
+                if (ExternalStartEndStringFeatureCandidatePreprocess != null)
+                {
+                    PropertyValue = ExternalStartEndStringFeatureCandidatePreprocess(PropertyValue);
+                }
+                PropertyValue = CheckCandidate(PropertyValue);
                 if (String.IsNullOrEmpty(PropertyValue)) continue;
                 if (!Program.IsMultiThreadMode) Program.Logger.WriteLine(this.PropertyName + "：[" + PropertyValue + "]");
-                StartEndStringFeatureCandidate.Add(PropertyValue);
+                ExternalStartEndStringFeatureCandidate.Add(PropertyValue);
             }
 
             //一部分无法提取TEXT的情况
             var ExtractorHTML = new ExtractPropertyByHTML();
-            ExtractorHTML.StartEndFeature = StartEndStringFeature;
+            ExtractorHTML.StartEndFeature = ExternalStartEndStringFeature;
             ExtractorHTML.Extract(doc.root);
             foreach (var item in ExtractorHTML.CandidateWord)
             {
-                var PropertyValue = CheckCandidate(item.Value);
+                var PropertyValue = item.Value;
+                if (ExternalStartEndStringFeatureCandidatePreprocess != null)
+                {
+                    PropertyValue = ExternalStartEndStringFeatureCandidatePreprocess(PropertyValue);
+                }
+                PropertyValue = CheckCandidate(PropertyValue);
                 if (String.IsNullOrEmpty(PropertyValue)) continue;
                 if (!Program.IsMultiThreadMode) Program.Logger.WriteLine(this.PropertyName + "：[" + PropertyValue + "]");
-                if (!StartEndStringFeatureCandidate.Contains(PropertyValue)) StartEndStringFeatureCandidate.Add(PropertyValue);
+                if (!ExternalStartEndStringFeatureCandidate.Contains(PropertyValue)) ExternalStartEndStringFeatureCandidate.Add(PropertyValue);
             }
         }
     }
@@ -239,6 +254,50 @@ public class EntityProperty
         }
         return PropertyValue;
     }
+
+
+    #region 置信度
+    /// <summary>
+    /// 可信度
+    /// </summary>
+    public CIBase Confidence;
+    public void CheckIsCandidateContainsTarget(string StartandValue)
+    {
+        bool IsFound = false;
+        Program.CIRecord.WriteLine("标准" + PropertyName + ":" + StartandValue);
+        if (LeadingColonKeyWordCandidate.Select((x) => { return x.NormalizeTextResult(); }).Contains(StartandValue))
+        {
+            Program.CIRecord.WriteLine("存在于 冒号关键字 候补词语");
+            IsFound = true;
+        }
+        if (QuotationTrailingCandidate.Select((x) => { return x.NormalizeTextResult(); }).Contains(StartandValue))
+        {
+            Program.CIRecord.WriteLine("存在于 书名号和引号 候补词语");
+            IsFound = true;
+        }
+        if (DpKeyWordCandidate.Select((x) => { return x.NormalizeTextResult(); }).Contains(StartandValue))
+        {
+            Program.CIRecord.WriteLine("存在于 句法依赖 候补词语");
+            IsFound = true;
+        }
+        if (ExternalStartEndStringFeatureCandidate.Select((x) => { return x.NormalizeTextResult(); }).Contains(StartandValue))
+        {
+            Program.CIRecord.WriteLine("存在于 前后关键字 候补词语");
+            IsFound = true;
+        }
+        if (!IsFound) Program.CIRecord.WriteLine("候补词语未抽取信息！");
+    }
+
+    /// <summary>
+    /// 为所有词语进行置信度评价
+    /// </summary>
+    public void EvaluateCI()
+    {
+
+    }
+
+
+    #endregion
 
 
     #region 纯关键字类型

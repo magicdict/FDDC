@@ -2,7 +2,7 @@ using System.Collections.Generic;
 /// <summary>
 /// 可信度
 /// </summary>
-public class CI
+public class CIBase
 {
     //1.从长度上考量
     //2.从首词词性上考量
