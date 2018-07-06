@@ -215,7 +215,7 @@ public partial class Contract : AnnouceDocument
     {
         //最高置信度的抽取
         EntityProperty e = new EntityProperty();
-        e.ExcludeWordList = new string[] { "招标代理" };
+        e.ExcludeContainsWordList = new string[] { "招标代理" };
         e.LeadingColonKeyWordList = new string[] {
             "甲方：","合同买方：",
             "发包人：","发包单位：","发包方：","发包机构：","发包人名称：",
@@ -330,6 +330,7 @@ public partial class Contract : AnnouceDocument
         e.PropertyName = "合同名称";
         e.PropertyType = EntityProperty.enmType.Normal;
         e.MaxLength = ContractTraning.MaxContractNameLength;
+        e.MinLength = 5;
         e.LeadingColonKeyWordList = new string[] { "合同名称：" };
         e.QuotationTrailingWordList = new string[] { "协议书", "合同书", "确认书", "合同", "协议" };
         e.QuotationTrailingWordList_IsSkipBracket = true;   //暂时只能选True
@@ -350,11 +351,29 @@ public partial class Contract : AnnouceDocument
         {
             return EntityWordAnlayzeTool.TrimEnglish(str);
         };
+        //最高级别的置信度，特殊处理器
+        e.LeadingColonKeyWordCandidatePreprocess = str =>
+        {
+            var c = Normalizer.ClearTrailing(TrimJianCheng(str));
+            return c;
+        };
+
         e.CandidatePreprocess = str =>
         {
-            return Normalizer.ClearTrailing(TrimJianCheng(str));
+            var c = Normalizer.ClearTrailing(TrimJianCheng(str));
+            var RightQMarkIdx = c.IndexOf("”");
+            if (!(RightQMarkIdx != -1 && RightQMarkIdx != c.Length - 1))
+            {
+                //对于"XXX"合同，有右边引号，但不是最后的时候，不用做
+                c = c.TrimStart("“".ToCharArray());
+            }
+            c = c.TrimStart("《".ToCharArray());
+            c = c.TrimEnd("》".ToCharArray()).TrimEnd("”".ToCharArray());
+            return c;
         };
-        e.ExcludeWordList = new string[] { "中小企业板信息披露业务备忘录第15号：日常经营重大合同" };
+        e.ExcludeContainsWordList = new string[] { "日常经营重大合同" };
+        //下面这个列表的根据不足
+        e.ExcludeEqualsWordList = new string[] { "合同", "重大合同", "项目合同", "终止协议", "经营合同", "特别重大合同", "相关项目合同" };
         e.Extract(this);
 
         //是否所有的候选词里面包括（测试集无法使用）
@@ -370,12 +389,7 @@ public partial class Contract : AnnouceDocument
         }
         //置信度
         e.Confidence = ContractTraning.ContractNameCI;
-        e.EvaluateCI();
-        if (e.LeadingColonKeyWordCandidate.Count > 0) return e.LeadingColonKeyWordCandidate[0];
-        if (e.QuotationTrailingCandidate.Count > 0) return e.QuotationTrailingCandidate[0];
-        if (e.DpKeyWordCandidate.Count > 0) return e.DpKeyWordCandidate[0];
-        if (e.ExternalStartEndStringFeatureCandidate.Count > 0) return e.ExternalStartEndStringFeatureCandidate[0] + "合同";
-        return String.Empty;
+        return e.EvaluateCI();
     }
     /// <summary>
     /// 获得工程名

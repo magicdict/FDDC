@@ -3,20 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using FDDC;
 using JiebaNet.Segmenter.PosSeg;
+using static CIBase;
 
 public class EntitySelf
 {
     PosSegmenter posSeg = new PosSegmenter();
     //首单词词性
-    Dictionary<String, int> FirstWordPosDict = new Dictionary<String, int>();
+    public Dictionary<String, int> FirstWordPosDict = new Dictionary<String, int>();
     //长度
-    Dictionary<int, int> WordLengthDict = new Dictionary<int, int>();
+    public Dictionary<int, int> WordLengthDict = new Dictionary<int, int>();
     //词数
-    Dictionary<int, int> WordCountDict = new Dictionary<int, int>();
+    public Dictionary<int, int> WordCountDict = new Dictionary<int, int>();
     //最后一个单词
-    Dictionary<String, int> LastWordDict = new Dictionary<String, int>();
+    public Dictionary<String, int> LastWordDict = new Dictionary<String, int>();
     //POS组合
-    Dictionary<String, int> WordFlgsDict = new Dictionary<String, int>();
+    public Dictionary<String, int> WordFlgsDict = new Dictionary<String, int>();
 
     public void Init()
     {
@@ -88,16 +89,6 @@ public class EntitySelf
             }
         }
     }
-
-    public CIBase GetCI()
-    {
-        var ci = new CIBase();
-        ci.WordLengthScore = Utility.FindTop(5, WordLengthDict);
-        ci.FirstWordPosScore = Utility.FindTop(5, FirstWordPosDict);
-        ci.WordCountScore = Utility.FindTop(5, WordCountDict);
-        return ci;
-    }
-
 
     public void WriteFirstAndLengthWordToLog()
     {

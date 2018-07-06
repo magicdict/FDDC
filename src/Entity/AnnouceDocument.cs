@@ -91,12 +91,7 @@ public class AnnouceDocument
         Dplist = LTP.AnlayzeDP(XMLPath + "\\" + XMLFileName);
         XMLPath = fi.DirectoryName.Replace("html", "srl");
         Srllist = LTP.AnlayzeSRL(XMLPath + "\\" + XMLFileName);
-        /*
-                 foreach (var m in Srllist)
-                {
-                    if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("SRL：" + m);
-                }
-         */
+
         datelist = LocateProperty.LocateDate(root);
         foreach (var m in datelist)
         {
@@ -143,6 +138,8 @@ public class AnnouceDocument
         HTMLTable.FixSpiltTable(root, this);
         //NULL的对应
         HTMLTable.FixNullValue(root, this);
+
+        Program.CIRecord.WriteLine("编号：" + this.Id);
     }
 
 

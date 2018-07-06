@@ -52,6 +52,12 @@ public class EntityProperty
     public Func<String, String> CandidatePreprocess;
 
     /// <summary>
+    /// 最高置信度候选词专用于处理器
+    /// </summary>
+    public Func<String, String> LeadingColonKeyWordCandidatePreprocess;
+
+
+    /// <summary>
     /// 冒号前导词
     /// </summary>
     public string[] LeadingColonKeyWordList;
@@ -100,7 +106,11 @@ public class EntityProperty
     /// <summary>
     /// 不能包含的词语列表
     /// </summary>
-    public string[] ExcludeWordList;
+    public string[] ExcludeContainsWordList;
+    /// <summary>
+    /// 不能等于的词语列表
+    /// </summary>
+    public string[] ExcludeEqualsWordList;
 
 
     public void Extract(AnnouceDocument doc)
@@ -117,16 +127,18 @@ public class EntityProperty
             return;
         }
 
-        //按照规则，由固定先导词的，例如  [项目名：]  优先
         if (LeadingColonKeyWordList != null)
         {
+            //按照规则，由固定先导词的，例如  [项目名：]  
+            //这里的词语不受任何其他因素制约，例如最大最小长度，有专用的预处理器
             var ExtractorText = new ExtractPropertyByText();
             //这些关键字后面:注意：TEXT版本可能存在空格，所以HTML版本也检查一遍
             ExtractorText.LeadingColonKeyWordList = LeadingColonKeyWordList;
             ExtractorText.ExtractFromTextFile(doc.TextFileName);
             foreach (var item in ExtractorText.CandidateWord)
             {
-                var PropertyValue = CheckCandidate(item.Value);
+                var PropertyValue = item.Value;
+                if (LeadingColonKeyWordCandidatePreprocess != null) PropertyValue = LeadingColonKeyWordCandidatePreprocess(PropertyValue);
                 if (String.IsNullOrEmpty(PropertyValue)) continue;
                 if (!Program.IsMultiThreadMode) Program.Logger.WriteLine(this.PropertyName + "：[" + PropertyValue + "]");
                 LeadingColonKeyWordCandidate.Add(PropertyValue);
@@ -137,7 +149,8 @@ public class EntityProperty
             Extractor.Extract(doc.root);
             foreach (var item in ExtractorText.CandidateWord)
             {
-                var PropertyValue = CheckCandidate(item.Value);
+                var PropertyValue = item.Value;
+                if (LeadingColonKeyWordCandidatePreprocess != null) PropertyValue = LeadingColonKeyWordCandidatePreprocess(PropertyValue);
                 if (String.IsNullOrEmpty(PropertyValue)) continue;
                 if (!Program.IsMultiThreadMode) Program.Logger.WriteLine(this.PropertyName + "：[" + PropertyValue + "]");
                 //TEXT里面有的，这里不重复添加了
@@ -219,11 +232,21 @@ public class EntityProperty
     {
         PropertyValue = PropertyValue.Trim();
         if (CandidatePreprocess != null) PropertyValue = CandidatePreprocess(PropertyValue);
-        if (ExcludeWordList != null && ExcludeWordList.Length != 0)
+        if (ExcludeContainsWordList != null && ExcludeContainsWordList.Length != 0)
         {
-            foreach (var excude in ExcludeWordList)
+            foreach (var excude in ExcludeContainsWordList)
             {
                 if (PropertyValue.Contains(excude))
+                {
+                    return String.Empty;
+                }
+            }
+        }
+        if (ExcludeEqualsWordList != null && ExcludeEqualsWordList.Length != 0)
+        {
+            foreach (var excude in ExcludeEqualsWordList)
+            {
+                if (PropertyValue.Equals(excude))
                 {
                     return String.Empty;
                 }
@@ -291,27 +314,57 @@ public class EntityProperty
     /// <summary>
     /// 为所有词语进行置信度评价
     /// </summary>
-    public void EvaluateCI()
+    public string EvaluateCI()
     {
+        var Result = "";
+        var MaxScore = -1;
         if (Confidence != null)
         {
             foreach (var candidate in LeadingColonKeyWordCandidate)
             {
-                Program.CIRecord.WriteLine(candidate + ":" + Confidence.Predict(candidate));
+                //项目名称：这样的候选词置信度最高,趋向于无条件置信
+                var score = 1000;
+                Program.CIRecord.WriteLine(candidate + ":" + score);
+                if (score > MaxScore)
+                {
+                    Result = candidate;
+                    MaxScore = score;
+                }
             }
             foreach (var candidate in QuotationTrailingCandidate)
             {
-                Program.CIRecord.WriteLine(candidate + ":" + Confidence.Predict(candidate));
+                var score = Confidence.Predict(candidate) * 2;
+                Program.CIRecord.WriteLine(candidate + ":" + score);
+                if (score > MaxScore)
+                {
+                    Result = candidate;
+                    MaxScore = score;
+                }
+
             }
             foreach (var candidate in DpKeyWordCandidate)
             {
-                Program.CIRecord.WriteLine(candidate + ":" + Confidence.Predict(candidate));
+                var score = Confidence.Predict(candidate);
+                Program.CIRecord.WriteLine(candidate + ":" + score);
+                if (score > MaxScore)
+                {
+                    Result = candidate;
+                    MaxScore = score;
+                }
+
             }
             foreach (var candidate in ExternalStartEndStringFeatureCandidate)
             {
-                Program.CIRecord.WriteLine(candidate + ":" + Confidence.Predict(candidate));
+                var score = Confidence.Predict(candidate);
+                Program.CIRecord.WriteLine(candidate + ":" + score);
+                if (score > MaxScore)
+                {
+                    Result = candidate;
+                    MaxScore = score;
+                }
             }
         }
+        return Result;
     }
 
 

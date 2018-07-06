@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using FDDC;
 using JiebaNet.Segmenter.PosSeg;
+using static CIBase;
 
 public class ContractTraning
 {
@@ -197,7 +198,7 @@ public class ContractTraning
             JiaFangS.PutEntityWordPerperty(contract.JiaFang);
         }
         JiaFangS.WriteFirstAndLengthWordToLog();
-        JiaFangCI = JiaFangS.GetCI();
+        JiaFangCI = GetCI(JiaFangS);
 
         Program.Training.WriteLine("乙方统计：");
         var YiFangS = new EntitySelf();
@@ -206,7 +207,7 @@ public class ContractTraning
             YiFangS.PutEntityWordPerperty(contract.YiFang);
         }
         YiFangS.WriteFirstAndLengthWordToLog();
-        YiFangCI = YiFangS.GetCI();
+        YiFangCI = GetCI(YiFangS);
 
         Program.Training.WriteLine("合同统计：");
         var ContractS = new EntitySelf();
@@ -215,7 +216,7 @@ public class ContractTraning
             ContractS.PutEntityWordPerperty(contract.ContractName);
         }
         ContractS.WriteFirstAndLengthWordToLog();
-        ContractNameCI = ContractS.GetCI();
+        ContractNameCI = GetCI(ContractS);
 
         Program.Training.WriteLine("工程统计：");
         var ProjectNameS = new EntitySelf();
@@ -224,6 +225,26 @@ public class ContractTraning
             ProjectNameS.PutEntityWordPerperty(contract.ProjectName);
         }
         ProjectNameS.WriteFirstAndLengthWordToLog();
-        ProjectNameCI = ProjectNameS.GetCI();
+        ProjectNameCI = GetCI(ProjectNameS);
     }
+
+
+    public static CIBase GetCI(EntitySelf e)
+    {
+        var ci = new CIBase();
+        var wordlength = new FactorItem<int>();
+        wordlength.ScoreDict = Utility.FindTop(10, e.WordLengthDict);
+        ci.IntFactors.Add(wordlength);
+
+        var wordcount = new FactorItem<int>();
+        wordcount.ScoreDict = Utility.FindTop(10, e.WordCountDict);
+        ci.IntFactors.Add(wordcount);
+
+        var firstwordpos = new FactorItem<string>();
+        firstwordpos.ScoreDict = Utility.FindTop(10, e.FirstWordPosDict);
+        ci.StringFactors.Add(firstwordpos);
+
+        return ci;
+    }
+
 }

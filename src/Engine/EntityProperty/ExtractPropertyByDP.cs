@@ -45,7 +45,7 @@ public class ExtractPropertyByDP : ExtractProperyBase
                 string x = String.Empty;
                 foreach (var word in paragragh)
                 {
-                    if (word.cont == "。" || word.cont == "：" || word.cont == "，")
+                    if (word.cont == "。" || word.cont == "：" || word.cont == "，"|| word.cont == "；")
                     {
                         if (isStart)
                         {
@@ -57,7 +57,6 @@ public class ExtractPropertyByDP : ExtractProperyBase
                     if (isStart)
                     {
                         if (word.relate == LTP.右附加关系) continue;
-                        if (word.relate == LTP.句型标点) continue;
                         x += word.cont;
                     }
                     if (key.StartWord.Contains(word.cont))
