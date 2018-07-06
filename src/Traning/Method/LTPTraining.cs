@@ -69,7 +69,7 @@ public class LTPTraining
                     //动词
                     for (int LeadingVerbIdx = startIdx - 1; LeadingVerbIdx >= 0; LeadingVerbIdx--)
                     {
-                        if (paragragh[LeadingVerbIdx].pos == WordUtility.动词)
+                        if (paragragh[LeadingVerbIdx].pos == LTP.动词)
                         {
                             LW = paragragh[LeadingVerbIdx];
                             if (LeadingVerbWordDict.ContainsKey(LW.ToString()))

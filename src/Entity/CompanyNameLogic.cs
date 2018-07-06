@@ -108,10 +108,10 @@ public class CompanyNameLogic
                             }
                             //寻找地名?words[NRIdx].Flag == EntityWordAnlayzeTool.机构团体
                             //posSeg.Cut(words[NRIdx].Word + "市").First().Flag == EntityWordAnlayzeTool.地名
-                            if (words[NRIdx].Flag == WordUtility.地名 || WordUtility.DictNSAdjust.Contains(words[NRIdx].Word))
+                            if (words[NRIdx].Flag == LTP.地名 || PosNS.NsDict.Contains(words[NRIdx].Word))
                             {
                                 //注意，地名可能相连，例如：上海市嘉定
-                                if (NRIdx != 0 && (words[NRIdx - 1].Flag == WordUtility.地名 || WordUtility.DictNSAdjust.Contains(words[NRIdx - 1].Word))) continue;
+                                if (NRIdx != 0 && (words[NRIdx - 1].Flag == LTP.地名 || PosNS.NsDict.Contains(words[NRIdx - 1].Word))) continue;
                                 FullName = String.Empty;
                                 for (int companyFullNameInd = NRIdx; companyFullNameInd <= baseInd; companyFullNameInd++)
                                 {
@@ -136,7 +136,7 @@ public class CompanyNameLogic
                                     break;  //不要继续寻找地名了
                                 }
                             }
-                            if (words[NRIdx].Flag == WordUtility.标点)
+                            if (words[NRIdx].Flag == LTP.词性标点)
                             {
                                 if (words[NRIdx].Word != "（" && words[NRIdx].Word != "）") break;
                                 if (words[NRIdx].Word == "）") IsMarkClosed = false;    //打开
@@ -147,7 +147,7 @@ public class CompanyNameLogic
                         if (CompanyStartIdx == -1)
                         {
                             if (FirstShortNameIdx == -1) continue;
-                            if (posSeg.Cut(ShortName).First().Flag == WordUtility.地名) continue;
+                            if (posSeg.Cut(ShortName).First().Flag == LTP.地名) continue;
                             FullName = String.Empty;
                             for (int NRIdx = FirstShortNameIdx; NRIdx <= baseInd; NRIdx++)
                             {
@@ -323,7 +323,7 @@ public class CompanyNameLogic
             if (string.IsNullOrEmpty(word)) continue;
             var posSeg = new PosSegmenter();
             var cuts = posSeg.Cut(word).ToList();
-            if (cuts[0].Flag == WordUtility.地名)
+            if (cuts[0].Flag == LTP.地名)
             {
                 if (word.EndsWith("公司") || word.Contains("有限合伙")) return word;
             }

@@ -17,8 +17,8 @@ public static class EntityWordAnlayzeTool
         foreach (var word in list)
         {
             //去除“副词”和“了”之后的句子
-            if (word.Flag != WordUtility.助词 &&
-                word.Flag != WordUtility.副词)
+            if (word.Flag != LTP.助词 &&
+                word.Flag != LTP.副词)
             {
                 MainWordSentence += word.Word;
             }
@@ -34,7 +34,7 @@ public static class EntityWordAnlayzeTool
         foreach (var word in list)
         {
             //去除“副词”和“了”之后的句子
-            if (word.Flag != WordUtility.英语)
+            if (word.Flag != LTP.英语)
             {
                 MainWordSentence += word.Word;
             }
@@ -50,7 +50,7 @@ public static class EntityWordAnlayzeTool
         var HasStart = false;
         foreach (var word in list)
         {
-            if (HasStart || (word.Flag != WordUtility.助词))
+            if (HasStart || (word.Flag != LTP.助词))
             {
                 HasStart = true;
                 MainWordSentence += word.Word;

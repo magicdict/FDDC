@@ -21,7 +21,7 @@ namespace FDDC
         /// <typeparam name="String"></typeparam>
         /// <typeparam name="String"></typeparam>
         /// <returns></returns>
-        public static Dictionary<String, String> PublishTime = new Dictionary<String, String>();
+ 
         public static StreamWriter Training;
         public static StreamWriter Logger;
         public static StreamWriter Evaluator;
@@ -50,16 +50,18 @@ namespace FDDC
             Logger = new StreamWriter("Log.log");
             //全局编码    
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            //初始化   
+            //公司全称简称曾用名字典   
             CompanyNameLogic.LoadCompanyName(@"Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
             //增减持公告日期的读入
-            ImportPublishTime();
+            StockChange.ImportPublishTime();
+            //结巴分词的地名修正词典
+            PosNS.ImportNS(@"Resources" + Path.DirectorySeparatorChar + "ns.dict");
             //预处理
-            if (IsDebugMode) WordUtility.DictNSAdjust = new string[] { };    //调试模式下，去掉地名调整字典
             Traning();
             CIRecord =  new StreamWriter("CI.log");
             Evaluator = new StreamWriter("Evaluator.log");
             Score = new StreamWriter(@"Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
+            //new Contract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1008828.html").Extract();return;
             Extract();
             CIRecord.Close();
             Score.Close();
@@ -84,7 +86,9 @@ namespace FDDC
         }
 
         private static void GetBatchFile()
-        {
+        {   
+            //地名修正词典的获取
+            PosNS.ExtractNsFromDP(); return;
             //PDFMiner:PDF转TXTbatch
             PDFToTXT.GetPdf2TxtBatchFile();
             //TXT整理
@@ -286,22 +290,7 @@ namespace FDDC
             }
         }
 
-        private static void ImportPublishTime()
-        {
-            foreach (var csvfilename in System.IO.Directory.GetFiles(DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_public_time_20180629"))
-            {
-                if (csvfilename.EndsWith(".csv"))
-                {
-                    var sr = new StreamReader(csvfilename);
-                    sr.ReadLine();  //Skip Header
-                    while (!sr.EndOfStream)
-                    {
-                        var line = sr.ReadLine().Split(",");
-                        PublishTime.Add(line[1], line[0]);
-                    }
-                }
-            }
-        }
+
 
         private static void UT()
         {
@@ -322,7 +311,6 @@ namespace FDDC
             //var contract = new Contract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1450.html");
             //var result = contract.Extract();
             //IncreaseStock.Extract(Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增\html\15304036");
-            //new Contract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\797495.html").Extract();
         }
     }
 }

@@ -352,7 +352,7 @@ public partial class Contract : AnnouceDocument
         };
         e.CandidatePreprocess = str =>
         {
-            return TrimJianCheng(str);
+            return Normalizer.ClearTrailing(TrimJianCheng(str));
         };
         e.ExcludeWordList = new string[] { "中小企业板信息披露业务备忘录第15号：日常经营重大合同" };
         e.Extract(this);

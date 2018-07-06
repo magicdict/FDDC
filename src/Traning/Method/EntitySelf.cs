@@ -94,6 +94,7 @@ public class EntitySelf
         var ci = new CIBase();
         ci.WordLengthScore = Utility.FindTop(5, WordLengthDict);
         ci.FirstWordPosScore = Utility.FindTop(5, FirstWordPosDict);
+        ci.WordCountScore = Utility.FindTop(5, WordCountDict);
         return ci;
     }
 

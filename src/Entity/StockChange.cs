@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using FDDC;
@@ -10,8 +11,27 @@ using static LocateProperty;
 
 public class StockChange : AnnouceDocument
 {
+
     public StockChange(string htmlFileName) : base(htmlFileName)
     {
+
+    }
+    public static Dictionary<String, String> PublishTime = new Dictionary<String, String>();
+    public static void ImportPublishTime()
+    {
+        foreach (var csvfilename in System.IO.Directory.GetFiles(Program.DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_public_time_20180629"))
+        {
+            if (csvfilename.EndsWith(".csv"))
+            {
+                var sr = new StreamReader(csvfilename);
+                sr.ReadLine();  //Skip Header
+                while (!sr.EndOfStream)
+                {
+                    var line = sr.ReadLine().Split(",");
+                    PublishTime.Add(line[1], line[0]);
+                }
+            }
+        }
     }
 
     public struct struStockChange

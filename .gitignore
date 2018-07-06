@@ -12,4 +12,4 @@ Result.zip
 !score.txt
 *.bat
 *.sh
-!Evaluator.log
+!ns.dict

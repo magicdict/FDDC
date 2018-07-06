@@ -6,6 +6,17 @@ public class LTP
 
     public static string XmlMark = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>";
 
+    #region  POS
+    public const string 地名 = "ns";
+    public const string 机构团体 = "nt";
+    public const string 副词 = "d";
+    public const string 助词 = "ul";
+    public const string 英语 = "eng";
+
+    public const string 词性标点 = "x";
+    public const string 动词 = "v";
+    #endregion
+
     #region  DP
 
     public const string 主谓关系 = "SBV";
@@ -22,6 +33,8 @@ public class LTP
     public const string 右附加关系 = "RAD";
     public const string 独立结构 = "IS";
     public const string 核心关系 = "HED";
+
+    public const string 句型标点 = "WP";
 
     public struct struWordDP
     {

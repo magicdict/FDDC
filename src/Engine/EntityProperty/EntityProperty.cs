@@ -265,22 +265,22 @@ public class EntityProperty
     {
         bool IsFound = false;
         Program.CIRecord.WriteLine("标准" + PropertyName + ":" + StartandValue);
-        if (LeadingColonKeyWordCandidate.Select((x) => { return x.NormalizeTextResult(); }).Contains(StartandValue))
+        if (LeadingColonKeyWordCandidate.Select((x) => { return x.NormalizeTextResult(); }).Contains(StartandValue.NormalizeTextResult()))
         {
             Program.CIRecord.WriteLine("存在于 冒号关键字 候补词语");
             IsFound = true;
         }
-        if (QuotationTrailingCandidate.Select((x) => { return x.NormalizeTextResult(); }).Contains(StartandValue))
+        if (QuotationTrailingCandidate.Select((x) => { return x.NormalizeTextResult(); }).Contains(StartandValue.NormalizeTextResult()))
         {
             Program.CIRecord.WriteLine("存在于 书名号和引号 候补词语");
             IsFound = true;
         }
-        if (DpKeyWordCandidate.Select((x) => { return x.NormalizeTextResult(); }).Contains(StartandValue))
+        if (DpKeyWordCandidate.Select((x) => { return x.NormalizeTextResult(); }).Contains(StartandValue.NormalizeTextResult()))
         {
             Program.CIRecord.WriteLine("存在于 句法依赖 候补词语");
             IsFound = true;
         }
-        if (ExternalStartEndStringFeatureCandidate.Select((x) => { return x.NormalizeTextResult(); }).Contains(StartandValue))
+        if (ExternalStartEndStringFeatureCandidate.Select((x) => { return x.NormalizeTextResult(); }).Contains(StartandValue.NormalizeTextResult()))
         {
             Program.CIRecord.WriteLine("存在于 前后关键字 候补词语");
             IsFound = true;
@@ -293,7 +293,25 @@ public class EntityProperty
     /// </summary>
     public void EvaluateCI()
     {
-
+        if (Confidence != null)
+        {
+            foreach (var candidate in LeadingColonKeyWordCandidate)
+            {
+                Program.CIRecord.WriteLine(candidate + ":" + Confidence.Predict(candidate));
+            }
+            foreach (var candidate in QuotationTrailingCandidate)
+            {
+                Program.CIRecord.WriteLine(candidate + ":" + Confidence.Predict(candidate));
+            }
+            foreach (var candidate in DpKeyWordCandidate)
+            {
+                Program.CIRecord.WriteLine(candidate + ":" + Confidence.Predict(candidate));
+            }
+            foreach (var candidate in ExternalStartEndStringFeatureCandidate)
+            {
+                Program.CIRecord.WriteLine(candidate + ":" + Confidence.Predict(candidate));
+            }
+        }
     }
 
 

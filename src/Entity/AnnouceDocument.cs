@@ -103,12 +103,12 @@ public class AnnouceDocument
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("位置：" + m.Loc);
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("日期：" + m.Value.ToString("yyyy-MM-dd"));
         }
-        //公告中出现的最后一个日期作为公告发布日
-        if (Program.PublishTime.ContainsKey(Id))
+        //增减持公告中出现的最后一个日期作为公告发布日
+        if (StockChange.PublishTime.ContainsKey(Id))
         {
-            int year = int.Parse(Program.PublishTime[Id].Substring(0, 4));
-            int month = int.Parse(Program.PublishTime[Id].Substring(5, 2));
-            int day = int.Parse(Program.PublishTime[Id].Substring(8, 2));
+            int year = int.Parse(StockChange.PublishTime[Id].Substring(0, 4));
+            int month = int.Parse(StockChange.PublishTime[Id].Substring(5, 2));
+            int day = int.Parse(StockChange.PublishTime[Id].Substring(8, 2));
             AnnouceDate = new DateTime(year, month, day);
         }
         else
