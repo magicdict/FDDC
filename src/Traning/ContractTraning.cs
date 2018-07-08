@@ -8,28 +8,14 @@ using static CIBase;
 
 public class ContractTraning
 {
-    public static int MaxJiaFangLength = 999;
-    public static string MaxJiaFang = String.Empty;
-
-    public static int MaxYiFangLength = 999;
-    public static string MaxYiFang = String.Empty;
-
-    public static int MaxContractNameLength = 999;
-    public static string MaxContractName = String.Empty;
-
-    public static int MaxProjectNameLength = 999;
-    public static string MaxProjectName = String.Empty;
-
-    public static double MinAmount = double.MaxValue;
-
-
     public static void Train()
     {
         TraningMaxLenth();
         EntityWordPerperty();
         AnlayzeEntitySurroundWords();
     }
-
+    
+    #region 辅助工具
     public static void GetListLeadWords()
     {
         var ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
@@ -88,14 +74,13 @@ public class ContractTraning
         ProjectNameS.WriteTop(10);
         Program.Training.WriteLine("合同名附近词语分析：");
         ContractNameS.WriteTop(10);
-
     }
 
     public static void AnlayzeEntitySurroundWordsLTP()
     {
         var ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
-        var ProjectNameS = new LTPTraining();
-        var ContractNameS = new LTPTraining();
+        var ProjectNameS = new LTPTrainingDP();
+        var ContractNameS = new LTPTrainingDP();
         foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\html\"))
         {
             var fi = new System.IO.FileInfo(filename);
@@ -110,9 +95,23 @@ public class ContractTraning
         ProjectNameS.WriteTop(10);
         Program.Training.WriteLine("合同名附近词语分析：");
         ContractNameS.WriteTop(10);
-
     }
+    #endregion
 
+    #region 实体自身特性分析
+    public static int MaxJiaFangLength = 999;
+    public static string MaxJiaFang = String.Empty;
+
+    public static int MaxYiFangLength = 999;
+    public static string MaxYiFang = String.Empty;
+
+    public static int MaxContractNameLength = 999;
+    public static string MaxContractName = String.Empty;
+
+    public static int MaxProjectNameLength = 999;
+    public static string MaxProjectName = String.Empty;
+
+    public static double MinAmount = double.MaxValue;
     //最大长度
     public static void TraningMaxLenth()
     {
@@ -182,69 +181,23 @@ public class ContractTraning
     }
 
 
-    public static CIBase JiaFangCI;
-    public static CIBase YiFangCI;
-    public static CIBase ContractNameCI;
-    public static CIBase ProjectNameCI;
-
-    //实体自身特性分析
+    public static EntitySelf JiaFangS = new EntitySelf();
+    public static EntitySelf YiFangS = new EntitySelf();
+    public static EntitySelf ContractS = new EntitySelf();
+    public static EntitySelf ProjectNameS = new EntitySelf();
+    /// <summary>
+    /// 实体自身特性分析
+    /// </summary>
     public static void EntityWordPerperty()
     {
-
         Program.Training.WriteLine("甲方统计：");
-        var JiaFangS = new EntitySelf();
         foreach (var contract in TraningDataset.ContractList)
         {
             JiaFangS.PutEntityWordPerperty(contract.JiaFang);
-        }
-        JiaFangS.WriteFirstAndLengthWordToLog();
-        JiaFangCI = GetCI(JiaFangS);
-
-        Program.Training.WriteLine("乙方统计：");
-        var YiFangS = new EntitySelf();
-        foreach (var contract in TraningDataset.ContractList)
-        {
             YiFangS.PutEntityWordPerperty(contract.YiFang);
-        }
-        YiFangS.WriteFirstAndLengthWordToLog();
-        YiFangCI = GetCI(YiFangS);
-
-        Program.Training.WriteLine("合同统计：");
-        var ContractS = new EntitySelf();
-        foreach (var contract in TraningDataset.ContractList)
-        {
             ContractS.PutEntityWordPerperty(contract.ContractName);
-        }
-        ContractS.WriteFirstAndLengthWordToLog();
-        ContractNameCI = GetCI(ContractS);
-
-        Program.Training.WriteLine("工程统计：");
-        var ProjectNameS = new EntitySelf();
-        foreach (var contract in TraningDataset.ContractList)
-        {
             ProjectNameS.PutEntityWordPerperty(contract.ProjectName);
         }
-        ProjectNameS.WriteFirstAndLengthWordToLog();
-        ProjectNameCI = GetCI(ProjectNameS);
     }
-
-
-    public static CIBase GetCI(EntitySelf e)
-    {
-        var ci = new CIBase();
-        var wordlength = new FactorItem<int>();
-        wordlength.ScoreDict = Utility.FindTop(10, e.WordLengthDict);
-        ci.IntFactors.Add(wordlength);
-
-        var wordcount = new FactorItem<int>();
-        wordcount.ScoreDict = Utility.FindTop(10, e.WordCountDict);
-        ci.IntFactors.Add(wordcount);
-
-        var firstwordpos = new FactorItem<string>();
-        firstwordpos.ScoreDict = Utility.FindTop(10, e.FirstWordPosDict);
-        ci.StringFactors.Add(firstwordpos);
-
-        return ci;
-    }
-
+    #endregion 
 }

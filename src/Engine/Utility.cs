@@ -31,28 +31,11 @@ public static class Utility
             if (dict[key] >= limit)
             {
                 var percent = (dict[key] * 100 / Total) + "%";
-                Program.Training.WriteLine(key + "(" + percent + ")");
                 result.Add(key, (int)(dict[key] * 100 / Total));
+                Program.Training.WriteLine(key + "(" + percent + ")");
             }
         }
         return result;
-    }
-
-    public static T FindTopOne<T>(Dictionary<T, int> dict)
-    {
-        var Rank = dict.Values.ToList();
-        Rank.Sort();
-        Rank.Reverse();
-        float Total = Rank.Sum();
-        int limit = Rank[0];
-        foreach (var key in dict.Keys)
-        {
-            if (dict[key] == limit)
-            {
-                return key;
-            }
-        }
-        return dict.Keys.First();
     }
 
     //获得开始字符结束字符的排列组合

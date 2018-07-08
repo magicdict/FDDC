@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 public class LTP
 {
 
@@ -203,6 +204,8 @@ public class LTP
 
         public string relate;
 
+        public List<struWordSRLARG> args;
+
         public struWordSRL(string element)
         {
             var x = RegularTool.GetMultiValueBetweenMark(element, "\"", "\"");
@@ -224,21 +227,36 @@ public class LTP
                 ne = x[3];
                 parent = x[4];
                 relate = x[5];
-
             }
+            args = new List<struWordSRLARG>();
         }
     }
 
+    /// <summary>
+    /// Srl Arg
+    /// </summary>
     public struct struWordSRLARG
     {
+        /// <summary>
+        /// 编号
+        /// </summary>
         public int id;
-
+        /// <summary>
+        /// 类型
+        /// </summary>
         public string type;
-
+        /// <summary>
+        /// 开始索引
+        /// </summary>
         public int Begin;
-
+        /// <summary>
+        /// 结束索引
+        /// </summary>
         public int End;
-        //  <arg id="0" type="�&#x0D;" beg="7" end="12" />
+        /// <summary>
+        /// 内容
+        /// </summary>        
+        public string cont;
 
         public struWordSRLARG(string element)
         {
@@ -257,61 +275,70 @@ public class LTP
                 type = x[1];
                 Begin = int.Parse(x[2]);
                 End = int.Parse(x[3]);
-
             }
-
+            cont = string.Empty;
         }
     }
-    public static List<String> AnlayzeSRL(string xmlfilename)
+    public static List<List<struWordSRL>> AnlayzeSRL(string xmlfilename)
     {
-        //由于结果是多个XML构成的
-        //1.掉所有的<?xml version="1.0" encoding="utf-8" ?>
-        //2.加入<sentence></sentence> root节点    
-        var SRLList = new List<String>();
-        if (!File.Exists(xmlfilename)) return SRLList;
+        if (!File.Exists(xmlfilename)) return new List<List<struWordSRL>>();
+        var srllist = new List<List<struWordSRL>>();
         var sr = new StreamReader(xmlfilename);
-        List<struWordSRL> wl = new List<struWordSRL>();
-        var al = new List<struWordSRLARG>();
-        var srl = String.Empty;
+        var wordsrllist = new List<struWordSRL>();
         while (!sr.EndOfStream)
         {
             var line = sr.ReadLine().Trim();
+            //<?xml version="1.0" encoding="utf-8" ?>
             if (line == XmlMark)
             {
-                foreach (var arg in al)
+                //第一次跳过
+                if (wordsrllist.Count == 0) continue;
+                //Arg内容的填充
+                for (int srlIdx = 0; srlIdx < wordsrllist.Count; srlIdx++)
                 {
-                    srl = "[" + arg.type + "]:";
-                    for (int i = arg.Begin; i <= arg.End; i++)
+                    if (wordsrllist[srlIdx].args.Count == 0) continue;
+                    for (int argIdx = 0; argIdx < wordsrllist[srlIdx].args.Count; argIdx++)
                     {
-                        srl += wl[i].cont;
+                        var arg = wordsrllist[srlIdx].args[argIdx];
+                        var srl = String.Empty;
+                        for (int idx = arg.Begin; idx <= arg.End; idx++)
+                        {
+                            srl += wordsrllist[idx].cont;
+                        }
+                        arg.cont = srl;
                     }
-                    SRLList.Add(srl);
                 }
-                al.Clear();
-                wl.Clear();
+                srllist.Add(wordsrllist);
+                wordsrllist = new List<struWordSRL>();
             }
             if (line.StartsWith("<arg"))
             {
-                al.Add(new struWordSRLARG(line));
+                var wordsrl = wordsrllist.Last();
+                wordsrl.args.Add(new struWordSRLARG(line));
             }
             if (line.StartsWith("<word"))
             {
                 var word = new struWordSRL(line);
-                wl.Add(word);
+                wordsrllist.Add(word);
             }
         }
-
-        foreach (var arg in al)
+        //Arg内容的填充
+        for (int srlIdx = 0; srlIdx < wordsrllist.Count; srlIdx++)
         {
-            srl = "[" + arg.type + "]:";
-            for (int i = arg.Begin; i <= arg.End; i++)
+            if (wordsrllist[srlIdx].args.Count == 0) continue;
+            for (int argIdx = 0; argIdx < wordsrllist[srlIdx].args.Count; argIdx++)
             {
-                srl += wl[i].cont;
+                var arg = wordsrllist[srlIdx].args[argIdx];
+                var srl = String.Empty;
+                for (int idx = arg.Begin; idx <= arg.End; idx++)
+                {
+                    srl += wordsrllist[idx].cont;
+                }
             }
-            SRLList.Add(srl);
         }
+        srllist.Add(wordsrllist);
         sr.Close();
-        return SRLList;
+        return srllist;
     }
 
     #endregion

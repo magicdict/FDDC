@@ -32,9 +32,12 @@ namespace FDDC
         /// <summary>
         /// Windows
         /// </summary>
-        public static String DocBase = @"E:\WorkSpace2018\FDDC2018";
-        //MAC
-        //public static String DocBase = @"/Users/hu/Desktop/FDDCTraing";
+        //public static String DocBase = @"E:\WorkSpace2018\FDDC2018";
+        
+        /// <summary>
+        /// Mac
+        /// </summary>
+        public static String DocBase = @"/Users/hu/Desktop/FDDCTraing";
 
         /// <summary>
         /// 这个模式下，有问题的数据会输出，正式比赛的时候设置为False，降低召回率！
@@ -50,6 +53,10 @@ namespace FDDC
             Logger = new StreamWriter("Log.log");
             //全局编码    
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            PDFToTXT.GetPdf2TxtBatchFile(); return;
+
+
             //公司全称简称曾用名字典   
             CompanyNameLogic.LoadCompanyName(@"Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
             //增减持公告日期的读入
@@ -88,7 +95,7 @@ namespace FDDC
         private static void GetBatchFile()
         {   
             //地名修正词典的获取
-            PosNS.ExtractNsFromDP(); return;
+            PosNS.ExtractNsFromDP(); 
             //PDFMiner:PDF转TXTbatch
             PDFToTXT.GetPdf2TxtBatchFile();
             //TXT整理
@@ -102,17 +109,17 @@ namespace FDDC
             var IsRunContract = true;
             var IsRunContract_TEST = false;
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
-            var ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_a_20180605" + Path.DirectorySeparatorChar + "重大合同";
+            var ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
 
             var IsRunStockChange = false;
             var IsRunStockChange_TEST = false;
             var StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
-            var StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_a_20180605" + Path.DirectorySeparatorChar + "增减持";
+            var StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "增减持";
 
             var IsRunIncreaseStock = false;
             var IsRunIncreaseStock_TEST = false;
             var IncreaseStockPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "定增";
-            var IncreaseStockPath_TEST = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_test_a_20180605" + Path.DirectorySeparatorChar + "定增";
+            var IncreaseStockPath_TEST = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "定增";
 
             if (IsRunContract)
             {

@@ -26,8 +26,10 @@ public class AnnouceDocument
 
     public List<List<struWordDP>> Dplist;
 
-
-    public List<String> Srllist;
+    /// <summary>
+    /// SRL列表
+    /// </summary>
+    public List<List<struWordSRL>> Srllist;
 
     //公告日期
     public DateTime AnnouceDate;

@@ -388,7 +388,7 @@ public partial class Contract : AnnouceDocument
             }
         }
         //置信度
-        e.Confidence = ContractTraning.ContractNameCI;
+        e.Confidence = ContractTraning.ContractS.GetStardardCI();
         return e.EvaluateCI();
     }
     /// <summary>

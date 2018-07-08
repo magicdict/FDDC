@@ -3,14 +3,34 @@ using System.Collections.Generic;
 using FDDC;
 using static LTP;
 
-public class LTPTraining
+public class LTPTrainingDP
 {
+    /// <summary>
+    /// 前导词语
+    /// </summary>
+    /// <typeparam name="string"></typeparam>
+    /// <typeparam name="int"></typeparam>
+    /// <returns></returns>
     public Dictionary<string, int> LeadingWordDict = new Dictionary<string, int>();
-
+    /// <summary>
+    /// 前导动词
+    /// </summary>
+    /// <typeparam name="string"></typeparam>
+    /// <typeparam name="int"></typeparam>
+    /// <returns></returns>
     public Dictionary<string, int> LeadingVerbWordDict = new Dictionary<string, int>();
-
+    /// <summary>
+    /// 词尾
+    /// </summary>
+    /// <typeparam name="string"></typeparam>
+    /// <typeparam name="int"></typeparam>
+    /// <returns></returns>
     public Dictionary<string, int> LastWordDict = new Dictionary<string, int>();
-
+    /// <summary>
+    /// 训练
+    /// </summary>
+    /// <param name="dplist"></param>
+    /// <param name="KeyWord"></param>
     public void Training(List<List<struWordDP>> dplist, string KeyWord)
     {
         foreach (var paragragh in dplist)
