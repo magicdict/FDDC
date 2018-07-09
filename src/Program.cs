@@ -37,7 +37,7 @@ namespace FDDC
         /// <summary>
         /// 多线程模式
         /// </summary>
-        public static bool IsMultiThreadMode = false;
+        public static bool IsMultiThreadMode = true;
 
         static void Main(string[] args)
         {
@@ -51,9 +51,9 @@ namespace FDDC
             StockChange.ImportPublishTime();
             //结巴分词的地名修正词典
             PosNS.ImportNS(@"Resources" + Path.DirectorySeparatorChar + "ns.dict");
+            CIRecord = new StreamWriter("CI.log");
             //预处理
             Traning();
-            CIRecord = new StreamWriter("CI.log");
             Evaluator = new StreamWriter("Evaluator.log");
             Score = new StreamWriter(@"Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
             //new Contract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1008828.html").Extract();return;
@@ -67,16 +67,10 @@ namespace FDDC
         private static void Traning()
         {
             Training = new StreamWriter("Training.log");
-            TraningDataset.InitStockChange();
             TraningDataset.InitContract();
+            TraningDataset.InitStockChange();
             TraningDataset.InitIncreaseStock();
-            //通过训练获得各种字段的最大长度，便于抽取的时候做置信度检查
-            ContractTraning.TraningMaxLenth();
-            ContractTraning.EntityWordPerperty();
-            //ContractTraning.GetListLeadWords();
-            //警告：可能所有的Segmenter使用的是共用的词典！
-            //下面的训练将把关键字加入到词典中，引发一些问题
-            ContractTraning.AnlayzeEntitySurroundWordsLTP(); Training.Close(); return;
+            ContractTraning.Train();
             Training.Close();
         }
 
@@ -94,7 +88,7 @@ namespace FDDC
 
         private static void Extract()
         {
-            var IsRunContract = true;
+            var IsRunContract = false;
             var IsRunContract_TEST = false;
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
             var ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";

@@ -10,48 +10,27 @@ public class ContractTraning
 {
     public static void Train()
     {
-        TraningMaxLenth();
-        EntityWordPerperty();
-        AnlayzeEntitySurroundWords();
+        Console.WriteLine("开始分析");
+        AnlayzeEntitySurroundWords(); FDDC.Program.Training.Flush();
+        AnlayzeEntitySurroundWordsLTP(); FDDC.Program.Training.Flush();
+        TraningMaxLenth(); FDDC.Program.Training.Flush();
+        EntityWordPerperty(); FDDC.Program.Training.Flush();
+        Console.WriteLine("结束分析");
     }
 
-    #region 辅助工具
-    public static void GetListLeadWords()
-    {
-        var ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
-        var dict = new Dictionary<String, int>();
-        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\txt\"))
-        {
-            var SR = new StreamReader(filename);
-            while (!SR.EndOfStream)
-            {
-                var line = SR.ReadLine();
-                var idx = line.IndexOf("：");
-                if (idx >= 1 && idx <= 7)
-                {
-                    var w = line.Substring(0, idx);
-                    if (dict.ContainsKey(w))
-                    {
-                        dict[w] = dict[w] + 1;
-                    }
-                    else
-                    {
-                        dict.Add(w, 1);
-                    }
-                }
-            }
-        }
-        Program.Training.WriteLine("列表前导词：");
-        Utility.FindTop(20, dict);
-    }
-
+    #region 周围环境
     public static void AnlayzeEntitySurroundWords()
     {
-        var ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
+        var ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\重大合同";
         var JiaFangS = new Surround();
         var YiFangS = new Surround();
         var ProjectNameS = new Surround();
         var ContractNameS = new Surround();
+        var ProjectNameL = new LeadingWord();
+        var ContractNameL = new LeadingWord();
+        var JiaFangNameL = new LeadingWord();
+        var YiFangNameL = new LeadingWord();
+
 
         foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\html\"))
         {
@@ -59,13 +38,19 @@ public class ContractTraning
             var Id = fi.Name.Replace(".html", String.Empty);
             if (TraningDataset.GetContractById(Id).Count == 0) continue;
             var contract = TraningDataset.GetContractById(Id).First();
-            if (contract.JiaFang == String.Empty) continue;
-            var root = new HTMLEngine().Anlayze(filename, "");
-            if (!string.IsNullOrEmpty(contract.JiaFang)) JiaFangS.AnlayzeEntitySurroundWords(root, contract.JiaFang);
-            if (!string.IsNullOrEmpty(contract.YiFang)) YiFangS.AnlayzeEntitySurroundWords(root, contract.YiFang);
-            if (!string.IsNullOrEmpty(contract.ProjectName)) ProjectNameS.AnlayzeEntitySurroundWords(root, contract.ProjectName);
-            if (!string.IsNullOrEmpty(contract.ContractName)) ContractNameS.AnlayzeEntitySurroundWords(root, contract.ContractName);
+            var doc = new AnnouceDocument(filename);
+            if (!string.IsNullOrEmpty(contract.JiaFang)) JiaFangS.AnlayzeEntitySurroundWords(doc, contract.JiaFang);
+            if (!string.IsNullOrEmpty(contract.YiFang)) YiFangS.AnlayzeEntitySurroundWords(doc, contract.YiFang);
+            if (!string.IsNullOrEmpty(contract.ProjectName)) ProjectNameS.AnlayzeEntitySurroundWords(doc, contract.ProjectName);
+            if (!string.IsNullOrEmpty(contract.ContractName)) ContractNameS.AnlayzeEntitySurroundWords(doc, contract.ContractName);
+
+            if (!string.IsNullOrEmpty(contract.JiaFang)) JiaFangNameL.GetListLeadWords(doc, contract.JiaFang);
+            if (!string.IsNullOrEmpty(contract.YiFang)) YiFangNameL.GetListLeadWords(doc, contract.YiFang);
+            if (!string.IsNullOrEmpty(contract.ProjectName)) ProjectNameL.GetListLeadWords(doc, contract.ProjectName);
+            if (!string.IsNullOrEmpty(contract.ContractName)) ContractNameL.GetListLeadWords(doc, contract.ContractName);
         }
+
+
         Program.Training.WriteLine("甲方附近词语分析：");
         JiaFangS.WriteTop(10);
         Program.Training.WriteLine("乙方附近词语分析：");
@@ -74,13 +59,30 @@ public class ContractTraning
         ProjectNameS.WriteTop(10);
         Program.Training.WriteLine("合同名附近词语分析：");
         ContractNameS.WriteTop(10);
+
+        Program.Training.WriteLine("甲方前导冒号词语分析：");
+        JiaFangNameL.WriteTop(10);
+        Program.Training.WriteLine("乙方前导冒号词语分析：");
+        YiFangNameL.WriteTop(10);
+        Program.Training.WriteLine("工程名前导冒号词语分析：");
+        ProjectNameL.WriteTop(10);
+        Program.Training.WriteLine("合同名前导冒号词语分析：");
+        ContractNameL.WriteTop(10);
     }
 
     public static void AnlayzeEntitySurroundWordsLTP()
     {
-        var ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
-        var ProjectNameS = new LTPTrainingDP();
-        var ContractNameS = new LTPTrainingDP();
+        var ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\重大合同";
+
+        var JiaFangDP = new LTPTrainingDP();
+        var JiaFangSRL = new LTPTrainingSRL();
+        var YiFnagDP = new LTPTrainingDP();
+        var YiFnagSRL = new LTPTrainingSRL();
+        var ContractNameDP = new LTPTrainingDP();
+        var ContractNameSRL = new LTPTrainingSRL();
+        var ProjectNameDP = new LTPTrainingDP();
+        var ProjectNameSRL = new LTPTrainingSRL();
+
         foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\html\"))
         {
             var fi = new System.IO.FileInfo(filename);
@@ -88,13 +90,47 @@ public class ContractTraning
             if (TraningDataset.GetContractById(Id).Count == 0) continue;
             var contract = TraningDataset.GetContractById(Id).First();
             var c = new Contract(filename);
-            if (!string.IsNullOrEmpty(contract.ProjectName)) ProjectNameS.Training(c.Dplist, contract.ProjectName);
-            if (!string.IsNullOrEmpty(contract.ContractName)) ContractNameS.Training(c.Dplist, contract.ContractName);
+            if (!string.IsNullOrEmpty(contract.JiaFang))
+            {
+                JiaFangDP.Training(c.Dplist, contract.JiaFang);
+                JiaFangSRL.Training(c.Srllist, contract.JiaFang);
+            }
+
+            if (!string.IsNullOrEmpty(contract.YiFang))
+            {
+                YiFnagDP.Training(c.Dplist, contract.YiFang);
+                YiFnagSRL.Training(c.Srllist, contract.YiFang);
+            }
+
+            if (!string.IsNullOrEmpty(contract.ContractName))
+            {
+                ContractNameDP.Training(c.Dplist, contract.ContractName);
+                ContractNameSRL.Training(c.Srllist, contract.ContractName);
+            }
+            if (!string.IsNullOrEmpty(contract.ProjectName))
+            {
+                ProjectNameDP.Training(c.Dplist, contract.ProjectName);
+                ProjectNameSRL.Training(c.Srllist, contract.ProjectName);
+            }
         }
-        Program.Training.WriteLine("工程名附近词语分析：");
-        ProjectNameS.WriteTop(10);
-        Program.Training.WriteLine("合同名附近词语分析：");
-        ContractNameS.WriteTop(10);
+
+
+        Program.Training.WriteLine("甲方附近词语分析（DP）：");
+        JiaFangDP.WriteTop(10);
+        Program.Training.WriteLine("甲方附近词语分析（SRL）：");
+        JiaFangSRL.WriteTop(10);
+        Program.Training.WriteLine("乙方附近词语分析（DP）：");
+        YiFnagDP.WriteTop(10);
+        Program.Training.WriteLine("乙方附近词语分析（SRL）：");
+        YiFnagSRL.WriteTop(10);
+        Program.Training.WriteLine("合同名附近词语分析（DP）：");
+        ContractNameDP.WriteTop(10);
+        Program.Training.WriteLine("合同名附近词语分析（SRL）：");
+        ContractNameSRL.WriteTop(10);
+        Program.Training.WriteLine("工程名附近词语分析（DP）：");
+        ProjectNameDP.WriteTop(10);
+        Program.Training.WriteLine("工程名附近词语分析（SRL）：");
+        ProjectNameSRL.WriteTop(10);
     }
     #endregion
 

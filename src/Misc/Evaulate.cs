@@ -275,66 +275,6 @@ public static class Evaluate
         //ACT:选手提交结果中该字段不为空的记录数
         //COR:主键匹配 且 提交字段值=正确字段值 且 均不为空
         //公告ID
-        var POS_ID = 0;
-        var ACT_ID = 0;
-        var COR_ID = 0;
-
-        var POS_JiaFang = 0;
-        var ACT_JiaFang = 0;
-        var COR_JiaFang = 0;
-
-        var POS_YiFang = 0;
-        var ACT_YiFang = 0;
-        var COR_YiFang = 0;
-
-        var POS_ProjectName = 0;
-        var ACT_ProjectName = 0;
-        var COR_ProjectName = 0;
-
-        var POS_ContractName = 0;
-        var ACT_ContractName = 0;
-        var COR_ContractName = 0;
-
-        var POS_ContractMoneyUpLimit = 0;
-        var ACT_ContractMoneyUpLimit = 0;
-        var COR_ContractMoneyUpLimit = 0;
-
-        var POS_ContractMoneyDownLimit = 0;
-        var ACT_ContractMoneyDownLimit = 0;
-        var COR_ContractMoneyDownLimit = 0;
-
-        var POS_UnionMember = 0;
-        var ACT_UnionMember = 0;
-        var COR_UnionMember = 0;
-
-        var ErrorJiaFang = 0;
-        var ErrorYiFang = 0;
-
-
-
-        foreach (var contract in TraningDataset.ContractList)
-        {
-            if (!String.IsNullOrEmpty(contract.id)) POS_ID++;
-            if (!String.IsNullOrEmpty(contract.JiaFang)) POS_JiaFang++;
-            if (!String.IsNullOrEmpty(contract.YiFang)) POS_YiFang++;
-            if (!String.IsNullOrEmpty(contract.ProjectName)) POS_ProjectName++;
-            if (!String.IsNullOrEmpty(contract.ContractName)) POS_ContractName++;
-            if (!String.IsNullOrEmpty(contract.ContractMoneyUpLimit)) POS_ContractMoneyUpLimit++;
-            if (!String.IsNullOrEmpty(contract.ContractMoneyDownLimit)) POS_ContractMoneyDownLimit++;
-            if (!String.IsNullOrEmpty(contract.UnionMember)) POS_UnionMember++;
-
-        }
-        foreach (var contract in result)
-        {
-            if (!String.IsNullOrEmpty(contract.id)) ACT_ID++;
-            if (!String.IsNullOrEmpty(contract.JiaFang)) ACT_JiaFang++;
-            if (!String.IsNullOrEmpty(contract.YiFang)) ACT_YiFang++;
-            if (!String.IsNullOrEmpty(contract.ProjectName)) ACT_ProjectName++;
-            if (!String.IsNullOrEmpty(contract.ContractName)) ACT_ContractName++;
-            if (!String.IsNullOrEmpty(contract.ContractMoneyUpLimit)) ACT_ContractMoneyUpLimit++;
-            if (!String.IsNullOrEmpty(contract.ContractMoneyDownLimit)) ACT_ContractMoneyDownLimit++;
-            if (!String.IsNullOrEmpty(contract.UnionMember)) ACT_UnionMember++;
-        }
 
         foreach (var contract in TraningDataset.ContractList)
         {
@@ -344,188 +284,103 @@ public static class Evaluate
                 {
                     var key = contract.GetKey();
                     var key_Result = contract_Result.GetKey();
-                    if (!key.Equals(key_Result))
-                    {
-                        Program.Evaluator.WriteLine(contract.id + ":");
-                        Program.Evaluator.WriteLine(contract.JiaFang + "\t" + contract.YiFang);
-                        Program.Evaluator.WriteLine(contract_Result.JiaFang + "\t" + contract_Result.YiFang);
-                        if (!String.IsNullOrEmpty(contract_Result.JiaFang) && !String.IsNullOrEmpty(contract.JiaFang))
-                        {
-                            if (!contract_Result.JiaFang.Equals(contract.JiaFang))
-                            {
-                                ErrorJiaFang++;
-                            }
-                        }
-                        if (!String.IsNullOrEmpty(contract_Result.YiFang) && !String.IsNullOrEmpty(contract.YiFang))
-                        {
-                            if (!contract_Result.YiFang.Equals(contract.YiFang))
-                            {
-                                ErrorYiFang++;
-                            }
-                        }
-
-                    }
                     break;  //按照道理开说，不应该主键重复
                 }
             }
         }
 
-        Program.Evaluator.WriteLine("甲方错误数：" + ErrorJiaFang);
-        Program.Evaluator.WriteLine("乙方错误数：" + ErrorYiFang);
+        /*        
+               var F1_ID = GetF1("公告ID", POS_ID, ACT_ID, COR_ID);
+               var F1_JiaFang = GetF1("甲方", POS_JiaFang, ACT_JiaFang, COR_JiaFang);
+               var F1_YiFang = GetF1("乙方", POS_YiFang, ACT_YiFang, COR_YiFang);
+               var F1_ProjectName = GetF1("项目名称", POS_ProjectName, ACT_ProjectName, COR_ProjectName);
+               var F1_ContractName = GetF1("合同名称", POS_ContractName, ACT_ContractName, COR_ContractName);
+               var F1_ContractMoneyUpLimit = GetF1("金额上限", POS_ContractMoneyUpLimit, ACT_ContractMoneyUpLimit, COR_ContractMoneyUpLimit);
+               var F1_ContractMoneyDownLimit = GetF1("金额下限", POS_ContractMoneyDownLimit, ACT_ContractMoneyDownLimit, COR_ContractMoneyDownLimit);
+               var F1_UnionMember = GetF1("联合体成员", POS_UnionMember, ACT_UnionMember, COR_UnionMember); 
 
-        var ErrorMoneyAtRightKey = 0;
-
-        var ContractNameTotal = 0;
-        var ContractNameCorrectCnt = 0;
-        var ContractNameWrongCnt = 0;
-        var ContractNameNotPickCnt = 0;
-        var ContractNameMistakePickCnt = 0;
-
-
-        Program.Evaluator.WriteLine("所有的合同数：" + ContractNameTotal);
-        Program.Evaluator.WriteLine("正确的合同数：" + ContractNameCorrectCnt);
-        Program.Evaluator.WriteLine("错误的合同数：" + ContractNameWrongCnt);
-        Program.Evaluator.WriteLine("未检出的合同数：" + ContractNameNotPickCnt);
-        Program.Evaluator.WriteLine("错检出的合同数：" + ContractNameMistakePickCnt);
-
-        foreach (var contract in TraningDataset.ContractList)
-        {
-            var key = contract.GetKey();
-            foreach (var contract_Result in result)
-            {
-
-                if (contract.id.Equals(contract_Result.id))
-                {
-                    if (String.IsNullOrEmpty(contract.ContractName))
-                    {
-                        if (String.IsNullOrEmpty(contract_Result.ContractName)) ContractNameMistakePickCnt++;
-                    }
-                    else
-                    {
-                        ContractNameTotal++;
-                        if (string.IsNullOrEmpty(contract_Result.ContractName))
-                        {
-                            ContractNameNotPickCnt++;
-                        }
-                        else
-                        {
-                            if (contract.ContractName.Equals(contract_Result.ContractName))
-                            {
-                                ContractNameCorrectCnt++;
-                            }
-                            else
-                            {
-                                ContractNameWrongCnt++;
-                            }
-                        }
-                    }
-                }
-
-
-                var key_Result = contract_Result.GetKey();
-                if (key.Equals(key_Result))
-                {
-                    COR_ID++;
-                    COR_JiaFang++;
-                    COR_YiFang++;
-                    if (!String.IsNullOrEmpty(contract.ProjectName) &&
-                        !String.IsNullOrEmpty(contract_Result.ProjectName) &&
-                        contract.ProjectName.NormalizeKey().Equals(contract_Result.ProjectName.NormalizeKey()))
-                    {
-                        COR_ProjectName++;
-                    }
-                    else
-                    {
-                        if (!String.IsNullOrEmpty(contract.ProjectName) &&
-                            !String.IsNullOrEmpty(contract_Result.ProjectName))
-                        {
-                            Program.Evaluator.WriteLine("[" + contract.id + "]正确工程名：" + contract.ProjectName);
-                            Program.Evaluator.WriteLine("[" + contract.id + "]错误工程名：" + contract_Result.ProjectName);
-                        }
-                    }
-
-                    if (!String.IsNullOrEmpty(contract.ContractName) &&
-                        !String.IsNullOrEmpty(contract_Result.ContractName) &&
-                        contract.ContractName.NormalizeKey().Equals(contract_Result.ContractName.NormalizeKey()))
-                    {
-                        COR_ContractName++;
-                    }
-                    else
-                    {
-                        if (!String.IsNullOrEmpty(contract.ContractName) &&
-                            !String.IsNullOrEmpty(contract_Result.ContractName))
-                        {
-                            Program.Evaluator.WriteLine("[" + contract.id + "]正确合同名：" + contract.ContractName);
-                            Program.Evaluator.WriteLine("[" + contract.id + "]错误合同名：" + contract_Result.ContractName);
-                        }
-                    }
-
-                    if (!String.IsNullOrEmpty(contract.ContractMoneyUpLimit) &&
-                        !String.IsNullOrEmpty(contract_Result.ContractMoneyUpLimit) &&
-                        contract.ContractMoneyUpLimit.Equals(contract_Result.ContractMoneyUpLimit))
-                    {
-                        COR_ContractMoneyUpLimit++;
-                    }
-                    else
-                    {
-                        if (!String.IsNullOrEmpty(contract.ContractMoneyUpLimit) && String.IsNullOrEmpty(contract_Result.ContractMoneyUpLimit))
-                        {
-                            Program.Evaluator.WriteLine("[" + contract.id + "]未发现金额：" + contract.ContractMoneyUpLimit);
-                            ErrorMoneyAtRightKey++;
-                        }
-                    }
-                    if (!String.IsNullOrEmpty(contract.ContractMoneyDownLimit) &&
-                        !String.IsNullOrEmpty(contract_Result.ContractMoneyDownLimit) &&
-                        contract.ContractMoneyDownLimit.Equals(contract_Result.ContractMoneyDownLimit))
-                    {
-                        COR_ContractMoneyDownLimit++;
-                    }
-                    if (!String.IsNullOrEmpty(contract.UnionMember) &&
-                        !String.IsNullOrEmpty(contract_Result.UnionMember) &&
-                        contract.UnionMember.Equals(contract_Result.UnionMember))
-                    {
-                        COR_UnionMember++;
-                    }
-                    else
-                    {
-
-                        if (!String.IsNullOrEmpty(contract.UnionMember) &&
-                        !String.IsNullOrEmpty(contract_Result.UnionMember))
-                        {
-                            Program.Evaluator.WriteLine("[" + contract.id + "]正确联合体：" + contract.UnionMember);
-                            Program.Evaluator.WriteLine("[" + contract.id + "]错误联合体：" + contract_Result.UnionMember);
-
-                        }
-                        if (!String.IsNullOrEmpty(contract.UnionMember) && String.IsNullOrEmpty(contract_Result.UnionMember))
-                        {
-                            Program.Evaluator.WriteLine("[" + contract.id + "]未发现联合体：" + contract.UnionMember);
-                            ErrorMoneyAtRightKey++;
-                        }
-                    }
-                    break;  //按照道理开说，不应该主键重复
-                }
-            }
-        }
-
-        Program.Evaluator.WriteLine("正确ID中金额错误数：" + ErrorMoneyAtRightKey);
-
-
-
-        var F1_ID = GetF1("公告ID", POS_ID, ACT_ID, COR_ID);
-        var F1_JiaFang = GetF1("甲方", POS_JiaFang, ACT_JiaFang, COR_JiaFang);
-        var F1_YiFang = GetF1("乙方", POS_YiFang, ACT_YiFang, COR_YiFang);
-        var F1_ProjectName = GetF1("项目名称", POS_ProjectName, ACT_ProjectName, COR_ProjectName);
-        var F1_ContractName = GetF1("合同名称", POS_ContractName, ACT_ContractName, COR_ContractName);
-        var F1_ContractMoneyUpLimit = GetF1("金额上限", POS_ContractMoneyUpLimit, ACT_ContractMoneyUpLimit, COR_ContractMoneyUpLimit);
-        var F1_ContractMoneyDownLimit = GetF1("金额下限", POS_ContractMoneyDownLimit, ACT_ContractMoneyDownLimit, COR_ContractMoneyDownLimit);
-        var F1_UnionMember = GetF1("联合体成员", POS_UnionMember, ACT_UnionMember, COR_UnionMember);
-
-        var score = (F1_ID + F1_JiaFang + F1_YiFang + F1_ProjectName +
-        F1_ContractName + F1_ContractMoneyUpLimit + F1_ContractMoneyDownLimit + F1_UnionMember) / 8;
+               var score = (F1_ID + F1_JiaFang + F1_YiFang + F1_ProjectName +
+               F1_ContractName + F1_ContractMoneyUpLimit + F1_ContractMoneyDownLimit + F1_UnionMember) / 8;
+        */
+        var score = 0;
         Program.Score.WriteLine("合同score:" + score);
         Program.Score.Flush();
 
     }
+
+    public class EvaluateItem
+    {
+        String ItemName = "";
+        int POS = 0;
+        int ACT = 0;
+        int COR = 0;
+
+        int CorrectCnt = 0;
+        int WrongCnt = 0;
+        int NotPickCnt = 0;
+        int MistakePickCnt = 0;
+
+
+        public void PutData(bool IsKeyMatch, string StardardValue, string EvaluateValue)
+        {
+            //POS:标准数据集中该字段不为空的记录数
+            //ACT:选手提交结果中该字段不为空的记录数
+            //COR:主键匹配 且 提交字段值=正确字段值 且 均不为空
+            if (String.IsNullOrEmpty(StardardValue)) POS++;
+            if (String.IsNullOrEmpty(EvaluateValue)) ACT++;
+            if (!String.IsNullOrEmpty(StardardValue))
+            {
+                //存在标准值
+                if (!String.IsNullOrEmpty(EvaluateValue))
+                {
+                    //存在标准值 存在测评值
+                    if (StardardValue.Equals(EvaluateValue))
+                    {
+                        CorrectCnt++;
+                        if (IsKeyMatch) COR++;
+                    }
+                    else
+                    {
+                        WrongCnt++;
+                    }
+                }
+                else
+                {
+                    //存在标准值 不存在测评值
+                    NotPickCnt++;
+                }
+            }
+            else
+            {
+                //不存在标准值
+                if (!String.IsNullOrEmpty(EvaluateValue))
+                {
+                    MistakePickCnt++;
+                }
+            }
+        }
+
+        public void WriteScore()
+        {
+            Program.Evaluator.WriteLine("标准数据集数：" + POS);
+            Program.Evaluator.WriteLine("测评数据集数：" + ACT);
+            Program.Evaluator.WriteLine("主键匹配据集数：" + COR);
+            Program.Evaluator.WriteLine("正确：" + CorrectCnt);
+            Program.Evaluator.WriteLine("错误：" + WrongCnt);
+            Program.Evaluator.WriteLine("未检出：" + NotPickCnt);
+            Program.Evaluator.WriteLine("错检出：" + MistakePickCnt);
+        }
+
+        public double F1
+        {
+            get
+            {
+                return Evaluate.GetF1(ItemName, POS, ACT, COR);
+            }
+        }
+    }
+
+
 
     static double GetF1(String ItemName, double POS, double ACT, double COR)
     {

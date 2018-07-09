@@ -331,18 +331,23 @@ public partial class Contract : AnnouceDocument
         e.PropertyType = EntityProperty.enmType.Normal;
         e.MaxLength = ContractTraning.MaxContractNameLength;
         e.MinLength = 5;
+        //合同名称(51.78571%)
+        //合同类型(21.42857%)
+        //备查文件(17.85714%)
+        //e.LeadingColonKeyWordList = new string[] { "合同名称：", "合同类型：", "备查文件：" };
         e.LeadingColonKeyWordList = new string[] { "合同名称：" };
         e.QuotationTrailingWordList = new string[] { "协议书", "合同书", "确认书", "合同", "协议" };
         e.QuotationTrailingWordList_IsSkipBracket = true;   //暂时只能选True
         var KeyList = new List<ExtractPropertyByDP.DPKeyWord>();
         KeyList.Add(new ExtractPropertyByDP.DPKeyWord()
         {
-            StartWord = new string[] { "签署", "签订" },
+            StartWord = new string[] { "签署", "签订" },    //通过SRL训练获得
             StartDPValue = new string[] { LTPTrainingDP.核心关系, LTPTrainingDP.定中关系, LTPTrainingDP.并列关系 },
             EndWord = new string[] { "补充协议", "合同书", "合同", "协议书", "协议", },
             EndDPValue = new string[] { LTPTrainingDP.核心关系, LTPTrainingDP.定中关系, LTPTrainingDP.并列关系, LTPTrainingDP.动宾关系, LTPTrainingDP.主谓关系 }
         });
         e.DpKeyWordList = KeyList;
+
         var StartArray = new string[] { "签署了", "签订了" };
         var EndArray = new string[] { "合同" };
         e.ExternalStartEndStringFeature = Utility.GetStartEndStringArray(StartArray, EndArray);

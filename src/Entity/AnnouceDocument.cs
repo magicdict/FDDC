@@ -50,6 +50,7 @@ public class AnnouceDocument
         }
         if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("Start FileName:[" + fi.Name + "]");
         Id = fi.Name.Replace(".html", String.Empty);
+        if (!Program.IsMultiThreadMode) Program.CIRecord.WriteLine("公告ID" + Id);
         if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("公告ID:" + Id);
         root = new HTMLEngine().Anlayze(htmlFileName, TextFileName);
         AnnouceCompanyName = String.Empty;
@@ -141,8 +142,6 @@ public class AnnouceDocument
         HTMLTable.FixSpiltTable(root, this);
         //NULL的对应
         HTMLTable.FixNullValue(root, this);
-
-        Program.CIRecord.WriteLine("编号：" + this.Id);
     }
 
 

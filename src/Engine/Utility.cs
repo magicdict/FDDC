@@ -20,12 +20,13 @@ public static class Utility
     public static Dictionary<T, int> FindTop<T>(int n, Dictionary<T, int> dict)
     {
         var result = new Dictionary<T, int>();
+        if (dict.Count == 0) return result;
         var Rank = dict.Values.ToList();
         Rank.Sort();
         Rank.Reverse();
         float Total = Rank.Sum();
         var pos = Math.Min(Rank.Count, n);
-        int limit = Rank[n - 1];
+        int limit = Rank[pos - 1];
         foreach (var key in dict.Keys)
         {
             if (dict[key] >= limit)

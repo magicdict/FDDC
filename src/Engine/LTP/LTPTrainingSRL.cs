@@ -105,7 +105,7 @@ public class LTPTrainingSRL
     }
     public static List<List<struWordSRL>> AnlayzeSRL(string xmlfilename)
     {
-         string XmlMark = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>";
+        string XmlMark = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>";
         if (!File.Exists(xmlfilename)) return new List<List<struWordSRL>>();
         var srllist = new List<List<struWordSRL>>();
         var sr = new StreamReader(xmlfilename);
@@ -122,6 +122,7 @@ public class LTPTrainingSRL
                 for (int srlIdx = 0; srlIdx < wordsrllist.Count; srlIdx++)
                 {
                     if (wordsrllist[srlIdx].args.Count == 0) continue;
+                    var CloneArgs = new List<struWordSRLARG>();
                     for (int argIdx = 0; argIdx < wordsrllist[srlIdx].args.Count; argIdx++)
                     {
                         var arg = wordsrllist[srlIdx].args[argIdx];
@@ -131,7 +132,10 @@ public class LTPTrainingSRL
                             srl += wordsrllist[idx].cont;
                         }
                         arg.cont = srl;
+                        CloneArgs.Add(arg);
                     }
+                    wordsrllist[srlIdx].args.Clear();
+                    wordsrllist[srlIdx].args.AddRange(CloneArgs);
                 }
                 srllist.Add(wordsrllist);
                 wordsrllist = new List<struWordSRL>();
@@ -147,10 +151,12 @@ public class LTPTrainingSRL
                 wordsrllist.Add(word);
             }
         }
+
         //Arg内容的填充
         for (int srlIdx = 0; srlIdx < wordsrllist.Count; srlIdx++)
         {
             if (wordsrllist[srlIdx].args.Count == 0) continue;
+            var CloneArgs = new List<struWordSRLARG>();
             for (int argIdx = 0; argIdx < wordsrllist[srlIdx].args.Count; argIdx++)
             {
                 var arg = wordsrllist[srlIdx].args[argIdx];
@@ -159,7 +165,11 @@ public class LTPTrainingSRL
                 {
                     srl += wordsrllist[idx].cont;
                 }
+                arg.cont = srl;
+                CloneArgs.Add(arg);
             }
+            wordsrllist[srlIdx].args.Clear();
+            wordsrllist[srlIdx].args.AddRange(CloneArgs);
         }
         srllist.Add(wordsrllist);
         sr.Close();
@@ -176,9 +186,20 @@ public class LTPTrainingSRL
         public string relate;
 
         public string argtype;
+
+        public override string ToString()
+        {
+            return "Arg Type:" + argtype + " Relate:" + relate + " Word:" + word;
+        }
     }
 
-    public List<struSrlTraning> Training(List<List<struWordSRL>> srlList, string KeyWord)
+    /// <summary>
+    /// 训练
+    /// </summary>
+    /// <param name="srlList"></param>
+    /// <param name="KeyWord"></param>
+    /// <returns></returns>
+    public List<struSrlTraning> Training(List<List<struWordSRL>> srlList, string KeyWord, bool OnlyFirstTime = true)
     {
         List<struSrlTraning> list = new List<struSrlTraning>();
         foreach (var paragragh in srlList)
@@ -189,13 +210,13 @@ public class LTPTrainingSRL
                 {
                     foreach (var arg in word.args)
                     {
-                        if (arg.cont.Contains(KeyWord))
+                        if (arg.cont.NormalizeTextResult().Contains(KeyWord.NormalizeTextResult()))
                         {
                             var x = new struSrlTraning()
                             {
                                 word = word.cont,
-                                argtype = arg.type,
-                                relate = word.relate
+                                //argtype = arg.type,
+                                //relate = word.relate
                             };
                             list.Add(x);
                             if (WordArgDict.ContainsKey(x))
@@ -206,12 +227,17 @@ public class LTPTrainingSRL
                             {
                                 WordArgDict.Add(x, 1);
                             }
-
+                            if (OnlyFirstTime) return list;
                         }
                     }
                 }
             }
         }
         return list;
+    }
+    public void WriteTop(int top)
+    {
+        Program.Training.WriteLine("SRL分析");
+        Utility.FindTop(top, WordArgDict);
     }
 }

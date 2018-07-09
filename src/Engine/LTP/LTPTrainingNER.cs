@@ -12,6 +12,7 @@ public class LTPTrainingNER
     public const string 英语 = "eng";
     public const string 词性标点 = "x";
     public const string 动词 = "v";
+    public const string 数词 = "m";
 
     public struct struWordNER
     {
