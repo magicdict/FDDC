@@ -6,7 +6,8 @@ using FDDC;
 using static CompanyNameLogic;
 using static HTMLEngine;
 using static LocateProperty;
-using static LTP;
+using static LTPTrainingNER;
+using static LTPTrainingDP;
 
 public class AnnouceDocument
 {
@@ -29,7 +30,7 @@ public class AnnouceDocument
     /// <summary>
     /// SRL列表
     /// </summary>
-    public List<List<struWordSRL>> Srllist;
+    public List<List<LTPTrainingSRL.struWordSRL>> Srllist;
 
     //公告日期
     public DateTime AnnouceDate;
@@ -60,7 +61,7 @@ public class AnnouceDocument
             XMLFileName += ".xml";
         }
         var XMLPath = fi.DirectoryName.Replace("html", "ner");
-        Nerlist = LTP.AnlayzeNER(XMLPath + "\\" + XMLFileName);
+        Nerlist = LTPTrainingNER.AnlayzeNER(XMLPath + "\\" + XMLFileName);
         foreach (var ner in Nerlist)
         {
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("识别实体：" + ner);
@@ -90,9 +91,9 @@ public class AnnouceDocument
         }
 
         XMLPath = fi.DirectoryName.Replace("html", "dp");
-        Dplist = LTP.AnlayzeDP(XMLPath + "\\" + XMLFileName);
+        Dplist = LTPTrainingDP.AnlayzeDP(XMLPath + "\\" + XMLFileName);
         XMLPath = fi.DirectoryName.Replace("html", "srl");
-        Srllist = LTP.AnlayzeSRL(XMLPath + "\\" + XMLFileName);
+        Srllist = LTPTrainingSRL.AnlayzeSRL(XMLPath + "\\" + XMLFileName);
 
         datelist = LocateProperty.LocateDate(root);
         foreach (var m in datelist)

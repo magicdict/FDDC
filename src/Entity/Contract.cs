@@ -338,9 +338,9 @@ public partial class Contract : AnnouceDocument
         KeyList.Add(new ExtractPropertyByDP.DPKeyWord()
         {
             StartWord = new string[] { "签署", "签订" },
-            StartDPValue = new string[] { LTP.核心关系, LTP.定中关系, LTP.并列关系 },
+            StartDPValue = new string[] { LTPTrainingDP.核心关系, LTPTrainingDP.定中关系, LTPTrainingDP.并列关系 },
             EndWord = new string[] { "补充协议", "合同书", "合同", "协议书", "协议", },
-            EndDPValue = new string[] { LTP.核心关系, LTP.定中关系, LTP.并列关系, LTP.动宾关系, LTP.主谓关系 }
+            EndDPValue = new string[] { LTPTrainingDP.核心关系, LTPTrainingDP.定中关系, LTPTrainingDP.并列关系, LTPTrainingDP.动宾关系, LTPTrainingDP.主谓关系 }
         });
         e.DpKeyWordList = KeyList;
         var StartArray = new string[] { "签署了", "签订了" };
@@ -457,7 +457,7 @@ public partial class Contract : AnnouceDocument
         KeyList.Add(new ExtractPropertyByDP.DPKeyWord()
         {
             StartWord = new string[] { "确定为", "确定", "中标", "参与", "发布", "为" },
-            StartDPValue = new string[] { LTP.核心关系, LTP.定中关系, LTP.并列关系 },
+            StartDPValue = new string[] { LTPTrainingDP.核心关系, LTPTrainingDP.定中关系, LTPTrainingDP.并列关系 },
             EndWord = new string[] { "采购", "项目", "工程", "标段" },
             EndDPValue = new string[] { }
         });
@@ -538,7 +538,7 @@ public partial class Contract : AnnouceDocument
         KeyList.Add(new ExtractPropertyByDP.DPKeyWord()
         {
             StartWord = new string[] { "与", },
-            StartDPValue = new string[] { LTP.核心关系, LTP.定中关系, LTP.并列关系 },
+            StartDPValue = new string[] { LTPTrainingDP.核心关系, LTPTrainingDP.定中关系, LTPTrainingDP.并列关系 },
             EndWord = new string[] { "联合体" },
             EndDPValue = new string[] { }
         });

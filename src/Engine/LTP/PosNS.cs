@@ -28,12 +28,12 @@ public class PosNS
         {
             foreach (var filename in System.IO.Directory.GetFiles(dir))
             {
-                var dp = LTP.AnlayzeDP(filename);
+                var dp = LTPTrainingDP.AnlayzeDP(filename);
                 foreach (var p in dp)
                 {
                     foreach (var s in p)
                     {
-                        if (s.pos == LTP.地名)
+                        if (s.pos == LTPTrainingNER.地名)
                         {
                             if (!Ns.Contains(s.cont))
                             {

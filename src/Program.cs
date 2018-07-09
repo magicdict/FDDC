@@ -76,7 +76,7 @@ namespace FDDC
             //ContractTraning.GetListLeadWords();
             //警告：可能所有的Segmenter使用的是共用的词典！
             //下面的训练将把关键字加入到词典中，引发一些问题
-            //ContractTraning.AnlayzeEntitySurroundWordsLTP(); Training.Close(); return;
+            ContractTraning.AnlayzeEntitySurroundWordsLTP(); Training.Close(); return;
             Training.Close();
         }
 
@@ -94,18 +94,18 @@ namespace FDDC
 
         private static void Extract()
         {
-            var IsRunContract = false;
-            var IsRunContract_TEST = true;
+            var IsRunContract = true;
+            var IsRunContract_TEST = false;
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
             var ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
 
             var IsRunStockChange = false;
-            var IsRunStockChange_TEST = true;
+            var IsRunStockChange_TEST = false;
             var StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
             var StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "增减持";
 
             var IsRunIncreaseStock = false;
-            var IsRunIncreaseStock_TEST = true;
+            var IsRunIncreaseStock_TEST = false;
             var IncreaseStockPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "定增";
             var IncreaseStockPath_TEST = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "定增";
 
@@ -292,7 +292,7 @@ namespace FDDC
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518\\round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
             foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + Path.DirectorySeparatorChar + "srl" + Path.DirectorySeparatorChar))
             {
-                var Srllist = LTP.AnlayzeSRL(filename);
+                var Srllist = LTPTrainingSRL.AnlayzeSRL(filename);
                 var fi = new FileInfo(filename);
                 if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("Name：" + fi.Name);
                 foreach (var m in Srllist)

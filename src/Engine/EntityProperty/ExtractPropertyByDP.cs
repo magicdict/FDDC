@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using static HTMLEngine;
 using static LocateProperty;
 using System.IO;
-using static LTP;
+using static LTPTrainingNER;
 using System.Linq;
+using static LTPTrainingDP;
 
 public class ExtractPropertyByDP : ExtractProperyBase
 {
@@ -56,7 +57,7 @@ public class ExtractPropertyByDP : ExtractProperyBase
                     }
                     if (isStart)
                     {
-                        if (word.relate == LTP.右附加关系) continue;
+                        if (word.relate == LTPTrainingDP.右附加关系) continue;
                         x += word.cont;
                     }
                     if (key.StartWord.Contains(word.cont))
