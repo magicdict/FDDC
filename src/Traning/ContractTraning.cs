@@ -14,7 +14,7 @@ public class ContractTraning
         EntityWordPerperty();
         AnlayzeEntitySurroundWords();
     }
-    
+
     #region 辅助工具
     public static void GetListLeadWords()
     {
@@ -190,7 +190,10 @@ public class ContractTraning
     /// </summary>
     public static void EntityWordPerperty()
     {
-        Program.Training.WriteLine("甲方统计：");
+        JiaFangS.InitFactorItem();
+        YiFangS.InitFactorItem();
+        ContractS.InitFactorItem();
+        ProjectNameS.InitFactorItem();
         foreach (var contract in TraningDataset.ContractList)
         {
             JiaFangS.PutEntityWordPerperty(contract.JiaFang);
@@ -198,6 +201,14 @@ public class ContractTraning
             ContractS.PutEntityWordPerperty(contract.ContractName);
             ProjectNameS.PutEntityWordPerperty(contract.ProjectName);
         }
+        Program.Training.WriteLine("甲方统计：");
+        JiaFangS.Commit();
+        Program.Training.WriteLine("乙方统计：");
+        YiFangS.Commit();
+        Program.Training.WriteLine("合同名统计：");
+        ContractS.Commit();
+        Program.Training.WriteLine("工程名统计：");
+        ProjectNameS.Commit();
     }
     #endregion 
 }

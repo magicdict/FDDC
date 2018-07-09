@@ -15,29 +15,20 @@ namespace FDDC
     class Program
     {
         public static Encoding utf8WithoutBom = new System.Text.UTF8Encoding(false);
-        /// <summary>
-        /// 增减持公告发布日期
-        /// </summary>
-        /// <typeparam name="String"></typeparam>
-        /// <typeparam name="String"></typeparam>
-        /// <returns></returns>
- 
         public static StreamWriter Training;
         public static StreamWriter Logger;
         public static StreamWriter Evaluator;
-
         public static StreamWriter CIRecord;
-
         public static StreamWriter Score;
         /// <summary>
         /// Windows
         /// </summary>
-        //public static String DocBase = @"E:\WorkSpace2018\FDDC2018";
-        
+        public static String DocBase = @"E:\WorkSpace2018\FDDC2018";
+
         /// <summary>
         /// Mac
         /// </summary>
-        public static String DocBase = @"/Users/hu/Desktop/FDDCTraing";
+        //public static String DocBase = @"/Users/hu/Desktop/FDDCTraing";
 
         /// <summary>
         /// 这个模式下，有问题的数据会输出，正式比赛的时候设置为False，降低召回率！
@@ -54,9 +45,6 @@ namespace FDDC
             //全局编码    
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            PDFToTXT.GetPdf2TxtBatchFile(); return;
-
-
             //公司全称简称曾用名字典   
             CompanyNameLogic.LoadCompanyName(@"Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
             //增减持公告日期的读入
@@ -65,7 +53,7 @@ namespace FDDC
             PosNS.ImportNS(@"Resources" + Path.DirectorySeparatorChar + "ns.dict");
             //预处理
             Traning();
-            CIRecord =  new StreamWriter("CI.log");
+            CIRecord = new StreamWriter("CI.log");
             Evaluator = new StreamWriter("Evaluator.log");
             Score = new StreamWriter(@"Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
             //new Contract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1008828.html").Extract();return;
@@ -93,9 +81,9 @@ namespace FDDC
         }
 
         private static void GetBatchFile()
-        {   
+        {
             //地名修正词典的获取
-            PosNS.ExtractNsFromDP(); 
+            PosNS.ExtractNsFromDP();
             //PDFMiner:PDF转TXTbatch
             PDFToTXT.GetPdf2TxtBatchFile();
             //TXT整理
@@ -106,19 +94,19 @@ namespace FDDC
 
         private static void Extract()
         {
-            var IsRunContract = true;
-            var IsRunContract_TEST = false;
-            var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
+            var IsRunContract = false;
+            var IsRunContract_TEST = true;
+            var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
             var ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
 
             var IsRunStockChange = false;
-            var IsRunStockChange_TEST = false;
-            var StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
+            var IsRunStockChange_TEST = true;
+            var StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
             var StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "增减持";
 
             var IsRunIncreaseStock = false;
-            var IsRunIncreaseStock_TEST = false;
-            var IncreaseStockPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "round1_train_20180518" + Path.DirectorySeparatorChar + "定增";
+            var IsRunIncreaseStock_TEST = true;
+            var IncreaseStockPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "定增";
             var IncreaseStockPath_TEST = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "定增";
 
             if (IsRunContract)

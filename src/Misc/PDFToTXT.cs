@@ -12,15 +12,15 @@ public class PDFToTXT
         var Logger = new StreamWriter("pdf2txt.bat", false, Encoding.GetEncoding("gb2312"));
 
         var ContractPath_TRAIN = Program.DocBase + @"/FDDC_announcements_round1_test_b_20180708/重大合同";
-        Logger.WriteLine("mkdir " + ContractPath_TRAIN + "/txt");
+        Logger.WriteLine("mkdir " + ContractPath_TRAIN + "\\txt");
         foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"/pdf/"))
         {
             //Logger.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
         }
 
-        var ContractPath_TEST = Program.DocBase + @"/FDDC_announcements_round1_test_b_20180708/重大合同";
-        Logger.WriteLine("mkdir " + ContractPath_TEST + "/txt");
-        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TEST + @"/pdf/"))
+        var ContractPath_TEST = Program.DocBase + @"\FDDC_announcements_round1_test_b_20180708\重大合同";
+        Logger.WriteLine("mkdir " + ContractPath_TEST + "\\txt");
+        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TEST + @"\pdf\"))
         {
             Logger.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
         }
@@ -90,7 +90,7 @@ public class PDFToTXT
 
         Logger.WriteLine(@"D:");
         Logger.WriteLine(@"cd D:\Download\ltp-3.3.2-win-x64-Release\bin\Release");
-        var ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同";
+        var ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\重大合同";
 
         Logger.WriteLine("mkdir " + ContractPath_TRAIN + "\\ner");
         Logger.WriteLine("mkdir " + ContractPath_TRAIN + "\\dp");
@@ -105,10 +105,10 @@ public class PDFToTXT
             if (!xml.Contains("xml")) xml += ".xml";
             //Logger.WriteLine("ltp_test.exe --last-stage ner --input " + filename + " > " + nerPath + xml);
             //Logger.WriteLine("ltp_test.exe --last-stage dp --input " + filename + " > " + dpPath + xml);
-            Logger.WriteLine("ltp_test.exe --input " + filename + " > " + srlPath + xml);
+            //Logger.WriteLine("ltp_test.exe --input " + filename + " > " + srlPath + xml);
         }
 
-        var ContractPath_TEST = Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\重大合同";
+        var ContractPath_TEST = Program.DocBase + @"\FDDC_announcements_round1_test_b_20180708\重大合同";
         Logger.WriteLine("mkdir " + ContractPath_TEST + "\\ner");
         Logger.WriteLine("mkdir " + ContractPath_TEST + "\\dp");
         Logger.WriteLine("mkdir " + ContractPath_TEST + "\\srl");
@@ -120,14 +120,14 @@ public class PDFToTXT
             var fi = new FileInfo(filename);
             var xml = fi.Name.Replace("txt", "xml");
             if (!xml.Contains("xml")) xml += ".xml";
-            //Logger.WriteLine("ltp_test.exe --last-stage ner --input " + filename + " > " + nerPath + xml);
-            //Logger.WriteLine("ltp_test.exe --last-stage dp --input " + filename + " > " + dpPath + xml);
-            Logger.WriteLine("ltp_test.exe --input " + filename + " > " + srlPath + xml);
+            Logger.WriteLine("ltp_test.exe --last-stage ner --input " + filename + " > " + nerPath + xml);
+            Logger.WriteLine("ltp_test.exe --last-stage dp --input " + filename + " > " + dpPath + xml);
+            //Logger.WriteLine("ltp_test.exe --input " + filename + " > " + srlPath + xml);
         }
 
-        //Logger.Close(); return;
+        Logger.Close(); return;
 
-        ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持";
+        ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\增减持";
         Logger.WriteLine("mkdir " + ContractPath_TRAIN + "\\xml");
         foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\txt\"))
         {
@@ -145,7 +145,7 @@ public class PDFToTXT
         }
 
 
-        ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增";
+        ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\定增";
         Logger.WriteLine("mkdir " + ContractPath_TRAIN + "\\xml");
         foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\txt\"))
         {
@@ -166,25 +166,22 @@ public class PDFToTXT
 
     public static void FormatTxtFile()
     {
-        format(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同");
-        format(Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\重大合同");
-
-        format(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\增减持");
-        format(Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\增减持");
-
-        format(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增");
-        format(Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增");
+        FormatTextFile(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\重大合同");
+        FormatTextFile(Program.DocBase + @"\FDDC_announcements_round1_test_b_20180708\重大合同");
+        FormatTextFile(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\增减持");
+        FormatTextFile(Program.DocBase + @"\FDDC_announcements_round1_test_b_20180708\增减持");
+        FormatTextFile(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\定增");
+        FormatTextFile(Program.DocBase + @"\FDDC_announcements_round1_test_b_20180708\定增");
     }
 
-    static void format(string path)
+    internal static void FormatTextFile(string path)
     {
-        foreach (var filename in System.IO.Directory.GetFiles(path + @"\pdf\"))
+        foreach (var filename in System.IO.Directory.GetFiles(path + @"\txt\"))
         {
-            var txtfile = filename.Replace("pdf", "txt");
-            if (File.Exists(txtfile))
+            if (File.Exists(filename))
             {
                 var Lines = new List<string>();
-                var sr = new StreamReader(txtfile);
+                var sr = new StreamReader(filename);
                 while (!sr.EndOfStream)
                 {
                     var line = sr.ReadLine();
@@ -195,7 +192,7 @@ public class PDFToTXT
                 }
                 sr.Close();
 
-                var sw = new StreamWriter(txtfile, false);
+                var sw = new StreamWriter(filename, false);
                 foreach (var line in Lines)
                 {
                     if (line.Equals(" ")) continue;

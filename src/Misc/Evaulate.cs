@@ -374,11 +374,54 @@ public static class Evaluate
         Program.Evaluator.WriteLine("乙方错误数：" + ErrorYiFang);
 
         var ErrorMoneyAtRightKey = 0;
+
+        var ContractNameTotal = 0;
+        var ContractNameCorrectCnt = 0;
+        var ContractNameWrongCnt = 0;
+        var ContractNameNotPickCnt = 0;
+        var ContractNameMistakePickCnt = 0;
+
+
+        Program.Evaluator.WriteLine("所有的合同数：" + ContractNameTotal);
+        Program.Evaluator.WriteLine("正确的合同数：" + ContractNameCorrectCnt);
+        Program.Evaluator.WriteLine("错误的合同数：" + ContractNameWrongCnt);
+        Program.Evaluator.WriteLine("未检出的合同数：" + ContractNameNotPickCnt);
+        Program.Evaluator.WriteLine("错检出的合同数：" + ContractNameMistakePickCnt);
+
         foreach (var contract in TraningDataset.ContractList)
         {
             var key = contract.GetKey();
             foreach (var contract_Result in result)
             {
+
+                if (contract.id.Equals(contract_Result.id))
+                {
+                    if (String.IsNullOrEmpty(contract.ContractName))
+                    {
+                        if (String.IsNullOrEmpty(contract_Result.ContractName)) ContractNameMistakePickCnt++;
+                    }
+                    else
+                    {
+                        ContractNameTotal++;
+                        if (string.IsNullOrEmpty(contract_Result.ContractName))
+                        {
+                            ContractNameNotPickCnt++;
+                        }
+                        else
+                        {
+                            if (contract.ContractName.Equals(contract_Result.ContractName))
+                            {
+                                ContractNameCorrectCnt++;
+                            }
+                            else
+                            {
+                                ContractNameWrongCnt++;
+                            }
+                        }
+                    }
+                }
+
+
                 var key_Result = contract_Result.GetKey();
                 if (key.Equals(key_Result))
                 {
@@ -465,6 +508,7 @@ public static class Evaluate
         }
 
         Program.Evaluator.WriteLine("正确ID中金额错误数：" + ErrorMoneyAtRightKey);
+
 
 
         var F1_ID = GetF1("公告ID", POS_ID, ACT_ID, COR_ID);
