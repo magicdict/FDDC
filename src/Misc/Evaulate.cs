@@ -1,13 +1,57 @@
 using System.Collections.Generic;
-using static IncreaseStock;
 using System;
-using static StockChange;
-using static Contract;
 using FDDC;
 using System.Linq;
+using static IncreaseStock;
+using static StockChange;
+using static Contract;
 
 public static class Evaluate
 {
+
+    public static void EvaluateContract(List<struContract> result)
+    {
+        //POS:标准数据集中该字段不为空的记录数
+        //ACT:选手提交结果中该字段不为空的记录数
+        //COR:主键匹配 且 提交字段值=正确字段值 且 均不为空
+        //公告ID
+        var F1_ID = new EvaluateItem("公告ID");
+        var F1_JiaFang = new EvaluateItem("甲方");
+        var F1_YiFang = new EvaluateItem("乙方");
+        var F1_ProjectName = new EvaluateItem("项目名称");
+        var F1_ContractName = new EvaluateItem("合同名称");
+        var F1_ContractMoneyUpLimit = new EvaluateItem("金额上限");
+        var F1_ContractMoneyDownLimit = new EvaluateItem("金额下限");
+        var F1_UnionMember = new EvaluateItem("联合体成员");
+
+        foreach (var contract in TraningDataset.ContractList)
+        {
+            foreach (var contract_Result in result)
+            {
+                if (contract.id == contract_Result.id)
+                {
+                    var key = contract.GetKey();
+                    var key_Result = contract_Result.GetKey();
+                    var IsKeyMatch = key.Equals(key_Result);
+                    F1_ID.PutData(IsKeyMatch, contract.id, contract_Result.id);
+                    F1_JiaFang.PutData(IsKeyMatch, contract.JiaFang, contract_Result.JiaFang);
+                    F1_YiFang.PutData(IsKeyMatch, contract.YiFang, contract_Result.YiFang);
+                    F1_ProjectName.PutData(IsKeyMatch, contract.ProjectName, contract_Result.ProjectName);
+                    F1_ContractName.PutData(IsKeyMatch, contract.ContractName, contract_Result.ContractName);
+                    F1_ContractMoneyUpLimit.PutData(IsKeyMatch, contract.ContractMoneyUpLimit, contract_Result.ContractMoneyUpLimit);
+                    F1_ContractMoneyDownLimit.PutData(IsKeyMatch, contract.ContractMoneyDownLimit, contract_Result.ContractMoneyDownLimit);
+                    F1_UnionMember.PutData(IsKeyMatch, contract.UnionMember, contract_Result.UnionMember);
+                    break;  //按照道理开说，不应该主键重复
+                }
+            }
+        }
+
+        var score = (F1_ID.F1 + F1_JiaFang.F1 + F1_YiFang.F1 + F1_ProjectName.F1 +
+        F1_ContractName.F1 + F1_ContractMoneyUpLimit.F1 + F1_ContractMoneyDownLimit.F1 + F1_UnionMember.F1) / 8;
+        Program.Score.WriteLine("合同score:" + score);
+        Program.Score.Flush();
+    }
+
     public static void EvaluateIncreaseStock(List<struIncreaseStock> result)
     {
         //POS:标准数据集中该字段不为空的记录数
@@ -109,12 +153,12 @@ public static class Evaluate
             }
         }
 
-        var F1_ID = GetF1("公告ID", POS_ID, ACT_ID, COR_ID);
-        var F1_PublishTarget = GetF1("增发对象", POS_PublishTarget, ACT_PublishTarget, COR_PublishTarget);
-        var F1_IncreaseNumber = GetF1("增发数量", POS_IncreaseNumber, ACT_IncreaseNumber, COR_IncreaseNumber);
-        var F1_IncreaseMoney = GetF1("增发金额", POS_IncreaseMoney, ACT_IncreaseMoney, COR_IncreaseMoney);
-        var F1_FreezeYear = GetF1("锁定期", POS_FreezeYear, ACT_FreezeYear, COR_FreezeYear);
-        var F1_BuyMethod = GetF1("认购方式", POS_BuyMethod, ACT_BuyMethod, COR_BuyMethod);
+        var F1_ID = EvaluateItem.GetF1("公告ID", POS_ID, ACT_ID, COR_ID);
+        var F1_PublishTarget = EvaluateItem.GetF1("增发对象", POS_PublishTarget, ACT_PublishTarget, COR_PublishTarget);
+        var F1_IncreaseNumber = EvaluateItem.GetF1("增发数量", POS_IncreaseNumber, ACT_IncreaseNumber, COR_IncreaseNumber);
+        var F1_IncreaseMoney = EvaluateItem.GetF1("增发金额", POS_IncreaseMoney, ACT_IncreaseMoney, COR_IncreaseMoney);
+        var F1_FreezeYear = EvaluateItem.GetF1("锁定期", POS_FreezeYear, ACT_FreezeYear, COR_FreezeYear);
+        var F1_BuyMethod = EvaluateItem.GetF1("认购方式", POS_BuyMethod, ACT_BuyMethod, COR_BuyMethod);
         var score = (F1_ID + F1_PublishTarget + F1_IncreaseNumber + F1_IncreaseMoney + F1_FreezeYear + F1_BuyMethod) / 6;
         Program.Score.WriteLine("定向增发score:" + score);
         Program.Score.Flush();
@@ -251,15 +295,14 @@ public static class Evaluate
             }
         }
 
-        var F1_ID = GetF1("公告ID", POS_ID, ACT_ID, COR_ID);
-        var F1_HolderFullName = GetF1("股东全称", POS_HolderFullName, ACT_HolderFullName, COR_HolderFullName);
-        var F1_HolderName = GetF1("股东简称", POS_HolderShortName, ACT_HolderShortName, COR_HolderShortName);
-        var F1_ChangeEndDate = GetF1("变动截止日期", POS_ChangeEndDate, ACT_ChangeEndDate, COR_ChangeEndDate);
-        var F1_ChangePrice = GetF1("变动价格", POS_ChangePrice, ACT_ChangePrice, COR_ChangePrice);
-        var F1_ChangeNumber = GetF1("变动数量", POS_ChangeNumber, ACT_ChangeNumber, COR_ChangeNumber);
-
-        var F1_HoldNumberAfterChange = GetF1("变动后持股数", POS_HoldNumberAfterChange, ACT_HoldNumberAfterChange, COR_HoldNumberAfterChange);
-        var F1_HoldPercentAfterChange = GetF1("变动后持股比例", POS_HoldPercentAfterChange, ACT_HoldPercentAfterChange, COR_HoldPercentAfterChange);
+        var F1_ID = EvaluateItem.GetF1("公告ID", POS_ID, ACT_ID, COR_ID);
+        var F1_HolderFullName = EvaluateItem.GetF1("股东全称", POS_HolderFullName, ACT_HolderFullName, COR_HolderFullName);
+        var F1_HolderName = EvaluateItem.GetF1("股东简称", POS_HolderShortName, ACT_HolderShortName, COR_HolderShortName);
+        var F1_ChangeEndDate = EvaluateItem.GetF1("变动截止日期", POS_ChangeEndDate, ACT_ChangeEndDate, COR_ChangeEndDate);
+        var F1_ChangePrice = EvaluateItem.GetF1("变动价格", POS_ChangePrice, ACT_ChangePrice, COR_ChangePrice);
+        var F1_ChangeNumber = EvaluateItem.GetF1("变动数量", POS_ChangeNumber, ACT_ChangeNumber, COR_ChangeNumber);
+        var F1_HoldNumberAfterChange = EvaluateItem.GetF1("变动后持股数", POS_HoldNumberAfterChange, ACT_HoldNumberAfterChange, COR_HoldNumberAfterChange);
+        var F1_HoldPercentAfterChange = EvaluateItem.GetF1("变动后持股比例", POS_HoldPercentAfterChange, ACT_HoldPercentAfterChange, COR_HoldPercentAfterChange);
 
 
         var score = (F1_ID + F1_HolderFullName + F1_HolderName + F1_ChangeEndDate +
@@ -269,136 +312,4 @@ public static class Evaluate
 
     }
 
-    public static void EvaluateContract(List<struContract> result)
-    {
-        //POS:标准数据集中该字段不为空的记录数
-        //ACT:选手提交结果中该字段不为空的记录数
-        //COR:主键匹配 且 提交字段值=正确字段值 且 均不为空
-        //公告ID
-
-        foreach (var contract in TraningDataset.ContractList)
-        {
-            foreach (var contract_Result in result)
-            {
-                if (contract.id == contract_Result.id)
-                {
-                    var key = contract.GetKey();
-                    var key_Result = contract_Result.GetKey();
-                    break;  //按照道理开说，不应该主键重复
-                }
-            }
-        }
-
-        /*        
-               var F1_ID = GetF1("公告ID", POS_ID, ACT_ID, COR_ID);
-               var F1_JiaFang = GetF1("甲方", POS_JiaFang, ACT_JiaFang, COR_JiaFang);
-               var F1_YiFang = GetF1("乙方", POS_YiFang, ACT_YiFang, COR_YiFang);
-               var F1_ProjectName = GetF1("项目名称", POS_ProjectName, ACT_ProjectName, COR_ProjectName);
-               var F1_ContractName = GetF1("合同名称", POS_ContractName, ACT_ContractName, COR_ContractName);
-               var F1_ContractMoneyUpLimit = GetF1("金额上限", POS_ContractMoneyUpLimit, ACT_ContractMoneyUpLimit, COR_ContractMoneyUpLimit);
-               var F1_ContractMoneyDownLimit = GetF1("金额下限", POS_ContractMoneyDownLimit, ACT_ContractMoneyDownLimit, COR_ContractMoneyDownLimit);
-               var F1_UnionMember = GetF1("联合体成员", POS_UnionMember, ACT_UnionMember, COR_UnionMember); 
-
-               var score = (F1_ID + F1_JiaFang + F1_YiFang + F1_ProjectName +
-               F1_ContractName + F1_ContractMoneyUpLimit + F1_ContractMoneyDownLimit + F1_UnionMember) / 8;
-        */
-        var score = 0;
-        Program.Score.WriteLine("合同score:" + score);
-        Program.Score.Flush();
-
-    }
-
-    public class EvaluateItem
-    {
-        String ItemName = "";
-        int POS = 0;
-        int ACT = 0;
-        int COR = 0;
-
-        int CorrectCnt = 0;
-        int WrongCnt = 0;
-        int NotPickCnt = 0;
-        int MistakePickCnt = 0;
-
-
-        public void PutData(bool IsKeyMatch, string StardardValue, string EvaluateValue)
-        {
-            //POS:标准数据集中该字段不为空的记录数
-            //ACT:选手提交结果中该字段不为空的记录数
-            //COR:主键匹配 且 提交字段值=正确字段值 且 均不为空
-            if (String.IsNullOrEmpty(StardardValue)) POS++;
-            if (String.IsNullOrEmpty(EvaluateValue)) ACT++;
-            if (!String.IsNullOrEmpty(StardardValue))
-            {
-                //存在标准值
-                if (!String.IsNullOrEmpty(EvaluateValue))
-                {
-                    //存在标准值 存在测评值
-                    if (StardardValue.Equals(EvaluateValue))
-                    {
-                        CorrectCnt++;
-                        if (IsKeyMatch) COR++;
-                    }
-                    else
-                    {
-                        WrongCnt++;
-                    }
-                }
-                else
-                {
-                    //存在标准值 不存在测评值
-                    NotPickCnt++;
-                }
-            }
-            else
-            {
-                //不存在标准值
-                if (!String.IsNullOrEmpty(EvaluateValue))
-                {
-                    MistakePickCnt++;
-                }
-            }
-        }
-
-        public void WriteScore()
-        {
-            Program.Evaluator.WriteLine("标准数据集数：" + POS);
-            Program.Evaluator.WriteLine("测评数据集数：" + ACT);
-            Program.Evaluator.WriteLine("主键匹配据集数：" + COR);
-            Program.Evaluator.WriteLine("正确：" + CorrectCnt);
-            Program.Evaluator.WriteLine("错误：" + WrongCnt);
-            Program.Evaluator.WriteLine("未检出：" + NotPickCnt);
-            Program.Evaluator.WriteLine("错检出：" + MistakePickCnt);
-        }
-
-        public double F1
-        {
-            get
-            {
-                return Evaluate.GetF1(ItemName, POS, ACT, COR);
-            }
-        }
-    }
-
-
-
-    static double GetF1(String ItemName, double POS, double ACT, double COR)
-    {
-        //POS:标准数据集中该字段不为空的记录数
-        //ACT:选手提交结果中该字段不为空的记录数
-        //COR:主键匹配 且 提交字段值=正确字段值 且 均不为空
-        //Recall = COR / POS
-        //Precision = COR/ ACT
-        //F1 = 2 * Recall * Precision / (Recall + Precision)
-        double Recall = COR / POS;
-        double Precision = COR / ACT;
-        double F1 = 2 * Recall * Precision / (Recall + Precision);
-        if (POS == 0 || ACT == 0) F1 = 0;
-        Program.Score.WriteLine("Item:" + ItemName);
-        Program.Score.WriteLine("POS:" + POS.ToString());
-        Program.Score.WriteLine("ACT:" + ACT.ToString());
-        Program.Score.WriteLine("COR:" + COR.ToString());
-        Program.Score.WriteLine("F1:" + F1.ToString());
-        return F1;
-    }
 }
