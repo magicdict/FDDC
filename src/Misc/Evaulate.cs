@@ -9,7 +9,7 @@ using static Contract;
 public static class Evaluate
 {
 
-    public static void EvaluateContract(List<struContract> result)
+    public static void EvaluateContract(List<struContract> resultDataset)
     {
         //POS:标准数据集中该字段不为空的记录数
         //ACT:选手提交结果中该字段不为空的记录数
@@ -24,24 +24,75 @@ public static class Evaluate
         var F1_ContractMoneyDownLimit = new EvaluateItem("金额下限");
         var F1_UnionMember = new EvaluateItem("联合体成员");
 
+
         foreach (var contract in TraningDataset.ContractList)
         {
-            foreach (var contract_Result in result)
+            //POS:标准数据集中该字段不为空的记录数
+            if (!String.IsNullOrEmpty(contract.id)) F1_ID.POS++;
+            if (!String.IsNullOrEmpty(contract.JiaFang)) F1_JiaFang.POS++;
+            if (!String.IsNullOrEmpty(contract.YiFang)) F1_YiFang.POS++;
+            if (!String.IsNullOrEmpty(contract.ContractName)) F1_ProjectName.POS++;
+            if (!String.IsNullOrEmpty(contract.ProjectName)) F1_ContractName.POS++;
+            if (!String.IsNullOrEmpty(contract.ContractMoneyUpLimit)) F1_ContractMoneyUpLimit.POS++;
+            if (!String.IsNullOrEmpty(contract.ContractMoneyDownLimit)) F1_ContractMoneyDownLimit.POS++;
+            if (!String.IsNullOrEmpty(contract.UnionMember)) F1_UnionMember.POS++;
+        }
+
+        foreach (var contract in resultDataset)
+        {
+            //ACT:选手提交结果中该字段不为空的记录数
+            if (!String.IsNullOrEmpty(contract.id)) F1_ID.ACT++;
+            if (!String.IsNullOrEmpty(contract.JiaFang)) F1_JiaFang.ACT++;
+            if (!String.IsNullOrEmpty(contract.YiFang)) F1_YiFang.ACT++;
+            if (!String.IsNullOrEmpty(contract.ContractName)) F1_ProjectName.ACT++;
+            if (!String.IsNullOrEmpty(contract.ProjectName)) F1_ContractName.ACT++;
+            if (!String.IsNullOrEmpty(contract.ContractMoneyUpLimit)) F1_ContractMoneyUpLimit.ACT++;
+            if (!String.IsNullOrEmpty(contract.ContractMoneyDownLimit)) F1_ContractMoneyDownLimit.ACT++;
+            if (!String.IsNullOrEmpty(contract.UnionMember)) F1_UnionMember.ACT++;
+        }
+
+        foreach (var contract in TraningDataset.ContractList)
+        {
+            var key = contract.GetKey();
+            foreach (var contract_Result in resultDataset)
             {
-                if (contract.id == contract_Result.id)
+                var key_Result = contract_Result.GetKey();
+                var IsKeyMatch = key.Equals(key_Result);
+                if (IsKeyMatch)
                 {
-                    var key = contract.GetKey();
-                    var key_Result = contract_Result.GetKey();
-                    var IsKeyMatch = key.Equals(key_Result);
-                    F1_ID.PutData(IsKeyMatch, contract.id, contract_Result.id);
-                    F1_JiaFang.PutData(IsKeyMatch, contract.JiaFang, contract_Result.JiaFang);
-                    F1_YiFang.PutData(IsKeyMatch, contract.YiFang, contract_Result.YiFang);
-                    F1_ProjectName.PutData(IsKeyMatch, contract.ProjectName, contract_Result.ProjectName);
-                    F1_ContractName.PutData(IsKeyMatch, contract.ContractName, contract_Result.ContractName);
-                    F1_ContractMoneyUpLimit.PutData(IsKeyMatch, contract.ContractMoneyUpLimit, contract_Result.ContractMoneyUpLimit);
-                    F1_ContractMoneyDownLimit.PutData(IsKeyMatch, contract.ContractMoneyDownLimit, contract_Result.ContractMoneyDownLimit);
-                    F1_UnionMember.PutData(IsKeyMatch, contract.UnionMember, contract_Result.UnionMember);
-                    break;  //按照道理开说，不应该主键重复
+                    //COR:主键匹配 且 提交字段值=正确字段值 且 均不为空
+                    F1_ID.PutCORData(contract.id, contract_Result.id);
+                    F1_JiaFang.PutCORData(contract.JiaFang, contract_Result.JiaFang);
+                    F1_YiFang.PutCORData(contract.YiFang, contract_Result.YiFang);
+                    F1_ProjectName.PutCORData(contract.ProjectName, contract_Result.ProjectName);
+                    F1_ContractName.PutCORData(contract.ContractName, contract_Result.ContractName);
+                    F1_ContractMoneyUpLimit.PutCORData(contract.ContractMoneyUpLimit, contract_Result.ContractMoneyUpLimit);
+                    F1_ContractMoneyDownLimit.PutCORData(contract.ContractMoneyDownLimit, contract_Result.ContractMoneyDownLimit);
+                    F1_UnionMember.PutCORData(contract.UnionMember, contract_Result.UnionMember);
+                    break; //防止测试集出现多条主键重复的记录
+                }
+            }
+        }
+
+        //单项测评
+        foreach (var contract in TraningDataset.ContractList)
+        {
+            foreach (var contract_Result in resultDataset)
+            {
+                var IsIdMatch = contract.id.Equals(contract_Result.id);
+                if (IsIdMatch)
+                {
+                    //这里假定数据都是ID为主键一对一的情况
+                    //数据一对多的时候，这里的逻辑是不正确的
+                    F1_ID.PutItemData(contract.id, contract_Result.id);
+                    F1_JiaFang.PutItemData(contract.JiaFang, contract_Result.JiaFang);
+                    F1_YiFang.PutItemData(contract.YiFang, contract_Result.YiFang);
+                    F1_ProjectName.PutItemData(contract.ProjectName, contract_Result.ProjectName);
+                    F1_ContractName.PutItemData(contract.ContractName, contract_Result.ContractName);
+                    F1_ContractMoneyUpLimit.PutItemData(contract.ContractMoneyUpLimit, contract_Result.ContractMoneyUpLimit);
+                    F1_ContractMoneyDownLimit.PutItemData(contract.ContractMoneyDownLimit, contract_Result.ContractMoneyDownLimit);
+                    F1_UnionMember.PutItemData(contract.UnionMember, contract_Result.UnionMember);
+                    break; 
                 }
             }
         }

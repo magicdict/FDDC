@@ -11,8 +11,8 @@ public class ContractTraning
     public static void Train()
     {
         Console.WriteLine("开始分析");
-        AnlayzeEntitySurroundWords(); FDDC.Program.Training.Flush();
-        AnlayzeEntitySurroundWordsLTP(); FDDC.Program.Training.Flush();
+        //AnlayzeEntitySurroundWords(); FDDC.Program.Training.Flush();
+        //AnlayzeEntitySurroundWordsLTP(); FDDC.Program.Training.Flush();
         TraningMaxLenth(); FDDC.Program.Training.Flush();
         EntityWordPerperty(); FDDC.Program.Training.Flush();
         Console.WriteLine("结束分析");

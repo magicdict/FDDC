@@ -4,11 +4,11 @@ using FDDC;
 public class EvaluateItem
 {
     String ItemName = "";
-    int POS = 0;
-    int ACT = 0;
+    public int POS = 0;
+    public int ACT = 0;
     int COR = 0;
 
-    int CorrectCnt = 0;
+    int CorrentCnt = 0;
     int WrongCnt = 0;
     int NotPickCnt = 0;
     int MistakePickCnt = 0;
@@ -18,13 +18,8 @@ public class EvaluateItem
         ItemName = name;
     }
 
-    public void PutData(bool IsKeyMatch, string StardardValue, string EvaluateValue)
+    public void PutCORData(string StardardValue, string EvaluateValue)
     {
-        //POS:标准数据集中该字段不为空的记录数
-        //ACT:选手提交结果中该字段不为空的记录数
-        //COR:主键匹配 且 提交字段值=正确字段值 且 均不为空
-        if (String.IsNullOrEmpty(StardardValue)) POS++;
-        if (String.IsNullOrEmpty(EvaluateValue)) ACT++;
         if (!String.IsNullOrEmpty(StardardValue))
         {
             //存在标准值
@@ -33,8 +28,25 @@ public class EvaluateItem
                 //存在标准值 存在测评值
                 if (StardardValue.Equals(EvaluateValue))
                 {
-                    CorrectCnt++;
-                    if (IsKeyMatch) COR++;
+                    //COR:主键匹配 且 提交字段值=正确字段值 且 均不为空
+                    COR++;
+                }
+            }
+        }
+    }
+
+
+    public void PutItemData(string StardardValue, string EvaluateValue)
+    {
+        if (!String.IsNullOrEmpty(StardardValue))
+        {
+            //存在标准值
+            if (!String.IsNullOrEmpty(EvaluateValue))
+            {
+                //存在标准值 存在测评值
+                if (StardardValue.Equals(EvaluateValue))
+                {
+                    CorrentCnt++;
                 }
                 else
                 {
@@ -56,6 +68,7 @@ public class EvaluateItem
             }
         }
     }
+
     /// <summary>
     /// 输出结果
     /// </summary>
@@ -65,7 +78,7 @@ public class EvaluateItem
         Program.Evaluator.WriteLine("标准数据集数：" + POS);
         Program.Evaluator.WriteLine("测评数据集数：" + ACT);
         Program.Evaluator.WriteLine("主键匹配据集数：" + COR);
-        Program.Evaluator.WriteLine("正确：" + CorrectCnt);
+        Program.Evaluator.WriteLine("正确：" + CorrentCnt);
         Program.Evaluator.WriteLine("错误：" + WrongCnt);
         Program.Evaluator.WriteLine("未检出：" + NotPickCnt);
         Program.Evaluator.WriteLine("错检出：" + MistakePickCnt);
@@ -82,9 +95,6 @@ public class EvaluateItem
 
     public static double GetF1(String ItemName, double POS, double ACT, double COR)
     {
-        //POS:标准数据集中该字段不为空的记录数
-        //ACT:选手提交结果中该字段不为空的记录数
-        //COR:主键匹配 且 提交字段值=正确字段值 且 均不为空
         //Recall = COR / POS
         //Precision = COR/ ACT
         //F1 = 2 * Recall * Precision / (Recall + Precision)
