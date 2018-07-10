@@ -207,6 +207,85 @@ public partial class Contract : AnnouceDocument
         }
         return OrgString;
     }
+
+    /// <summary>
+    /// 获得合同名
+    /// </summary>
+    /// <returns></returns>
+    string GetContractName()
+    {
+        var e = new EntityProperty();
+        e.PropertyName = "合同名称";
+        e.PropertyType = EntityProperty.enmType.Normal;
+        e.MaxLength = ContractTraning.MaxContractNameLength;
+        e.MinLength = 5;
+        /* 训练模式下 
+        e.LeadingColonKeyWordList = ContractTraning.ContractNameLeadingDict
+                                    .Where((x) => { return x.Value >= 40; })    //阈值40%以上
+                                    .Select((x) => { return x.Key + "："; }).ToArray();
+        */
+        e.LeadingColonKeyWordList =  new string[] { "合同名称：" };
+        e.QuotationTrailingWordList = new string[] { "协议书", "合同书", "确认书", "合同", "协议" };
+        e.QuotationTrailingWordList_IsSkipBracket = true;   //暂时只能选True
+        var KeyList = new List<ExtractPropertyByDP.DPKeyWord>();
+        KeyList.Add(new ExtractPropertyByDP.DPKeyWord()
+        {
+            StartWord = new string[] { "签署", "签订" },    //通过SRL训练获得
+            StartDPValue = new string[] { LTPTrainingDP.核心关系, LTPTrainingDP.定中关系, LTPTrainingDP.并列关系 },
+            EndWord = new string[] { "补充协议", "合同书", "合同", "协议书", "协议", },
+            EndDPValue = new string[] { LTPTrainingDP.核心关系, LTPTrainingDP.定中关系, LTPTrainingDP.并列关系, LTPTrainingDP.动宾关系, LTPTrainingDP.主谓关系 }
+        });
+        e.DpKeyWordList = KeyList;
+
+        var StartArray = new string[] { "签署了", "签订了" };   //通过语境训练获得
+        var EndArray = new string[] { "合同" };
+        e.ExternalStartEndStringFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
+        e.ExternalStartEndStringFeatureCandidatePreprocess = (x) => { return x + "合同"; };
+        e.MaxLengthCheckPreprocess = str =>
+        {
+            return EntityWordAnlayzeTool.TrimEnglish(str);
+        };
+        //最高级别的置信度，特殊处理器
+        e.LeadingColonKeyWordCandidatePreprocess = str =>
+        {
+            var c = Normalizer.ClearTrailing(TrimJianCheng(str));
+            return c;
+        };
+
+        e.CandidatePreprocess = str =>
+        {
+            var c = Normalizer.ClearTrailing(TrimJianCheng(str));
+            var RightQMarkIdx = c.IndexOf("”");
+            if (!(RightQMarkIdx != -1 && RightQMarkIdx != c.Length - 1))
+            {
+                //对于"XXX"合同，有右边引号，但不是最后的时候，不用做
+                c = c.TrimStart("“".ToCharArray());
+            }
+            c = c.TrimStart("《".ToCharArray());
+            c = c.TrimEnd("》".ToCharArray()).TrimEnd("”".ToCharArray());
+            return c;
+        };
+        e.ExcludeContainsWordList = new string[] { "日常经营重大合同" };
+        //下面这个列表的根据不足
+        e.ExcludeEqualsWordList = new string[] { "合同", "重大合同", "项目合同", "终止协议", "经营合同", "特别重大合同", "相关项目合同" };
+        e.Extract(this);
+
+        //是否所有的候选词里面包括（测试集无法使用）
+        var contractlist = TraningDataset.ContractList.Where((x) => { return x.id == this.Id; });
+        if (contractlist.Count() > 0)
+        {
+            var contract = contractlist.First();
+            var contractname = contract.ContractName;
+            if (!String.IsNullOrEmpty(contractname))
+            {
+                e.CheckIsCandidateContainsTarget(contractname);
+            }
+        }
+        //置信度
+        e.Confidence = ContractTraning.ContractES.GetStardardCI();
+        return e.EvaluateCI();
+    }
+
     /// <summary>
     /// 获得甲方
     /// </summary>
@@ -319,79 +398,7 @@ public partial class Contract : AnnouceDocument
         }
         return AnnouceCompanyName;
     }
-    /// <summary>
-    /// 获得合同名
-    /// </summary>
-    /// <returns></returns>
-    string GetContractName()
-    {
-        var e = new EntityProperty();
-        e.PropertyType = EntityProperty.enmType.Normal;
-        e.PropertyName = "合同名称";
-        e.PropertyType = EntityProperty.enmType.Normal;
-        e.MaxLength = ContractTraning.MaxContractNameLength;
-        e.MinLength = 5;
-        e.LeadingColonKeyWordList = new string[] { "合同名称：" };
-        e.QuotationTrailingWordList = new string[] { "协议书", "合同书", "确认书", "合同", "协议" };
-        e.QuotationTrailingWordList_IsSkipBracket = true;   //暂时只能选True
-        var KeyList = new List<ExtractPropertyByDP.DPKeyWord>();
-        KeyList.Add(new ExtractPropertyByDP.DPKeyWord()
-        {
-            StartWord = new string[] { "签署", "签订" },    //通过SRL训练获得
-            StartDPValue = new string[] { LTPTrainingDP.核心关系, LTPTrainingDP.定中关系, LTPTrainingDP.并列关系 },
-            EndWord = new string[] { "补充协议", "合同书", "合同", "协议书", "协议", },
-            EndDPValue = new string[] { LTPTrainingDP.核心关系, LTPTrainingDP.定中关系, LTPTrainingDP.并列关系, LTPTrainingDP.动宾关系, LTPTrainingDP.主谓关系 }
-        });
-        e.DpKeyWordList = KeyList;
 
-        var StartArray = new string[] { "签署了", "签订了" };
-        var EndArray = new string[] { "合同" };
-        e.ExternalStartEndStringFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
-        e.ExternalStartEndStringFeatureCandidatePreprocess = (x) => { return x + "合同"; };
-        e.MaxLengthCheckPreprocess = str =>
-        {
-            return EntityWordAnlayzeTool.TrimEnglish(str);
-        };
-        //最高级别的置信度，特殊处理器
-        e.LeadingColonKeyWordCandidatePreprocess = str =>
-        {
-            var c = Normalizer.ClearTrailing(TrimJianCheng(str));
-            return c;
-        };
-
-        e.CandidatePreprocess = str =>
-        {
-            var c = Normalizer.ClearTrailing(TrimJianCheng(str));
-            var RightQMarkIdx = c.IndexOf("”");
-            if (!(RightQMarkIdx != -1 && RightQMarkIdx != c.Length - 1))
-            {
-                //对于"XXX"合同，有右边引号，但不是最后的时候，不用做
-                c = c.TrimStart("“".ToCharArray());
-            }
-            c = c.TrimStart("《".ToCharArray());
-            c = c.TrimEnd("》".ToCharArray()).TrimEnd("”".ToCharArray());
-            return c;
-        };
-        e.ExcludeContainsWordList = new string[] { "日常经营重大合同" };
-        //下面这个列表的根据不足
-        e.ExcludeEqualsWordList = new string[] { "合同", "重大合同", "项目合同", "终止协议", "经营合同", "特别重大合同", "相关项目合同" };
-        e.Extract(this);
-
-        //是否所有的候选词里面包括（测试集无法使用）
-        var contractlist = TraningDataset.ContractList.Where((x) => { return x.id == this.Id; });
-        if (contractlist.Count() > 0)
-        {
-            var contract = contractlist.First();
-            var contractname = contract.ContractName;
-            if (!String.IsNullOrEmpty(contractname))
-            {
-                e.CheckIsCandidateContainsTarget(contractname);
-            }
-        }
-        //置信度
-        e.Confidence = ContractTraning.ContractS.GetStardardCI();
-        return e.EvaluateCI();
-    }
     /// <summary>
     /// 获得工程名
     /// </summary>
@@ -481,7 +488,7 @@ public partial class Contract : AnnouceDocument
     (String MoneyAmount, String MoneyCurrency) GetMoney()
     {
         var Extractor = new ExtractPropertyByHTML();
-        //这些关键字后面
+        //这些关键字后面（暂时无法自动抽取）
         Extractor.LeadingColonKeyWordList = new string[] {
             "订单总金额","订单金额","订单总价","订单额",
             "合同总投资", "合同总价","合同金额", "合同额","合同总额","合同总金额","合同价","合同价格",

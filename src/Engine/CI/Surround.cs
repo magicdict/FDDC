@@ -80,7 +80,7 @@ public class Surround
         segmenter.DeleteWord(KeyWord);
     }
 
-    public void WriteTop(int top)
+    public void GetTop(int top)
     {
         Program.Training.WriteLine("前导词语");
         Utility.FindTop(top, LeadingWordDict);

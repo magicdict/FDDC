@@ -89,18 +89,18 @@ namespace FDDC
 
         private static void Extract()
         {
-            var IsRunContract = false;
-            var IsRunContract_TEST = false;
+            var IsRunContract = true;
+            var IsRunContract_TEST = true;
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
             var ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
 
-            var IsRunStockChange = false;
-            var IsRunStockChange_TEST = false;
+            var IsRunStockChange = true;
+            var IsRunStockChange_TEST = true;
             var StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
             var StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "增减持";
 
-            var IsRunIncreaseStock = false;
-            var IsRunIncreaseStock_TEST = false;
+            var IsRunIncreaseStock = true;
+            var IsRunIncreaseStock_TEST = true;
             var IncreaseStockPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "定增";
             var IncreaseStockPath_TEST = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "定增";
 
