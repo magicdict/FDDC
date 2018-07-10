@@ -1,21 +1,84 @@
 # FDDC2018金融算法挑战赛02－A股上市公司公告信息抽取
 
+更新时间 2018年7月10日 By 带着兔子去旅行
+
+
+信息抽取是NLP里的一个实用内容。该工具的目标是打造一个泛用的自动信息抽取工具。使得没有任何基础的用户，可以通过简单的步骤提取文档（PDF，HTML，TXT）中的信息。该工具使用C#(.Net Core)开发，所以可以跨平台运行。（Python在做大的工程的时候有诸多不便，所以没有使用python语言）
+
 ## 基本环境
 
 * .NetCore2.0
 * LTP组件：哈工大LTP3.3.2版
 * PDF转TXT工具 pdfminer
+* 分词系统：结巴分词
+
+ltp工具：哈工大LTP工具（ltp.ai）提供的ltp工具，最新版为3.3.4.该工具在windows，max，centos上，srl的训练可能无法正常完成。（dp，ner阶段没有问题）所以这里使用了3.3.2版本。ltp工具的SRL结果中包含了DP和NER的内容，但是暂时保留DP和NER中间XML文件。
+
+pdfminer：请注意处理中文的时候需要额外的步骤，具体方法不再赘述。部分PDF可能无法正确转换，原因CaseByCase。
+
+结巴分词：某些地名，例如"大连"，会被误判。这里使用地名辅助字典的方式做纠正。ltp工具没有这个问题。ltp工具和结巴分词功能虽然重复，但是暂时还不能移除结巴分词。
 
 ## 前期准备
 
 * 使用pdfminer将PDF文件转化为Txt文件
 * 使用哈工大LTP工具，将Txt文件转换为NER，DP，SRL的XML文件
 
-## 训练
+期待文件夹结构
+
+* html（存放HTML文件目录）
+* pdf（存放PDF文件目录）
+* txt（存放TXT文件目录）
+* dp（存放LTP的DP结果XML目录）
+* ner（存放LTP的NER结果XML目录）
+* srl（存放LTP的SRL结果XML目录）
+
+## 训练（词语统计）
 
 * 分析待提取信息自身的特征
 * 分析待提取信息周围语境的特征（LTP工具）
 * 构建置信度体系
+
+### 词语自身属性
+
+* 长度
+* 包含词数
+* 首词词性（POS）
+* 词尾
+
+### 语境
+
+* 该关键字在 ：（中文冒号）之后的场景下，：（中文冒号）前面的内容
+* 包含该关键字的句子中，该关键字的前置动词
+* 包含该关键字的句子中，该关键字是否在角色标识中存在
+
+训练结果例：
+
+```CSharp
+协议书(5.180388%)[56]
+协议(11.84089%)[128]
+合同(58.55689%)[633]
+合同书(2.960222%)[32]
+买卖合同(3.792784%)[41]
+承包合同(12.0259%)[130]
+意向书(0.2775208%)[3]
+补充协议(1.110083%)[12]
+项目(0.2775208%)[3]
+书(0.9250694%)[10]
+议案(0.2775208%)[3]
+)(0.8325624%)[9]
+```
+
+(更多规则持续加入中,同时对于相关度低的规则也会剔除)
+
+这里暂时使用频率最高的前5位作为抽取依据。同时为了保证正确率，部分特征的占比必须超过某个阈值。
+以下是中文冒号的一个例子，要求前导词占比在40%以上。
+（例如前导词A可以正确抽取10个关键字，前导词B可以抽取5个关键字，前导词C可以抽取15个关键字。则前导词A的占比为33%）
+
+```csharp
+        e.LeadingColonKeyWordList = ContractTraning.ContractNameLeadingDict
+        .Where((x) => { return x.Value >= 40; })    //阈值40%以上
+        .Select((x) => { return x.Key + "："; }).ToArray();
+```
 
 ## 抽取
 
@@ -24,8 +87,6 @@
 * 具有明确先导词
 * NER实体标识
 * 具体语境
-
-## 抽取工具
 
 ### 表格抽取工具（表头规则系）
 
@@ -124,6 +185,7 @@ _以行内容为依据的表格抽取工具开发中..._
         var result = HTMLTable.GetMultiInfo(root, Rules, false);
 ```
 
+### EntityProperty对象
 
 EntityProperty对象属性如下：
 
@@ -154,11 +216,6 @@ EntityProperty对象属性如下：
         e.PropertyType = EntityProperty.enmType.Normal;
         e.MaxLength = ContractTraning.MaxContractNameLength;
         e.MinLength = 5;
-        /* 训练模式下 
-        e.LeadingColonKeyWordList = ContractTraning.ContractNameLeadingDict
-                                    .Where((x) => { return x.Value >= 40; })    //阈值40%以上
-                                    .Select((x) => { return x.Key + "："; }).ToArray();
-        */
         e.LeadingColonKeyWordList =  new string[] { "合同名称：" };
         e.QuotationTrailingWordList = new string[] { "协议书", "合同书", "确认书", "合同", "协议" };
         e.QuotationTrailingWordList_IsSkipBracket = true;   //暂时只能选True
@@ -221,3 +278,11 @@ EntityProperty对象属性如下：
         return e.EvaluateCI();
     }
 ```
+
+## 鸣谢
+
+感谢阿里巴巴组委会提供标注好的金融数据。
+
+感谢组委会@通联数据_梅洁,@梅童的及时答疑。
+
+感谢微信好友 邓少冬 潘昭鸣 NLP宋老师 的帮助和指导
