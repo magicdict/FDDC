@@ -18,6 +18,10 @@ public partial class HTMLTable
 
         public string Title;
     }
+
+    /// <summary>
+    /// 表抽取规则
+    /// </summary>
     public struct TableSearchRule
     {
         public string Name;
@@ -37,11 +41,17 @@ public partial class HTMLTable
         /// 是否必须一致
         /// </summary>
         public bool IsTitleEq;
-
+        /// <summary>
+        /// 是否必须
+        /// </summary>
         public bool IsRequire;
-
+        /// <summary>
+        /// 表标题不能包含的文字
+        /// </summary>
         public List<String> ExcludeTitle;
-
+        /// <summary>
+        /// 抽取内容预处理器
+        /// </summary>
         public Func<String, String, String> Normalize;
 
     }

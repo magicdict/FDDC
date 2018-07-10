@@ -27,6 +27,104 @@
 
 ## 抽取工具
 
+### 表格抽取工具（表头规则系）
+
+代码内置的表抽取工具，对于表格可以设定如下抽取规则：
+
+* SuperTitle：层叠表头的情况下，父表头文字
+* IsSuperTitleEq：父表头文字匹配规则（包含或者相等）
+* Title：表头文字
+* IsTitleEq：表头文字匹配规则（包含或者相等）
+* IsRequire：在行单位抽取时，该项目是否为必须项目
+* ExcludeTitle：表标题不能包含的文字
+* Normalize：抽取内容预处理器
+
+_以行内容为依据的表格抽取工具开发中..._
+
+```csharp
+  /// <summary>
+    /// 表抽取规则
+    /// </summary>
+    public struct TableSearchRule
+    {
+        public string Name;
+        /// <summary>
+        /// 父标题
+        /// </summary>
+        public List<String> SuperTitle;
+        /// <summary>
+        /// 是否必须一致
+        /// </summary>
+        public bool IsSuperTitleEq;
+        /// <summary>
+        /// 标题
+        /// </summary>
+        public List<String> Title;
+        /// <summary>
+        /// 是否必须一致
+        /// </summary>
+        public bool IsTitleEq;
+        /// <summary>
+        /// 是否必须
+        /// </summary>
+        public bool IsRequire;
+        /// <summary>
+        /// 表标题不能包含的文字
+        /// </summary>
+        public List<String> ExcludeTitle;
+        /// <summary>
+        /// 抽取内容预处理器
+        /// </summary>
+        public Func<String, String, String> Normalize;
+    }
+```
+
+下面是一个表格抽取的例子：
+
+| 增持前|（合并表头） |增持后|（合并表头）  |
+| ------ | ------ | ------ | ------ |
+
+| 持股数  | 持股比例 |持股数  | 持股比例 |
+| ------ | ------ | ------ | ------ |
+
+这里我们想抽取持股比例和持股数，但是希望抽取的是增持后的部分，所以需要使用SuperTitle的规则了。
+
+```csharp
+        var HoldList = new List<struHoldAfter>();
+        var StockHolderRule = new TableSearchRule();
+        StockHolderRule.Name = "股东全称";
+        StockHolderRule.Title = new string[] { "股东名称", "名称", "增持主体", "增持人", "减持主体", "减持人" }.ToList();
+        StockHolderRule.IsTitleEq = true;
+        StockHolderRule.IsRequire = true;
+
+        var HoldNumberAfterChangeRule = new TableSearchRule();
+        HoldNumberAfterChangeRule.Name = "变动后持股数";
+        HoldNumberAfterChangeRule.IsRequire = true;
+        HoldNumberAfterChangeRule.SuperTitle = new string[] { "减持后", "增持后" }.ToList();
+        HoldNumberAfterChangeRule.IsSuperTitleEq = false;
+        HoldNumberAfterChangeRule.Title = new string[] {
+             "持股股数","持股股数",
+             "持股数量","持股数量",
+             "持股总数","持股总数","股数"
+        }.ToList();
+        HoldNumberAfterChangeRule.IsTitleEq = false;
+
+        var HoldPercentAfterChangeRule = new TableSearchRule();
+        HoldPercentAfterChangeRule.Name = "变动后持股数比例";
+        HoldPercentAfterChangeRule.IsRequire = true;
+        HoldPercentAfterChangeRule.SuperTitle = HoldNumberAfterChangeRule.SuperTitle;
+        HoldPercentAfterChangeRule.IsSuperTitleEq = false;
+        HoldPercentAfterChangeRule.Title = new string[] { "比例" }.ToList();
+        HoldPercentAfterChangeRule.IsTitleEq = false;
+
+        var Rules = new List<TableSearchRule>();
+        Rules.Add(StockHolderRule);
+        Rules.Add(HoldNumberAfterChangeRule);
+        Rules.Add(HoldPercentAfterChangeRule);
+        var result = HTMLTable.GetMultiInfo(root, Rules, false);
+```
+
+
 EntityProperty对象属性如下：
 
 * PropertyName：属性名称
