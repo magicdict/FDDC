@@ -31,8 +31,8 @@ public static class Evaluate
             if (!String.IsNullOrEmpty(contract.id)) F1_ID.POS++;
             if (!String.IsNullOrEmpty(contract.JiaFang)) F1_JiaFang.POS++;
             if (!String.IsNullOrEmpty(contract.YiFang)) F1_YiFang.POS++;
-            if (!String.IsNullOrEmpty(contract.ContractName)) F1_ProjectName.POS++;
-            if (!String.IsNullOrEmpty(contract.ProjectName)) F1_ContractName.POS++;
+            if (!String.IsNullOrEmpty(contract.ProjectName)) F1_ProjectName.POS++;
+            if (!String.IsNullOrEmpty(contract.ContractName)) F1_ContractName.POS++;
             if (!String.IsNullOrEmpty(contract.ContractMoneyUpLimit)) F1_ContractMoneyUpLimit.POS++;
             if (!String.IsNullOrEmpty(contract.ContractMoneyDownLimit)) F1_ContractMoneyDownLimit.POS++;
             if (!String.IsNullOrEmpty(contract.UnionMember)) F1_UnionMember.POS++;
@@ -44,8 +44,8 @@ public static class Evaluate
             if (!String.IsNullOrEmpty(contract.id)) F1_ID.ACT++;
             if (!String.IsNullOrEmpty(contract.JiaFang)) F1_JiaFang.ACT++;
             if (!String.IsNullOrEmpty(contract.YiFang)) F1_YiFang.ACT++;
-            if (!String.IsNullOrEmpty(contract.ContractName)) F1_ProjectName.ACT++;
-            if (!String.IsNullOrEmpty(contract.ProjectName)) F1_ContractName.ACT++;
+            if (!String.IsNullOrEmpty(contract.ProjectName)) F1_ProjectName.ACT++;
+            if (!String.IsNullOrEmpty(contract.ContractName)) F1_ContractName.ACT++;
             if (!String.IsNullOrEmpty(contract.ContractMoneyUpLimit)) F1_ContractMoneyUpLimit.ACT++;
             if (!String.IsNullOrEmpty(contract.ContractMoneyDownLimit)) F1_ContractMoneyDownLimit.ACT++;
             if (!String.IsNullOrEmpty(contract.UnionMember)) F1_UnionMember.ACT++;

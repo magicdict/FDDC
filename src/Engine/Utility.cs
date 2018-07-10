@@ -33,7 +33,7 @@ public static class Utility
             {
                 var percent = (dict[key] * 100 / Total) + "%";
                 result.Add(key, (int)(dict[key] * 100 / Total));
-                Program.Training.WriteLine(key + "(" + percent + ")");
+                Program.Training.WriteLine(key + "(" + percent + ")[" + dict[key] + "]");
             }
         }
         return result;

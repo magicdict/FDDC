@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent; 
 using System.IO;
 using System.Text;
 using System.Linq;
@@ -88,7 +89,7 @@ namespace FDDC
 
         private static void Extract()
         {
-            var IsRunContract = true;
+            var IsRunContract = false;
             var IsRunContract_TEST = false;
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
             var ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
@@ -110,17 +111,18 @@ namespace FDDC
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong_train.txt", false, utf8WithoutBom);
                 ResultCSV.WriteLine("公告id\t甲方\t乙方\t项目名称\t合同名称\t合同金额上限\t合同金额下限\t联合体成员");
                 var Contract_Result = new List<struContract>();
-
                 if (IsMultiThreadMode)
                 {
+                    var Bag = new ConcurrentBag<struContract>();    //线程安全版本
                     Parallel.ForEach(System.IO.Directory.GetFiles(ContractPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar), (filename) =>
                     {
                         var contract = new Contract(filename);
                         foreach (var item in contract.Extract())
                         {
-                            Contract_Result.Add(item);
+                            Bag.Add(item);
                         }
                     });
+                    Contract_Result = Bag.ToList();
                     Contract_Result.Sort((x, y) => { return x.id.CompareTo(y.id); });
                     foreach (var item in Contract_Result)
                     {

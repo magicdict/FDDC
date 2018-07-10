@@ -331,10 +331,6 @@ public partial class Contract : AnnouceDocument
         e.PropertyType = EntityProperty.enmType.Normal;
         e.MaxLength = ContractTraning.MaxContractNameLength;
         e.MinLength = 5;
-        //合同名称(51.78571%)
-        //合同类型(21.42857%)
-        //备查文件(17.85714%)
-        //e.LeadingColonKeyWordList = new string[] { "合同名称：", "合同类型：", "备查文件：" };
         e.LeadingColonKeyWordList = new string[] { "合同名称：" };
         e.QuotationTrailingWordList = new string[] { "协议书", "合同书", "确认书", "合同", "协议" };
         e.QuotationTrailingWordList_IsSkipBracket = true;   //暂时只能选True

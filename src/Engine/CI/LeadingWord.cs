@@ -40,13 +40,6 @@ public class LeadingWord
                         LeadingWord += word.Word;
                     }
                 }
-
-                if (LeadingWord == "合同类型")
-                {
-                    Program.Training.WriteLine(LeadingWord + ":" + doc.Id + ":" + searchKey);
-                    Program.Training.Flush();
-                }
-
                 if (LeadingWordDict.ContainsKey(LeadingWord))
                 {
                     LeadingWordDict[LeadingWord] = LeadingWordDict[LeadingWord] + 1;

@@ -11,8 +11,8 @@ public class ContractTraning
     public static void Train()
     {
         Console.WriteLine("开始分析");
-        //AnlayzeEntitySurroundWords(); FDDC.Program.Training.Flush();
-        //AnlayzeEntitySurroundWordsLTP(); FDDC.Program.Training.Flush();
+        AnlayzeEntitySurroundWords(); FDDC.Program.Training.Flush();
+        AnlayzeEntitySurroundWordsLTP(); FDDC.Program.Training.Flush();
         TraningMaxLenth(); FDDC.Program.Training.Flush();
         EntityWordPerperty(); FDDC.Program.Training.Flush();
         Console.WriteLine("结束分析");
@@ -39,10 +39,10 @@ public class ContractTraning
             if (TraningDataset.GetContractById(Id).Count == 0) continue;
             var contract = TraningDataset.GetContractById(Id).First();
             var doc = new AnnouceDocument(filename);
-            if (!string.IsNullOrEmpty(contract.JiaFang)) JiaFangS.AnlayzeEntitySurroundWords(doc, contract.JiaFang);
-            if (!string.IsNullOrEmpty(contract.YiFang)) YiFangS.AnlayzeEntitySurroundWords(doc, contract.YiFang);
-            if (!string.IsNullOrEmpty(contract.ProjectName)) ProjectNameS.AnlayzeEntitySurroundWords(doc, contract.ProjectName);
-            if (!string.IsNullOrEmpty(contract.ContractName)) ContractNameS.AnlayzeEntitySurroundWords(doc, contract.ContractName);
+            //   if (!string.IsNullOrEmpty(contract.JiaFang)) JiaFangS.AnlayzeEntitySurroundWords(doc, contract.JiaFang);
+            //   if (!string.IsNullOrEmpty(contract.YiFang)) YiFangS.AnlayzeEntitySurroundWords(doc, contract.YiFang);
+            //   if (!string.IsNullOrEmpty(contract.ProjectName)) ProjectNameS.AnlayzeEntitySurroundWords(doc, contract.ProjectName);
+            //   if (!string.IsNullOrEmpty(contract.ContractName)) ContractNameS.AnlayzeEntitySurroundWords(doc, contract.ContractName);
 
             if (!string.IsNullOrEmpty(contract.JiaFang)) JiaFangNameL.GetListLeadWords(doc, contract.JiaFang);
             if (!string.IsNullOrEmpty(contract.YiFang)) YiFangNameL.GetListLeadWords(doc, contract.YiFang);
