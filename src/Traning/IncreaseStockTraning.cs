@@ -9,16 +9,17 @@ public class IncreaseStockTraning
     /// <summary>
     /// 增发对象训练
     /// </summary>
-    public static void TrainingIncreaseTarget()
+    /// <param name="TraningCnt">训练条数</param>
+    public static void Training(int TraningCnt = int.MaxValue)
     {
         var TargetTool = new TableAnlayzeTool();
         var IncreaseNumberTool = new TableAnlayzeTool();
         IncreaseNumberTool.Transform = NumberUtility.NormalizerStockNumber;
         var IncreaseMoneyTool = new TableAnlayzeTool();
-        IncreaseMoneyTool.Transform =  MoneyUtility.Format;
-        TraningDataset.InitIncreaseStock();
+        IncreaseMoneyTool.Transform = MoneyUtility.Format;
         var PreviewId = String.Empty;
         var PreviewRoot = new HTMLEngine.MyRootHtmlNode();
+        int Cnt = 0;
         foreach (var increase in TraningDataset.IncreaseStockList)
         {
             if (!PreviewId.Equals(increase.id))
@@ -26,11 +27,17 @@ public class IncreaseStockTraning
                 var htmlfile = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\定增\html\" + increase.id + ".html";
                 PreviewRoot = new HTMLEngine().Anlayze(htmlfile, "");
                 PreviewId = increase.id;
+                Cnt++; if (Cnt == TraningCnt) break;
             }
-            TargetTool.PutTrainingItem(PreviewRoot, increase.PublishTarget);
-            IncreaseNumberTool.PutTrainingItem(PreviewRoot, increase.IncreaseNumber);
-            IncreaseMoneyTool.PutTrainingItem(PreviewRoot, increase.IncreaseMoney);
+            TargetTool.PutTitleTrainingItem(PreviewRoot, increase.PublishTarget);
+            IncreaseNumberTool.PutTitleTrainingItem(PreviewRoot, increase.IncreaseNumber);
+            IncreaseMoneyTool.PutTitleTrainingItem(PreviewRoot, increase.IncreaseMoney);
         }
-        TargetTool.WriteTop(10);
+        Program.Training.WriteLine("增发对象");
+        TargetTool.WriteTop(5);
+        Program.Training.WriteLine("增发数量");
+        IncreaseNumberTool.WriteTop(5);
+        Program.Training.WriteLine("增发金额");
+        IncreaseMoneyTool.WriteTop(5);
     }
 }

@@ -6,7 +6,7 @@
 
 ## 基本环境
 
-* .NetCore2.0
+* .NetCore2.1
 * LTP组件：哈工大LTP3.3.2版
 * PDF转TXT工具 pdfminer
 * 分词系统：结巴分词
@@ -82,7 +82,6 @@ pdfminer：请注意处理中文的时候需要额外的步骤，具体方法不
 ### 表格
 
 对于大量表格中的关键字，工具也提供了表格统计的功能。主要是统计一下该关键字的表头标题信息。
-
 同时由于表格中的原始数据可能需要通过参照表格标题才能进行比对的情况，这里支持变换器。
 
 ```csharp
@@ -113,6 +112,67 @@ pdfminer：请注意处理中文的时候需要额外的步骤，具体方法不
         }
         TargetTool.WriteTop(10);
     }
+
+增发对象
+投资者名称(7.29849%)[546]
+股东名称(10.17244%)[761]
+发行对象名称(9.089694%)[680]
+认购对象(14.86432%)[1112]
+发行对象(20.51865%)[1535]
+增发数量
+获配股数（股）(17.05559%)[1893]
+持股数量（股）(7.793495%)[865]
+认购数量（股）(5.586089%)[620]
+配售股数（股）(5.53203%)[614]
+认购股数（股）(3.585909%)[398]
+增发金额
+认购金额（元）(4.833%)[314]
+获配金额（元）(15.94582%)[1036]
+2015年度(4.417423%)[287]
+2017年1-3月(4.432815%)[288]
+2016年度(5.956595%)[387]
+```
+
+除了统计标题之外，还可以通过某个标题下面出现的内容。
+下面的例子是看一下增减持方式有哪些：
+
+```csharp
+    /// <summary>
+    /// 增减持训练
+    /// </summary>
+    /// <param name="TraningCnt">训练条数</param>
+    public static void Traning(int TraningCnt = int.MaxValue)
+    {
+        var ChangeMethodTool = new TableAnlayzeTool();
+        var PreviewId = String.Empty;
+        var PreviewRoot = new HTMLEngine.MyRootHtmlNode();
+        int Cnt = 0;
+        foreach (var stockchange in TraningDataset.StockChangeList)
+        {
+            if (!PreviewId.Equals(stockchange.id))
+            {
+                var htmlfile = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\增减持\html\" + stockchange.id + ".html";
+                PreviewRoot = new HTMLEngine().Anlayze(htmlfile, "");
+                PreviewId = stockchange.id;
+                Cnt++; if (Cnt == TraningCnt) break;
+            }
+            ChangeMethodTool.PutValueTrainingItem(PreviewRoot, new string[]{"减持方式","增持方式"}.ToList());
+        }
+        Program.Training.WriteLine("增减持方式");
+        ChangeMethodTool.WriteTop(10);
+    }
+
+增减持方式
+集中竞价(24.37453%)[6771]
+集中竞价交易(33.39573%)[9277]
+大宗交易(21.38306%)[5940]
+竞价交易(8.884409%)[2468]
+合计(0.9287592%)[258]
+集中竞价减持(1.670326%)[464]
+减持方式(1.313942%)[365]
+<null>(1.090752%)[303]
+二级市场竞价(1.040354%)[289]
+竞价减持(0.705569%)[196]
 ```
 
 ## 抽取

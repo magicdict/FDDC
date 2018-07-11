@@ -23,8 +23,12 @@ public class TableAnlayzeTool
     public Func<String, String, String> Transform;
 
 
-    //寻找同时含有关键字的列的表头
-    public void PutTrainingItem(HTMLEngine.MyRootHtmlNode root, string KeyWord)
+    /// <summary>
+    /// 寻找含有关键字的列的表头
+    /// </summary>
+    /// <param name="root"></param>
+    /// <param name="KeyWord"></param>
+    public void PutTitleTrainingItem(HTMLEngine.MyRootHtmlNode root, string KeyWord)
     {
         foreach (var Table in root.TableList)
         {
@@ -34,9 +38,10 @@ public class TableAnlayzeTool
                 //从第二行开始
                 for (int ColNo = 1; ColNo < t.ColumnCount; ColNo++)
                 {
-                    var title = t.CellValue(1, ColNo);
+                    var title = t.CellValue(1, ColNo).Replace(" ", "");
+                    if (String.IsNullOrEmpty(title)) continue;
                     var value = t.CellValue(RowNo, ColNo);
-                    if (Transform != null) value = Transform(value,title);
+                    if (Transform != null) value = Transform(value, title);
                     if (value.NormalizeTextResult().Equals(KeyWord.NormalizeTextResult()))
                     {
                         if (!TrainingTitleResult.ContainsKey(title))
@@ -54,6 +59,46 @@ public class TableAnlayzeTool
 
         }
     }
+
+    public Dictionary<string, int> TrainingValueResult = new Dictionary<string, int>();
+    /// <summary>
+    /// 某类标题的值
+    /// </summary>
+    /// <param name="root"></param>
+    /// <param name="KeyWord"></param>
+    public void PutValueTrainingItem(HTMLEngine.MyRootHtmlNode root, List<string> TitleKeyWord)
+    {
+        foreach (var Table in root.TableList)
+        {
+            var t = new HTMLTable(Table.Value);
+            for (int RowNo = 2; RowNo < t.RowCount; RowNo++)
+            {
+                //从第二行开始
+                for (int ColNo = 1; ColNo < t.ColumnCount; ColNo++)
+                {
+                    var title = t.CellValue(1, ColNo).Replace(" ", "");
+                    if (String.IsNullOrEmpty(title)) continue;
+                    var value = t.CellValue(RowNo, ColNo).NormalizeTextResult();
+                    if (string.IsNullOrEmpty(value)) continue;
+                    foreach (var key in TitleKeyWord)
+                    {
+                        if (title.Equals(key))
+                        {
+                            if (!TrainingValueResult.ContainsKey(value))
+                            {
+                                TrainingValueResult.Add(value, 1);
+                            }
+                            else
+                            {
+                                TrainingValueResult[value]++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// 输出TOP
     /// </summary>
@@ -61,5 +106,6 @@ public class TableAnlayzeTool
     public void WriteTop(int top = 10)
     {
         Utility.FindTop(top, TrainingTitleResult);
+        Utility.FindTop(top, TrainingValueResult);
     }
 }
