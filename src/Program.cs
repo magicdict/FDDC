@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Concurrent; 
+using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
 using System.Linq;
@@ -54,7 +54,7 @@ namespace FDDC
             PosNS.ImportNS(@"Resources" + Path.DirectorySeparatorChar + "ns.dict");
             CIRecord = new StreamWriter("CI.log");
             //预处理
-            Traning();
+            Traning(); return;
             Evaluator = new StreamWriter("Evaluator.log");
             Score = new StreamWriter(@"Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
             //new Contract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1008828.html").Extract();return;
@@ -71,7 +71,8 @@ namespace FDDC
             TraningDataset.InitContract();
             TraningDataset.InitStockChange();
             TraningDataset.InitIncreaseStock();
-            ContractTraning.Train();
+            //ContractTraning.Train();
+            IncreaseStockTraning.TrainingIncreaseTarget();
             Training.Close();
         }
 
@@ -89,7 +90,7 @@ namespace FDDC
 
         private static void Extract()
         {
-            var IsRunContract = true;
+            var IsRunContract = false;
             var IsRunContract_TEST = false;
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
             var ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";

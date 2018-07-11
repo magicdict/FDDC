@@ -89,24 +89,24 @@ public class IncreaseStock : AnnouceDocument
 
     List<struIncreaseStock> GetMultiTarget(HTMLEngine.MyRootHtmlNode root, struIncreaseStock SampleincreaseStock)
     {
-        var BuyerRule = new TableSearchTitleRule();
-        BuyerRule.Name = "认购对象";
+        var PublishTarget = new TableSearchTitleRule();
+        PublishTarget.Name = "认购对象";
         //"投资者名称","股东名称"
-        BuyerRule.Title = new string[] { "发行对象", "认购对象", "发行对象名称" }.ToList();
-        BuyerRule.IsTitleEq = true;
-        BuyerRule.IsRequire = true;
+        PublishTarget.Title = new string[] { "发行对象", "认购对象", "发行对象名称" }.ToList();
+        PublishTarget.IsTitleEq = true;
+        PublishTarget.IsRequire = true;
 
-        var BuyNumber = new TableSearchTitleRule();
-        BuyNumber.Name = "增发数量";
-        BuyNumber.Title = new string[] { "配售股数", "认购数量", "认购股数", "认购股份数", "发行股份数", "配售数量" }.ToList();
-        BuyNumber.IsTitleEq = false;             //包含即可
-        BuyNumber.Normalize = NumberUtility.NormalizerStockNumber;
+        var IncreaseNumber = new TableSearchTitleRule();
+        IncreaseNumber.Name = "增发数量";
+        IncreaseNumber.Title = new string[] { "配售股数", "认购数量", "认购股数", "认购股份数", "发行股份数", "配售数量" }.ToList();
+        IncreaseNumber.IsTitleEq = false;             //包含即可
+        IncreaseNumber.Normalize = NumberUtility.NormalizerStockNumber;
 
-        var BuyMoney = new TableSearchTitleRule();
-        BuyMoney.Name = "增发金额";
-        BuyMoney.Title = new string[] { "配售金额", "认购金额", "获配金额" }.ToList();
-        BuyMoney.IsTitleEq = false;             //包含即可
-        BuyMoney.Normalize = MoneyUtility.Format;
+        var IncreaseMoney = new TableSearchTitleRule();
+        IncreaseMoney.Name = "增发金额";
+        IncreaseMoney.Title = new string[] { "配售金额", "认购金额", "获配金额" }.ToList();
+        IncreaseMoney.IsTitleEq = false;             //包含即可
+        IncreaseMoney.Normalize = MoneyUtility.Format;
 
         var FreezeYear = new TableSearchTitleRule();
         FreezeYear.Name = "锁定期";
@@ -121,9 +121,9 @@ public class IncreaseStock : AnnouceDocument
         BuyPrice.Normalize = MoneyUtility.Format;
 
         var Rules = new List<TableSearchTitleRule>();
-        Rules.Add(BuyerRule);
-        Rules.Add(BuyNumber);
-        Rules.Add(BuyMoney);
+        Rules.Add(PublishTarget);
+        Rules.Add(IncreaseNumber);
+        Rules.Add(IncreaseMoney);
         Rules.Add(FreezeYear);
         Rules.Add(BuyPrice);
         var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, true);

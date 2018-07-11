@@ -1,7 +1,6 @@
 # FDDC2018金融算法挑战赛02－A股上市公司公告信息抽取
 
-更新时间 2018年7月10日 By 带着兔子去旅行
-
+更新时间 2018年7月11日 By 带着兔子去旅行
 
 信息抽取是NLP里的一个实用内容。该工具的目标是打造一个泛用的自动信息抽取工具。使得没有任何基础的用户，可以通过简单的步骤提取文档（PDF，HTML，TXT）中的信息。该工具使用C#(.Net Core)开发，所以可以跨平台运行。（Python在做大的工程的时候有诸多不便，所以没有使用python语言）
 
@@ -78,6 +77,42 @@ pdfminer：请注意处理中文的时候需要额外的步骤，具体方法不
         e.LeadingColonKeyWordList = ContractTraning.ContractNameLeadingDict
         .Where((x) => { return x.Value >= 40; })    //阈值40%以上
         .Select((x) => { return x.Key + "："; }).ToArray();
+```
+
+### 表格
+
+对于大量表格中的关键字，工具也提供了表格统计的功能。主要是统计一下该关键字的表头标题信息。
+
+同时由于表格中的原始数据可能需要通过参照表格标题才能进行比对的情况，这里支持变换器。
+
+```csharp
+    /// <summary>
+    /// 增发对象训练
+    /// </summary>
+    public static void TrainingIncreaseTarget()
+    {
+        var TargetTool = new TableAnlayzeTool();
+        var IncreaseNumberTool = new TableAnlayzeTool();
+        IncreaseNumberTool.Transform = NumberUtility.NormalizerStockNumber;
+        var IncreaseMoneyTool = new TableAnlayzeTool();
+        IncreaseMoneyTool.Transform =  MoneyUtility.Format;
+        TraningDataset.InitIncreaseStock();
+        var PreviewId = String.Empty;
+        var PreviewRoot = new HTMLEngine.MyRootHtmlNode();
+        foreach (var increase in TraningDataset.IncreaseStockList)
+        {
+            if (!PreviewId.Equals(increase.id))
+            {
+                var htmlfile = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\定增\html\" + increase.id + ".html";
+                PreviewRoot = new HTMLEngine().Anlayze(htmlfile, "");
+                PreviewId = increase.id;
+            }
+            TargetTool.PutTrainingItem(PreviewRoot, increase.PublishTarget);
+            IncreaseNumberTool.PutTrainingItem(PreviewRoot, increase.IncreaseNumber);
+            IncreaseMoneyTool.PutTrainingItem(PreviewRoot, increase.IncreaseMoney);
+        }
+        TargetTool.WriteTop(10);
+    }
 ```
 
 ## 抽取

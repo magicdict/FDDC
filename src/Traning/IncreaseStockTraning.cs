@@ -5,33 +5,32 @@ using FDDC;
 
 public class IncreaseStockTraning
 {
-    
+
+    /// <summary>
+    /// 增发对象训练
+    /// </summary>
     public static void TrainingIncreaseTarget()
     {
+        var TargetTool = new TableAnlayzeTool();
+        var IncreaseNumberTool = new TableAnlayzeTool();
+        IncreaseNumberTool.Transform = NumberUtility.NormalizerStockNumber;
+        var IncreaseMoneyTool = new TableAnlayzeTool();
+        IncreaseMoneyTool.Transform =  MoneyUtility.Format;
         TraningDataset.InitIncreaseStock();
         var PreviewId = String.Empty;
         var PreviewRoot = new HTMLEngine.MyRootHtmlNode();
         foreach (var increase in TraningDataset.IncreaseStockList)
         {
-            if (PreviewId.Equals(increase.id))
+            if (!PreviewId.Equals(increase.id))
             {
-                var htmlfile = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\定增\html\" + increase.id + ".html";
-                PreviewRoot = new HTMLEngine().Anlayze(htmlfile,"");
+                var htmlfile = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\定增\html\" + increase.id + ".html";
+                PreviewRoot = new HTMLEngine().Anlayze(htmlfile, "");
+                PreviewId = increase.id;
             }
-            TableAnlayzeTool.PutTrainingItem(PreviewRoot, increase.PublishTarget);
+            TargetTool.PutTrainingItem(PreviewRoot, increase.PublishTarget);
+            IncreaseNumberTool.PutTrainingItem(PreviewRoot, increase.IncreaseNumber);
+            IncreaseMoneyTool.PutTrainingItem(PreviewRoot, increase.IncreaseMoney);
         }
-
-        var Rank = new List<int>();
-        Rank = TableAnlayzeTool.TrainingTitleResult.Values.ToList();
-        Rank.Sort();
-        Rank.Reverse();
-        var Top10 = Rank[9];
-        foreach (var title in TableAnlayzeTool.TrainingTitleResult)
-        {
-            if (title.Value >= Top10)
-            {
-                Console.WriteLine(title.Key + ":" + title.Value);
-            }
-        }
+        TargetTool.WriteTop(10);
     }
 }
