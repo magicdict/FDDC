@@ -7,9 +7,9 @@ obj/*
 .DS_Store
 Resources/*
 Result/*
-Log.log
 Result.zip
 !score.txt
 *.bat
 *.sh
+*.zip
 !ns.dict
