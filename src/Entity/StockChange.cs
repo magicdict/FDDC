@@ -164,7 +164,7 @@ public class StockChange : AnnouceDocument
         var rule = new TableSearchContentRule();
         rule.Content = new string[] { "集中竞价交易", "竞价交易", "大宗交易", "约定式购回" }.ToList();
         rule.IsContentEq = true;
-        var result = HTMLTable.GetMultiRowsByContentRule(root,rule);
+        var result = HTMLTable.GetMultiRowsByContentRule(root, rule);
         foreach (var item in result)
         {
             //TODO:具体逻辑代码
@@ -655,7 +655,6 @@ public class StockChange : AnnouceDocument
         return String.Empty;
     }
 
-
     public string NormailizeEndChangeDate(string orgString, string keyword = "")
     {
         orgString = orgString.Replace(" ", "");
@@ -674,156 +673,6 @@ public class StockChange : AnnouceDocument
                 return AnnouceDate.ToString(format);
             }
         }
-
-        orgString = orgString.Trim().Replace(",", String.Empty);
-
-        //XXXX年XX月XX日 - XXXX年XX月XX日
-        var NumberList = RegularTool.GetNumberList(orgString);
-        if (NumberList.Count == 6)
-        {
-            String Year = NumberList[3];
-            String Month = NumberList[4];
-            String Day = NumberList[5];
-            int year; int month; int day;
-            if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
-            {
-                var d = DateUtility.GetWorkDay(year, month, day);
-                return d.ToString(format);
-            }
-        }
-
-        //XXXX年XX月XX日 - XX月XX日
-        if (NumberList.Count == 5)
-        {
-            if (orgString.IndexOf("年") != -1 && orgString.IndexOf("月") != -1 && orgString.IndexOf("日") != -1)
-            {
-                String Year = NumberList[0];
-                String Month = NumberList[3];
-                String Day = NumberList[4];
-                int year; int month; int day;
-                if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
-                {
-                    var d = DateUtility.GetWorkDay(year, month, day);
-                    return d.ToString(format);
-                }
-            }
-        }
-        //XXXX年XX月XX日 - XX日 
-        if (NumberList.Count == 4)
-        {
-            if (orgString.IndexOf("年") != -1 && orgString.IndexOf("月") != -1 && orgString.IndexOf("日") != -1)
-            {
-                String Year = NumberList[0];
-                String Month = NumberList[1];
-                String Day = NumberList[3];
-                int year; int month; int day;
-                if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
-                {
-                    var d = DateUtility.GetWorkDay(year, month, day);
-                    return d.ToString(format);
-                }
-            }
-        }
-        //XX月XX日
-        if (NumberList.Count == 2)
-        {
-            if (orgString.IndexOf("月") != -1 && orgString.IndexOf("日") != -1)
-            {
-                if (datelist.Count == 0) return orgString;
-                var AnnouceDate = datelist.Last();
-                String Month = NumberList[0];
-                String Day = NumberList[1];
-                int month; int day;
-                if (int.TryParse(Month, out month) && int.TryParse(Day, out day))
-                {
-                    var d = DateUtility.GetWorkDay(AnnouceDate.Value.Year, month, day);
-                    return d.ToString(format);
-                }
-            }
-            if (orgString.IndexOf("年") != -1 && orgString.IndexOf("月") != -1)
-            {
-                /*  
-                    数据主要应用于“股东增减持”类型公告的抽取，对于“变动截止日期”字段，存在少量公告中只公布了月份，未公布具体的日期。对这种情况的处理标准为： 
-                    如果该月份在公告发布月份的前面，变动截止日期为该月份最后1个交易日；
-                    如果该月份是公告发布的月份，变动截止日期为公告发布日期（见本次更新表格）；
-                */
-                String Year = NumberList[0];
-                String Month = NumberList[1];
-                int year; int month;
-                if (int.TryParse(Year, out year) && int.TryParse(Month, out month))
-                {
-                    //获得公告时间
-                    if (year == this.AnnouceDate.Year && month == this.AnnouceDate.Month)
-                    {
-                        return AnnouceDate.ToString(format);
-                    }
-                    var d = DateUtility.GetWorkDay(year, month, -1);
-                    return d.ToString(format);
-                }
-            }
-            if (orgString.IndexOf("月") != -1)
-            {
-                String Year = NumberList[0];
-                if (Year.Length != 4) return orgString;
-                String Month = NumberList[1];
-                int year; int month;
-                if (int.TryParse(Year, out year) && int.TryParse(Month, out month))
-                {
-                    var d = DateUtility.GetWorkDay(year, month, -1);
-                    return d.ToString(format);
-                }
-            }
-        }
-        //XXXX年XX月XX日
-        if (orgString.Contains("年") && orgString.Contains("月") && orgString.Contains("月"))
-        {
-            String Year = Utility.GetStringBefore(orgString, "年");
-            String Month = RegularTool.GetValueBetweenString(orgString, "年", "月");
-            String Day = Utility.GetStringAfter(orgString, "月").Replace("日", String.Empty);
-            int year; int month; int day;
-            if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
-            {
-                var d = DateUtility.GetWorkDay(year, month, day);
-                return d.ToString(format);
-            }
-        }
-
-        if (RegularTool.IsInt(orgString))
-        {
-            if (orgString.Length == 8)
-            {
-                String Year = orgString.Substring(0, 4);
-                String Month = orgString.Substring(4, 2);
-                String Day = orgString.Substring(6, 2);
-                int year; int month; int day;
-                if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
-                {
-                    if (year < 1900 || year > 2100)
-                    {
-                        var d = DateUtility.GetWorkDay(year, month, day);
-                        return d.ToString(format);
-                    }
-                }
-            }
-        }
-
-        var SplitChar = new string[] { "/", ".", "-" };
-        foreach (var sc in SplitChar)
-        {
-            var SplitArray = orgString.Split(sc);
-            if (SplitArray.Length == 3)
-            {
-                String Year = SplitArray[0];
-                String Month = SplitArray[1];
-                String Day = SplitArray[2];
-                int year; int month; int day;
-                if (int.TryParse(Year, out year) && int.TryParse(Month, out month) && int.TryParse(Day, out day))
-                {
-                    var d = DateUtility.GetWorkDay(year, month, day);
-                    return d.ToString(format);
-                }
-            }
-        }
-        return orgString;
+        return DateUtility.GetRangeDateEndDate(orgString,this.AnnouceDate,format);
     }
 }

@@ -138,32 +138,23 @@ public class AnnouceDocument
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("公司简称：" + cn.secShortName);
         }
 
+        var ParagraghlocateValue = new List<ParagraghLoc>();
+        foreach (var paragragh in root.Children)
+        {
+            foreach (var s in paragragh.Children)
+            {
+                var p = SentenceLocate(s.PositionId);
+                if (p.bracketlist.Count + p.datelist.Count + p.moneylist.Count == 0) continue;
+                ParagraghlocateValue.Add(p);
+            }
+        }
+
         //表格的处理(表分页)
         HTMLTable.FixSpiltTable(root, this);
         //NULL的对应
         HTMLTable.FixNullValue(root, this);
     }
-
-
-    public struct ParagraghLoc
-    {
-        //日期
-        public List<LocAndValue<DateTime>> datelist;
-        //金额
-        public List<LocAndValue<(String MoneyAmount, String MoneyCurrency)>> moneylist;
-
-        public List<LocAndValue<String>> bracketlist;
-
-
-        public void Init()
-        {
-            datelist = new List<LocAndValue<DateTime>>();
-            moneylist = new List<LocAndValue<(String MoneyAmount, String MoneyCurrency)>>();
-            bracketlist = new List<LocAndValue<String>>();
-        }
-    }
-
-    public ParagraghLoc SentenceLocate(int PosId)
+    ParagraghLoc SentenceLocate(int PosId)
     {
         var paragragh = new ParagraghLoc();
         paragragh.Init();

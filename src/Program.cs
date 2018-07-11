@@ -71,7 +71,7 @@ namespace FDDC
             TraningDataset.InitContract();
             TraningDataset.InitStockChange();
             TraningDataset.InitIncreaseStock();
-            //ContractTraning.Train();
+            ContractTraning.Train();
             Training.Close();
         }
 
@@ -89,12 +89,12 @@ namespace FDDC
 
         private static void Extract()
         {
-            var IsRunContract = false;
+            var IsRunContract = true;
             var IsRunContract_TEST = false;
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
             var ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
 
-            var IsRunStockChange = true;
+            var IsRunStockChange = false;
             var IsRunStockChange_TEST = false;
             var StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
             var StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "增减持";

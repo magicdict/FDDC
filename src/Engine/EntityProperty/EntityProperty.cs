@@ -9,7 +9,7 @@ public class EntityProperty
     /// <summary>
     /// 属性类型
     /// </summary>
-    public enmType PropertyType = enmType.Normal;
+    public enmType PropertyType = enmType.NER;
     /// <summary>
     /// 属性名称
     /// </summary>
@@ -19,13 +19,13 @@ public class EntityProperty
     /// </summary>
     public enum enmType
     {
-        Money,      //金钱
+        Percent,    //百分比
+        Money,      //货币
         Number,     //数字
         Date,       //日期
-        Normal,     //普通文本
+        Time,       //时间
+        NER,        //人名、机构名、地名
     }
-
-
 
     /// <summary>
     /// 最大长度

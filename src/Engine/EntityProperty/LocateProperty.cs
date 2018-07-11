@@ -76,7 +76,11 @@ public static class LocateProperty
     }
 
 
-    //获得日期
+    /// <summary>
+    /// 获得日期范围
+    /// </summary>
+    /// <param name="StartDate"></param>
+    /// <param name="EndDate"></param>
     public static List<LocAndValue<(DateTime StartDate, DateTime EndDate)>> LocateDateRange(HTMLEngine.MyRootHtmlNode root)
     {
         var list = new List<LocAndValue<(DateTime StartDate, DateTime EndDate)>>();
@@ -167,7 +171,11 @@ public static class LocateProperty
         return list;
     }
 
-    //获得日期
+    /// <summary>
+    /// 获得日期
+    /// </summary>
+    /// <param name="root"></param>
+    /// <returns></returns>
     public static List<LocAndValue<DateTime>> LocateDate(HTMLEngine.MyRootHtmlNode root)
     {
         var list = new List<LocAndValue<DateTime>>();
@@ -200,7 +208,11 @@ public static class LocateProperty
         return list;
     }
 
-    //获得金额
+    /// <summary>
+    /// 获得金额
+    /// </summary>
+    /// <param name="MoneyAmount"></param>
+    /// <param name="MoneyCurrency"></param>
     public static List<LocAndValue<(String MoneyAmount, String MoneyCurrency)>> LocateMoney(HTMLEngine.MyRootHtmlNode root)
     {
         var list = new List<LocAndValue<(String MoneyAmount, String MoneyCurrency)>>();
@@ -223,5 +235,26 @@ public static class LocateProperty
             }
         }
         return list;
+    }
+
+    /// <summary>
+    /// 段落实体获取器
+    /// </summary>
+    public struct ParagraghLoc
+    {
+        //日期
+        public List<LocAndValue<DateTime>> datelist;
+        //金额
+        public List<LocAndValue<(String MoneyAmount, String MoneyCurrency)>> moneylist;
+
+        public List<LocAndValue<String>> bracketlist;
+
+
+        public void Init()
+        {
+            datelist = new List<LocAndValue<DateTime>>();
+            moneylist = new List<LocAndValue<(String MoneyAmount, String MoneyCurrency)>>();
+            bracketlist = new List<LocAndValue<String>>();
+        }
     }
 }

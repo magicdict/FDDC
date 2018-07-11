@@ -216,7 +216,7 @@ public partial class Contract : AnnouceDocument
     {
         var e = new EntityProperty();
         e.PropertyName = "合同名称";
-        e.PropertyType = EntityProperty.enmType.Normal;
+        e.PropertyType = EntityProperty.enmType.NER;
         e.MaxLength = ContractTraning.MaxContractNameLength;
         e.MinLength = 5;
         /* 训练模式下 
