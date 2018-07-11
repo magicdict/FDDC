@@ -74,4 +74,16 @@ public class FactorItem<T>
         }
         return 0;
     }
+
+    public override string ToString()
+    {
+        var rtn = "";
+        foreach (var item in ScoreDict)
+        {
+            rtn += item.Key + "\t" + item.Value + "%" + System.Environment.NewLine;
+        }
+        return rtn;
+
+    }
+
 }

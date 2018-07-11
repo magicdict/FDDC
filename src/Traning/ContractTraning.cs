@@ -12,11 +12,9 @@ public class ContractTraning
     {
         Console.WriteLine("开始分析");
         //实体周围语境的统计
-        AnlayzeEntitySurroundWords(); FDDC.Program.Training.Flush();
+        //AnlayzeEntitySurroundWords(); FDDC.Program.Training.Flush();
         //实体周围语境的统计LTP角度
         //AnlayzeEntitySurroundWordsLTP(); FDDC.Program.Training.Flush();
-        //实体长度的统计
-        TraningMaxLenth(); FDDC.Program.Training.Flush();
         //实体自身属性的统计
         EntityWordPerperty(); FDDC.Program.Training.Flush();
         Console.WriteLine("结束分析");
@@ -122,88 +120,6 @@ public class ContractTraning
     #endregion
 
     #region 实体自身特性分析
-    public static int MaxJiaFangLength = 999;
-    public static string MaxJiaFang = String.Empty;
-
-    public static int MaxYiFangLength = 999;
-    public static string MaxYiFang = String.Empty;
-
-    public static int MaxContractNameLength = 999;
-    public static string MaxContractName = String.Empty;
-
-    public static int MaxProjectNameLength = 999;
-    public static string MaxProjectName = String.Empty;
-
-    public static double MinAmount = double.MaxValue;
-    //最大长度
-    public static void TraningMaxLenth()
-    {
-        MaxJiaFangLength = 0;
-        MaxYiFangLength = 0;
-        MaxContractNameLength = 0;
-        MaxProjectNameLength = 0;
-        foreach (var c in TraningDataset.ContractList)
-        {
-            var TEJiaFang = EntityWordAnlayzeTool.TrimEnglish(c.JiaFang);
-            if (TEJiaFang.Length > MaxJiaFangLength)
-            {
-                MaxJiaFangLength = TEJiaFang.Length;
-                MaxJiaFang = TEJiaFang;
-            }
-
-            var TEYiFang = EntityWordAnlayzeTool.TrimEnglish(c.YiFang);
-            if (TEYiFang.Length > MaxYiFangLength)
-            {
-                MaxYiFangLength = TEYiFang.Length;
-                MaxYiFang = TEYiFang;
-            }
-
-            var ContractList = c.ContractName.Split("、");
-            foreach (var cn in ContractList)
-            {
-                var TEContractName = EntityWordAnlayzeTool.TrimEnglish(cn);
-                if (TEContractName.Length > MaxContractNameLength)
-                {
-                    MaxContractNameLength = TEContractName.Length;
-                    MaxContractName = TEContractName;
-                }
-            }
-
-            if (!string.IsNullOrEmpty(c.ContractMoneyUpLimit))
-            {
-                var m = 0.0;
-                if (double.TryParse(c.ContractMoneyUpLimit, out m))
-                {
-                    if (m < MinAmount) MinAmount = m;
-                }
-            }
-
-            var ProjectNameList = c.ProjectName.Split("、");
-            foreach (var jn in ProjectNameList)
-            {
-                if (jn.Contains(",")) continue;
-                var TEProjectName = EntityWordAnlayzeTool.TrimEnglish(jn);
-                if (TEProjectName.Length > MaxContractNameLength)
-                {
-                    MaxProjectNameLength = TEProjectName.Length;
-                    MaxProjectName = TEProjectName;
-                }
-            }
-
-        }
-        Program.Training.WriteLine("最大甲方(除去英语)长度:" + MaxJiaFangLength);
-        Program.Training.WriteLine("最大甲方(除去英语):" + MaxJiaFang);
-        Program.Training.WriteLine("最大乙方(除去英语)长度:" + MaxYiFangLength);
-        Program.Training.WriteLine("最大乙方(除去英语):" + MaxYiFang);
-        Program.Training.WriteLine("最大合同(除去英语)长度:" + MaxContractNameLength);
-        Program.Training.WriteLine("最大合同(除去英语):" + MaxContractName);
-        Program.Training.WriteLine("最大工程(除去英语)长度:" + MaxProjectNameLength);
-        Program.Training.WriteLine("最大工程(除去英语):" + MaxProjectName);
-        Program.Training.WriteLine("最小金额:" + MinAmount);
-
-    }
-
-
     public static EntitySelf JiaFangES = new EntitySelf();
     public static EntitySelf YiFangES = new EntitySelf();
     public static EntitySelf ContractES = new EntitySelf();
@@ -224,14 +140,18 @@ public class ContractTraning
             ContractES.PutEntityWordPerperty(contract.ContractName);
             ProjectNameES.PutEntityWordPerperty(contract.ProjectName);
         }
-        Program.Training.WriteLine("甲方统计：");
         JiaFangES.Commit();
-        Program.Training.WriteLine("乙方统计：");
         YiFangES.Commit();
-        Program.Training.WriteLine("合同名统计：");
         ContractES.Commit();
-        Program.Training.WriteLine("工程名统计：");
         ProjectNameES.Commit();
+        Program.Training.WriteLine("甲方统计数据");
+        JiaFangES.WriteToLog(Program.Training);
+        Program.Training.WriteLine("乙方统计数据");
+        YiFangES.WriteToLog(Program.Training);
+        Program.Training.WriteLine("合同名统计数据");
+        ContractES.WriteToLog(Program.Training);
+        Program.Training.WriteLine("工程名统计数据");
+        ProjectNameES.WriteToLog(Program.Training);
     }
     #endregion 
 }

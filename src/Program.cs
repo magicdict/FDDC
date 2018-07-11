@@ -69,9 +69,9 @@ namespace FDDC
             TraningDataset.InitContract();
             TraningDataset.InitStockChange();
             TraningDataset.InitIncreaseStock();
-            //ContractTraning.Train();
-            StockChangeTraning.Traning();
-            IncreaseStockTraning.Training(100);
+            ContractTraning.Train();
+            //StockChangeTraning.Traning();
+            //IncreaseStockTraning.Training(100);
             Training.Close();
         }
 
