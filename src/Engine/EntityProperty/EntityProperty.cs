@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using FDDC;
 using static ExtractProperyBase;
 
 public class EntityProperty
 {
+    public StreamWriter Logger;
+
     /// <summary>
     /// 属性类型
     /// </summary>
@@ -122,7 +124,7 @@ public class EntityProperty
             if (candidate.Count == 1) WordMapResult = candidate.First();
             if (candidate.Count > 1)
             {
-                if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("找到纯关键字类型两个关键字");
+                Logger.WriteLine("找到纯关键字类型两个关键字");
             }
             return;
         }
@@ -140,7 +142,7 @@ public class EntityProperty
                 var PropertyValue = item.Value;
                 if (LeadingColonKeyWordCandidatePreprocess != null) PropertyValue = LeadingColonKeyWordCandidatePreprocess(PropertyValue);
                 if (String.IsNullOrEmpty(PropertyValue)) continue;
-                if (!Program.IsMultiThreadMode) Program.Logger.WriteLine(this.PropertyName + "：[" + PropertyValue + "]");
+                Logger.WriteLine(this.PropertyName + "：[" + PropertyValue + "]");
                 LeadingColonKeyWordCandidate.Add(PropertyValue);
             }
 
@@ -152,7 +154,7 @@ public class EntityProperty
                 var PropertyValue = item.Value;
                 if (LeadingColonKeyWordCandidatePreprocess != null) PropertyValue = LeadingColonKeyWordCandidatePreprocess(PropertyValue);
                 if (String.IsNullOrEmpty(PropertyValue)) continue;
-                if (!Program.IsMultiThreadMode) Program.Logger.WriteLine(this.PropertyName + "：[" + PropertyValue + "]");
+                Logger.WriteLine(this.PropertyName + "：[" + PropertyValue + "]");
                 //TEXT里面有的，这里不重复添加了
                 if (!LeadingColonKeyWordCandidate.Contains(PropertyValue)) LeadingColonKeyWordCandidate.Add(PropertyValue);
             }
@@ -170,7 +172,7 @@ public class EntityProperty
                     {
                         var PropertyValue = CheckCandidate(bracket.Value);
                         if (String.IsNullOrEmpty(PropertyValue)) continue;
-                        if (!Program.IsMultiThreadMode) Program.Logger.WriteLine(this.PropertyName + "：[" + PropertyValue + "]");
+                        Logger.WriteLine(this.PropertyName + "：[" + PropertyValue + "]");
                         QuotationTrailingCandidate.Add(PropertyValue);
                     }
                 }
@@ -186,7 +188,7 @@ public class EntityProperty
             {
                 var PropertyValue = CheckCandidate(item.Value);
                 if (String.IsNullOrEmpty(PropertyValue)) continue;
-                if (!Program.IsMultiThreadMode) Program.Logger.WriteLine(this.PropertyName + "：[" + PropertyValue + "]");
+                Logger.WriteLine(this.PropertyName + "：[" + PropertyValue + "]");
                 DpKeyWordCandidate.Add(PropertyValue);
             }
         }
@@ -205,7 +207,7 @@ public class EntityProperty
                 }
                 PropertyValue = CheckCandidate(PropertyValue);
                 if (String.IsNullOrEmpty(PropertyValue)) continue;
-                if (!Program.IsMultiThreadMode) Program.Logger.WriteLine(this.PropertyName + "：[" + PropertyValue + "]");
+                Logger.WriteLine(this.PropertyName + "：[" + PropertyValue + "]");
                 ExternalStartEndStringFeatureCandidate.Add(PropertyValue);
             }
 
@@ -222,7 +224,7 @@ public class EntityProperty
                 }
                 PropertyValue = CheckCandidate(PropertyValue);
                 if (String.IsNullOrEmpty(PropertyValue)) continue;
-                if (!Program.IsMultiThreadMode) Program.Logger.WriteLine(this.PropertyName + "：[" + PropertyValue + "]");
+                Logger.WriteLine(this.PropertyName + "：[" + PropertyValue + "]");
                 if (!ExternalStartEndStringFeatureCandidate.Contains(PropertyValue)) ExternalStartEndStringFeatureCandidate.Add(PropertyValue);
             }
         }
@@ -287,28 +289,28 @@ public class EntityProperty
     public void CheckIsCandidateContainsTarget(string StartandValue)
     {
         bool IsFound = false;
-        Program.CIRecord.WriteLine("标准" + PropertyName + ":" + StartandValue);
+        Logger.WriteLine("标准" + PropertyName + ":" + StartandValue);
         if (LeadingColonKeyWordCandidate.Select((x) => { return x.NormalizeTextResult(); }).Contains(StartandValue.NormalizeTextResult()))
         {
-            Program.CIRecord.WriteLine("存在于 冒号关键字 候补词语");
+            Logger.WriteLine("存在于 冒号关键字 候补词语");
             IsFound = true;
         }
         if (QuotationTrailingCandidate.Select((x) => { return x.NormalizeTextResult(); }).Contains(StartandValue.NormalizeTextResult()))
         {
-            Program.CIRecord.WriteLine("存在于 书名号和引号 候补词语");
+            Logger.WriteLine("存在于 书名号和引号 候补词语");
             IsFound = true;
         }
         if (DpKeyWordCandidate.Select((x) => { return x.NormalizeTextResult(); }).Contains(StartandValue.NormalizeTextResult()))
         {
-            Program.CIRecord.WriteLine("存在于 句法依赖 候补词语");
+            Logger.WriteLine("存在于 句法依赖 候补词语");
             IsFound = true;
         }
         if (ExternalStartEndStringFeatureCandidate.Select((x) => { return x.NormalizeTextResult(); }).Contains(StartandValue.NormalizeTextResult()))
         {
-            Program.CIRecord.WriteLine("存在于 前后关键字 候补词语");
+            Logger.WriteLine("存在于 前后关键字 候补词语");
             IsFound = true;
         }
-        if (!IsFound) Program.CIRecord.WriteLine("候补词语未抽取信息！");
+        if (!IsFound) Logger.WriteLine("候补词语未抽取信息！");
     }
 
     /// <summary>
@@ -324,7 +326,7 @@ public class EntityProperty
             {
                 //项目名称：这样的候选词置信度最高,趋向于无条件置信
                 var score = 1000;
-                Program.CIRecord.WriteLine(candidate + ":" + score);
+                Logger.WriteLine(candidate + ":" + score);
                 if (score > MaxScore)
                 {
                     Result = candidate;
@@ -334,7 +336,7 @@ public class EntityProperty
             foreach (var candidate in QuotationTrailingCandidate)
             {
                 var score = Confidence.Predict(candidate) * 2;
-                Program.CIRecord.WriteLine(candidate + ":" + score);
+                Logger.WriteLine(candidate + ":" + score);
                 if (score > MaxScore)
                 {
                     Result = candidate;
@@ -345,7 +347,7 @@ public class EntityProperty
             foreach (var candidate in DpKeyWordCandidate)
             {
                 var score = Confidence.Predict(candidate);
-                Program.CIRecord.WriteLine(candidate + ":" + score);
+                Logger.WriteLine(candidate + ":" + score);
                 if (score > MaxScore)
                 {
                     Result = candidate;
@@ -356,7 +358,7 @@ public class EntityProperty
             foreach (var candidate in ExternalStartEndStringFeatureCandidate)
             {
                 var score = Confidence.Predict(candidate);
-                Program.CIRecord.WriteLine(candidate + ":" + score);
+                Logger.WriteLine(candidate + ":" + score);
                 if (score > MaxScore)
                 {
                     Result = candidate;

@@ -45,7 +45,6 @@ namespace FDDC
             Logger = new StreamWriter("Log.log");
             //全局编码    
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
             //公司全称简称曾用名字典   
             CompanyNameLogic.LoadCompanyName(@"Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
             //增减持公告日期的读入
@@ -57,7 +56,6 @@ namespace FDDC
             Traning(); return;
             Evaluator = new StreamWriter("Evaluator.log");
             Score = new StreamWriter(@"Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
-            //new Contract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1008828.html").Extract();return;
             Extract();
             CIRecord.Close();
             Score.Close();
@@ -73,7 +71,7 @@ namespace FDDC
             TraningDataset.InitIncreaseStock();
             //ContractTraning.Train();
             StockChangeTraning.Traning();
-            IncreaseStockTraning.Training(500);
+            IncreaseStockTraning.Training(100);
             Training.Close();
         }
 

@@ -1,4 +1,3 @@
-using FDDC;
 using JiebaNet.Analyser;
 using JiebaNet.Segmenter;
 using JiebaNet.Segmenter.PosSeg;

@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using FDDC;
 using JiebaNet.Segmenter;
+using static Utility;
 
 public class LeadingWord
 {
-    Dictionary<string, int> LeadingWordDict = new Dictionary<String, int>();
+    public Dictionary<string, int> LeadingWordDict = new Dictionary<String, int>();
     JiebaNet.Segmenter.PosSeg.PosSegmenter pos = new JiebaNet.Segmenter.PosSeg.PosSegmenter();
     /// <summary>
     /// 所有可能出现的 XXX：形式的前导词列表
@@ -52,10 +52,5 @@ public class LeadingWord
             }
 
         }
-    }
-    public Dictionary<String, int> GetTop(int top)
-    {
-        Program.Training.WriteLine("冒号前导词语");
-        return Utility.FindTop(top, LeadingWordDict);
     }
 }

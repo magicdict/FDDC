@@ -25,9 +25,14 @@ public class StockChangeTraning
                 PreviewId = stockchange.id;
                 Cnt++; if (Cnt == TraningCnt) break;
             }
-            ChangeMethodTool.PutValueTrainingItem(PreviewRoot, new string[]{"减持方式","增持方式"}.ToList());
+            ChangeMethodTool.PutValueTrainingItem(PreviewRoot, new string[] { "减持方式", "增持方式" }.ToList());
         }
+
+        var rank = Utility.FindTop(10, ChangeMethodTool.TrainingValueResult);
         Program.Training.WriteLine("增减持方式");
-        ChangeMethodTool.WriteTop(10);
+        foreach (var rec in rank)
+        {
+            Program.Training.WriteLine(rec.ToString());
+        }
     }
 }

@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using FDDC;
-
 
 /// <summary>
 /// SRL统计
@@ -234,10 +232,5 @@ public class LTPTrainingSRL
             }
         }
         return list;
-    }
-    public void WriteTop(int top)
-    {
-        Program.Training.WriteLine("SRL分析");
-        Utility.FindTop(top, WordArgDict);
     }
 }

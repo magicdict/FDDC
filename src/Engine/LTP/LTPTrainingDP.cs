@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using FDDC;
 using static LTPTrainingNER;
 
 public class LTPTrainingDP
@@ -202,14 +201,5 @@ public class LTPTrainingDP
                 }
             }
         }
-    }
-    public void WriteTop(int top)
-    {
-        Program.Training.WriteLine("前导词语");
-        Utility.FindTop(top, LeadingWordDict);
-        Program.Training.WriteLine("前导动词");
-        Utility.FindTop(top, LeadingVerbWordDict);
-        Program.Training.WriteLine("词尾");
-        Utility.FindTop(top, LastWordDict);
     }
 }

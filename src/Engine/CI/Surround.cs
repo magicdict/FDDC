@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using FDDC;
 using JiebaNet.Segmenter;
 using JiebaNet.Segmenter.PosSeg;
 
@@ -79,16 +78,4 @@ public class Surround
         }
         segmenter.DeleteWord(KeyWord);
     }
-
-    public void GetTop(int top)
-    {
-        Program.Training.WriteLine("前导词语");
-        Utility.FindTop(top, LeadingWordDict);
-        Program.Training.WriteLine("前导动词");
-        Utility.FindTop(top, LeadingVerbWordDict);
-        Program.Training.WriteLine("后续词语");
-        Utility.FindTop(top, TrailingWordDict);
-    }
-  
-
 }

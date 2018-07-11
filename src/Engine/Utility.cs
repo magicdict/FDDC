@@ -4,11 +4,35 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Linq;
-using FDDC;
 using static ExtractProperyBase;
 
 public static class Utility
 {
+
+    public struct struRankRecord<T>
+    {
+        public T Value;
+
+        public int Percent;
+
+        public int Count;
+
+        public override string ToString()
+        {
+            return Percent.ToString("D2") + "%\t" + Count.ToString("D5") + "\t" + Value;
+        }
+
+    }
+
+    public static Dictionary<T, int> ConvertRankToCIDict<T>(List<Utility.struRankRecord<T>> ranks)
+    {
+        var rtn = new Dictionary<T, int>();
+        foreach (var rank in ranks)
+        {
+            rtn.Add(rank.Value,rank.Percent);
+        }
+        return rtn;
+    }
 
     /// <summary>
     /// 返回前N位的百分比字典
@@ -17,9 +41,9 @@ public static class Utility
     /// <param name="dict"></param>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public static Dictionary<T, int> FindTop<T>(int n, Dictionary<T, int> dict)
+    public static List<struRankRecord<T>> FindTop<T>(int n, Dictionary<T, int> dict)
     {
-        var result = new Dictionary<T, int>();
+        var result = new List<struRankRecord<T>>();
         if (dict.Count == 0) return result;
         var Rank = dict.Values.ToList();
         Rank.Sort();
@@ -31,11 +55,11 @@ public static class Utility
         {
             if (dict[key] >= limit)
             {
-                var percent = (dict[key] * 100 / Total) + "%";
-                result.Add(key, (int)(dict[key] * 100 / Total));
-                Program.Training.WriteLine(key + "(" + percent + ")[" + dict[key] + "]");
+                var percent = (dict[key] * 100 / Total);
+                result.Add(new struRankRecord<T>() { Value = key, Percent = (int)percent, Count = dict[key] });
             }
         }
+        result.Sort((x, y) => { return y.Count - x.Count; });
         return result;
     }
 

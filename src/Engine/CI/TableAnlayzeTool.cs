@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using FDDC;
 
 //关于表的统计
 public class TableAnlayzeTool
@@ -97,15 +96,5 @@ public class TableAnlayzeTool
                 }
             }
         }
-    }
-
-    /// <summary>
-    /// 输出TOP
-    /// </summary>
-    /// <param name="top"></param>
-    public void WriteTop(int top = 10)
-    {
-        Utility.FindTop(top, TrainingTitleResult);
-        Utility.FindTop(top, TrainingValueResult);
     }
 }

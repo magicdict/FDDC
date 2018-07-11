@@ -33,11 +33,26 @@ public class IncreaseStockTraning
             IncreaseNumberTool.PutTitleTrainingItem(PreviewRoot, increase.IncreaseNumber);
             IncreaseMoneyTool.PutTitleTrainingItem(PreviewRoot, increase.IncreaseMoney);
         }
+
+        var rank = Utility.FindTop(10, TargetTool.TrainingTitleResult);
         Program.Training.WriteLine("增发对象");
-        TargetTool.WriteTop(5);
+        foreach (var rec in rank)
+        {
+            Program.Training.WriteLine(rec.ToString());
+        }
+
+        rank = Utility.FindTop(10, IncreaseNumberTool.TrainingTitleResult);
         Program.Training.WriteLine("增发数量");
-        IncreaseNumberTool.WriteTop(5);
+        foreach (var rec in rank)
+        {
+            Program.Training.WriteLine(rec.ToString());
+        }
+
+        rank = Utility.FindTop(10, IncreaseMoneyTool.TrainingTitleResult);
         Program.Training.WriteLine("增发金额");
-        IncreaseMoneyTool.WriteTop(5);
+        foreach (var rec in rank)
+        {
+            Program.Training.WriteLine(rec.ToString());
+        }
     }
 }

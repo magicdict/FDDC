@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using static HTMLEngine;
 using static LocateProperty;
-using System.IO;
 
 public class ExtractPropertyByText : ExtractProperyBase
 {

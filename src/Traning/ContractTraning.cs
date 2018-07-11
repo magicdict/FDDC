@@ -48,25 +48,22 @@ public class ContractTraning
             if (TraningDataset.GetContractById(Id).Count == 0) continue;
             var contract = TraningDataset.GetContractById(Id).First();
             var doc = new AnnouceDocument(filename);
-            //if (!string.IsNullOrEmpty(contract.JiaFang)) JiaFangSurround.AnlayzeEntitySurroundWords(doc, contract.JiaFang);
-            //if (!string.IsNullOrEmpty(contract.YiFang)) YiFangSurround.AnlayzeEntitySurroundWords(doc, contract.YiFang);
-            //if (!string.IsNullOrEmpty(contract.ProjectName)) ProjectNameSurround.AnlayzeEntitySurroundWords(doc, contract.ProjectName);
-            //if (!string.IsNullOrEmpty(contract.ContractName)) ContractNameSurround.AnlayzeEntitySurroundWords(doc, contract.ContractName);
+            if (!string.IsNullOrEmpty(contract.JiaFang)) JiaFangSurround.AnlayzeEntitySurroundWords(doc, contract.JiaFang);
+            if (!string.IsNullOrEmpty(contract.YiFang)) YiFangSurround.AnlayzeEntitySurroundWords(doc, contract.YiFang);
+            if (!string.IsNullOrEmpty(contract.ProjectName)) ProjectNameSurround.AnlayzeEntitySurroundWords(doc, contract.ProjectName);
+            if (!string.IsNullOrEmpty(contract.ContractName)) ContractNameSurround.AnlayzeEntitySurroundWords(doc, contract.ContractName);
             if (!string.IsNullOrEmpty(contract.JiaFang)) JiaFangNameLeadingWord.AnlayzeLeadingWord(doc, contract.JiaFang);
             if (!string.IsNullOrEmpty(contract.YiFang)) YiFangNameLeadingWord.AnlayzeLeadingWord(doc, contract.YiFang);
             if (!string.IsNullOrEmpty(contract.ProjectName)) ProjectNameLeadingWord.AnlayzeLeadingWord(doc, contract.ProjectName);
             if (!string.IsNullOrEmpty(contract.ContractName)) ContractNameLeadingWord.AnlayzeLeadingWord(doc, contract.ContractName);
         }
-        //JiaFangSurround.GetTop(10);
-        //YiFangSurround.GetTop(10);
-        //ProjectNameSurround.GetTop(10);
-        //ContractNameSurround.GetTop(10);
-
-        JiaFangLeadingDict = JiaFangNameLeadingWord.GetTop(5);
-        YiFangLeadingDict = YiFangNameLeadingWord.GetTop(5);
-        ProjectNameLeadingDict = ProjectNameLeadingWord.GetTop(5);
-        ContractNameLeadingDict = ContractNameLeadingWord.GetTop(5);
+        JiaFangLeadingDict = Utility.ConvertRankToCIDict(Utility.FindTop(5, JiaFangNameLeadingWord.LeadingWordDict));
+        YiFangLeadingDict = Utility.ConvertRankToCIDict(Utility.FindTop(5, YiFangNameLeadingWord.LeadingWordDict));
+        ProjectNameLeadingDict = Utility.ConvertRankToCIDict(Utility.FindTop(5, ProjectNameLeadingWord.LeadingWordDict));
+        ContractNameLeadingDict = Utility.ConvertRankToCIDict(Utility.FindTop(5, ContractNameLeadingWord.LeadingWordDict));
     }
+
+
 
     public static void AnlayzeEntitySurroundWordsLTP()
     {
@@ -114,21 +111,13 @@ public class ContractTraning
 
 
         Program.Training.WriteLine("甲方附近词语分析（DP）：");
-        JiaFangDP.WriteTop(10);
         Program.Training.WriteLine("甲方附近词语分析（SRL）：");
-        JiaFangSRL.WriteTop(10);
         Program.Training.WriteLine("乙方附近词语分析（DP）：");
-        YiFnagDP.WriteTop(10);
         Program.Training.WriteLine("乙方附近词语分析（SRL）：");
-        YiFnagSRL.WriteTop(10);
         Program.Training.WriteLine("合同名附近词语分析（DP）：");
-        ContractNameDP.WriteTop(10);
         Program.Training.WriteLine("合同名附近词语分析（SRL）：");
-        ContractNameSRL.WriteTop(10);
         Program.Training.WriteLine("工程名附近词语分析（DP）：");
-        ProjectNameDP.WriteTop(10);
         Program.Training.WriteLine("工程名附近词语分析（SRL）：");
-        ProjectNameSRL.WriteTop(10);
     }
     #endregion
 

@@ -40,7 +40,7 @@ public class FactorItem<T>
     /// </summary>
     public void ReComputeScoreDict()
     {
-        ScoreDict = Utility.FindTop(UseTopRank, TraningCountDict);
+        ScoreDict = Utility.ConvertRankToCIDict(Utility.FindTop(UseTopRank, TraningCountDict));
     }
     /// <summary>
     /// 加入训练内容

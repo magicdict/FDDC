@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using static HTMLEngine;
-using static LocateProperty;
 using System.IO;
-using static LTPTrainingNER;
 using System.Linq;
 using static LTPTrainingDP;
+using static HTMLEngine;
+using static LocateProperty;
+using static LTPTrainingNER;
 
 public class ExtractPropertyByDP : ExtractProperyBase
 {
