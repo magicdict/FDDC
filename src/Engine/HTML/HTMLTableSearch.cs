@@ -6,6 +6,9 @@ using static HTMLEngine;
 
 public partial class HTMLTable
 {
+    /// <summary>
+    /// 单元格信息
+    /// </summary>
     public struct CellInfo
     {
         public int TableId;
@@ -20,9 +23,9 @@ public partial class HTMLTable
     }
 
     /// <summary>
-    /// 表抽取规则
+    /// 表抽取规则（表头标题系）
     /// </summary>
-    public struct TableSearchRule
+    public struct TableSearchTitleRule
     {
         public string Name;
         /// <summary>
@@ -59,11 +62,11 @@ public partial class HTMLTable
     /// <summary>
     /// 从表格中抽取信息
     /// </summary>
-    /// <param name="root"></param>
-    /// <param name="Rules"></param>
-    /// <param name="IsMeger"></param>
+    /// <param name="root">根节点</param>
+    /// <param name="Rules">规则</param>
+    /// <param name="IsMeger">是否将寻找到的内容按照主键进行合并</param>
     /// <returns></returns>
-    public static List<CellInfo[]> GetMultiInfo(HTMLEngine.MyRootHtmlNode root, List<TableSearchRule> Rules, bool IsMeger)
+    public static List<CellInfo[]> GetMultiInfoByTitleRules(HTMLEngine.MyRootHtmlNode root, List<TableSearchTitleRule> Rules, bool IsMeger)
     {
         var Container = new List<CellInfo[]>();
         for (int tableIndex = 0; tableIndex < root.TableList.Count; tableIndex++)
@@ -91,7 +94,7 @@ public partial class HTMLTable
                     if (TestRowHeader == 1) IsFirstRowOneCell = true;
                     continue;
                 }
-                HeaderRow = table.GetHeaderRow(TestRowHeader);
+                HeaderRow = table.GetRow(TestRowHeader);
                 for (int checkItemIdx = 0; checkItemIdx < Rules.Count; checkItemIdx++)
                 {
                     //在每个行首单元格检索
@@ -271,6 +274,90 @@ public partial class HTMLTable
         if (IsMeger) Container = MergerMultiInfo(Container);
         return Container;
     }
+
+    /// <summary>
+    /// 表抽取规则（内容系）
+    /// </summary>
+    public struct TableSearchContentRule
+    {
+        /// <summary>
+        /// 匹配内容
+        /// </summary>
+        public List<String> Content;
+        /// <summary>
+        /// 是否相等模式
+        /// </summary>
+        public bool IsContentEq;
+    }
+
+    /// <summary>
+    /// 获得符合规则的行数据
+    /// </summary>
+    /// <param name="root"></param>
+    /// <param name="rule"></param>
+    /// <returns></returns>
+    public static List<List<CellInfo>> GetMultiRowsByContentRule(HTMLEngine.MyRootHtmlNode root, TableSearchContentRule rule)
+    {
+        var Container = new List<List<CellInfo>>();
+        for (int tableNo = 1; tableNo <= root.TableList.Count; tableNo++)
+        {
+            var table = new HTMLTable(root.TableList[tableNo]);
+            var RowHeader = table.GetRow(1);
+            for (int RowNo = 1; RowNo < table.RowCount; RowNo++)
+            {
+                var row = table.GetRow(RowNo);
+                var IsMatch = false;
+                foreach (var cell in row)
+                {
+                    if (rule.Content != null)
+                    {
+                        foreach (var content in rule.Content)
+                        {
+                            if (rule.IsContentEq)
+                            {
+                                //相等模式
+                                if (content.Equals(cell.Replace(" ", "")))
+                                {
+                                    Container.Add(ConvertRowToCellInfo(row, tableNo, RowNo, RowHeader));
+                                    IsMatch = true;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                //包含模式
+                                if (content.Contains(cell.Replace(" ", "")))
+                                {
+                                    Container.Add(ConvertRowToCellInfo(row, tableNo, RowNo, RowHeader));
+                                    IsMatch = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (IsMatch) break;
+                }
+            }
+        }
+        return Container;
+    }
+
+    static List<CellInfo> ConvertRowToCellInfo(string[] RowData, int TableNo, int RowNo, string[] HeadData)
+    {
+        var cells = new List<CellInfo>();
+        for (int ColIndex = 0; ColIndex < RowData.Length; ColIndex++)
+        {
+            var cellinfo = new CellInfo();
+            cellinfo.TableId = TableNo;
+            cellinfo.Row = RowNo;
+            cellinfo.Column = ColIndex + 1;
+            cellinfo.RawData = RowData[ColIndex];
+            cellinfo.Title = HeadData[ColIndex];
+            cells.Add(cellinfo);
+        }
+        return cells;
+    }
+
     public static bool IsSameContent(CellInfo[] Row1, CellInfo[] Row2)
     {
         for (int i = 0; i < Row1.Length; i++)

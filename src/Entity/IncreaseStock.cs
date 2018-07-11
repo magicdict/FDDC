@@ -89,44 +89,44 @@ public class IncreaseStock : AnnouceDocument
 
     List<struIncreaseStock> GetMultiTarget(HTMLEngine.MyRootHtmlNode root, struIncreaseStock SampleincreaseStock)
     {
-        var BuyerRule = new TableSearchRule();
+        var BuyerRule = new TableSearchTitleRule();
         BuyerRule.Name = "认购对象";
         //"投资者名称","股东名称"
         BuyerRule.Title = new string[] { "发行对象", "认购对象", "发行对象名称" }.ToList();
         BuyerRule.IsTitleEq = true;
         BuyerRule.IsRequire = true;
 
-        var BuyNumber = new TableSearchRule();
+        var BuyNumber = new TableSearchTitleRule();
         BuyNumber.Name = "增发数量";
         BuyNumber.Title = new string[] { "配售股数", "认购数量", "认购股数", "认购股份数", "发行股份数", "配售数量" }.ToList();
         BuyNumber.IsTitleEq = false;             //包含即可
         BuyNumber.Normalize = NumberUtility.NormalizerStockNumber;
 
-        var BuyMoney = new TableSearchRule();
+        var BuyMoney = new TableSearchTitleRule();
         BuyMoney.Name = "增发金额";
         BuyMoney.Title = new string[] { "配售金额", "认购金额", "获配金额" }.ToList();
         BuyMoney.IsTitleEq = false;             //包含即可
         BuyMoney.Normalize = MoneyUtility.Format;
 
-        var FreezeYear = new TableSearchRule();
+        var FreezeYear = new TableSearchTitleRule();
         FreezeYear.Name = "锁定期";
         FreezeYear.Title = new string[] { "锁定期", "限售期" }.ToList();
         FreezeYear.IsTitleEq = false;             //包含即可
         FreezeYear.Normalize = NormalizerFreezeYear;
 
-        var BuyPrice = new TableSearchRule();
+        var BuyPrice = new TableSearchTitleRule();
         BuyPrice.Name = "价格";
         BuyPrice.Title = new string[] { "认购价格", "配售价格", "申购报价" }.ToList();
         BuyPrice.IsTitleEq = false;             //包含即可
         BuyPrice.Normalize = MoneyUtility.Format;
 
-        var Rules = new List<TableSearchRule>();
+        var Rules = new List<TableSearchTitleRule>();
         Rules.Add(BuyerRule);
         Rules.Add(BuyNumber);
         Rules.Add(BuyMoney);
         Rules.Add(FreezeYear);
         Rules.Add(BuyPrice);
-        var result = HTMLTable.GetMultiInfo(root, Rules, true);
+        var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, true);
         var increaseStocklist = new List<struIncreaseStock>();
         foreach (var item in result)
         {

@@ -204,7 +204,7 @@ public partial class HTMLTable
         return String.Empty;
     }
 
-    public String[] GetHeaderRow(int RowNo = 1)
+    public String[] GetRow(int RowNo = 1)
     {
         var Header = new String[ColumnCount];
         for (int i = 1; i < ColumnCount + 1; i++)

@@ -114,7 +114,7 @@ public class StockChange : AnnouceDocument
     {
         var DateRange = LocateDateRange(root);
         var list = new List<struStockChange>();
-        var Name = GetHolderName(root);
+        var Name = GetHolderName();
         if (!String.IsNullOrEmpty(Name.FullName) && !String.IsNullOrEmpty(Name.ShortName))
         {
             companynamelist.Add(new struCompanyName()
@@ -123,7 +123,8 @@ public class StockChange : AnnouceDocument
                 secShortName = Name.ShortName
             });
         }
-        list = ExtractFromTable(root, Id);
+        list = ExtractFromTable();
+        //list = ExtractFromTableByContent();
         if (list.Count > 0) return list;    //如果这里直接返回，由于召回率等因素，可以细微提高成绩
 
         var stockchange = new struStockChange();
@@ -157,15 +158,35 @@ public class StockChange : AnnouceDocument
         return list;
     }
 
-    List<struStockChange> ExtractFromTable(HTMLEngine.MyRootHtmlNode root, string id)
+    List<struStockChange> ExtractFromTableByContent()
     {
-        var StockHolderRule = new TableSearchRule();
+        var stockchangelist = new List<struStockChange>();
+        var rule = new TableSearchContentRule();
+        rule.Content = new string[] { "集中竞价交易", "竞价交易", "大宗交易", "约定式购回" }.ToList();
+        rule.IsContentEq = true;
+        var result = HTMLTable.GetMultiRowsByContentRule(root,rule);
+        foreach (var item in result)
+        {
+            //TODO:具体逻辑代码
+        }
+        return stockchangelist;
+    }
+
+    /// <summary>
+    /// 根据表头标题抽取
+    /// </summary>
+    /// <param name="root"></param>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    List<struStockChange> ExtractFromTable()
+    {
+        var StockHolderRule = new TableSearchTitleRule();
         StockHolderRule.Name = "股东全称";
         StockHolderRule.Title = new string[] { "股东名称", "名称", "增持主体", "增持人", "减持主体", "减持人" }.ToList();
         StockHolderRule.IsTitleEq = true;
         StockHolderRule.IsRequire = true;
 
-        var ChangeDateRule = new TableSearchRule();
+        var ChangeDateRule = new TableSearchTitleRule();
         ChangeDateRule.Name = "变动截止日期";
         ChangeDateRule.Title = new string[] { "买卖时间","日期","减持期间", "增持期间", "减持股份期间", "增持股份期间",
                                              "减持时间", "增持时间", "减持股份时间", "增持股份时间" }.ToList();
@@ -173,7 +194,7 @@ public class StockChange : AnnouceDocument
         ChangeDateRule.Normalize = NormailizeEndChangeDate;
 
 
-        var ChangePriceRule = new TableSearchRule();
+        var ChangePriceRule = new TableSearchTitleRule();
         ChangePriceRule.Name = "变动价格";
         ChangePriceRule.Title = new string[] { "成交均价", "减持价格", "增持价格", "减持均", "增持均" }.ToList();
         ChangePriceRule.IsTitleEq = false;
@@ -186,20 +207,20 @@ public class StockChange : AnnouceDocument
             return x;
         };
 
-        var ChangeNumberRule = new TableSearchRule();
+        var ChangeNumberRule = new TableSearchTitleRule();
         ChangeNumberRule.Name = "变动数量";
         ChangeNumberRule.Title = new string[] { "成交数量", "减持股数", "增持股数", "减持数量", "增持数量" }.ToList();
         ChangeNumberRule.IsTitleEq = false;
         ChangeNumberRule.Normalize = NumberUtility.NormalizerStockNumber;
 
 
-        var Rules = new List<TableSearchRule>();
+        var Rules = new List<TableSearchTitleRule>();
         Rules.Add(StockHolderRule);
         Rules.Add(ChangeDateRule);
         Rules.Add(ChangePriceRule);
         Rules.Add(ChangeNumberRule);
 
-        var result = HTMLTable.GetMultiInfo(root, Rules, false);
+        var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, false);
 
         if (result.Count == 0)
         {
@@ -209,13 +230,13 @@ public class StockChange : AnnouceDocument
             Rules.Add(ChangeDateRule);
             Rules.Add(ChangePriceRule);
             Rules.Add(ChangeNumberRule);
-            result = HTMLTable.GetMultiInfo(root, Rules, false);
+            result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, false);
             if (result.Count == 0)
             {
                 return new List<struStockChange>();
             }
             var NewResult = new List<CellInfo[]>();
-            var Name = GetHolderName(this.root);
+            var Name = GetHolderName();
             if (String.IsNullOrEmpty(Name.FullName) && String.IsNullOrEmpty(Name.ShortName))
             {
                 return new List<struStockChange>();
@@ -234,7 +255,7 @@ public class StockChange : AnnouceDocument
         foreach (var rec in result)
         {
             var stockchange = new struStockChange();
-            stockchange.id = id;
+            stockchange.id = Id;
 
             var ModifyName = rec[0].RawData;
             //表格里面长的名字可能被分页切割掉
@@ -495,13 +516,13 @@ public class StockChange : AnnouceDocument
     List<struHoldAfter> GetHolderAfter3rdStep()
     {
         var HoldList = new List<struHoldAfter>();
-        var StockHolderRule = new TableSearchRule();
+        var StockHolderRule = new TableSearchTitleRule();
         StockHolderRule.Name = "股东全称";
         StockHolderRule.Title = new string[] { "股东名称", "名称", "增持主体", "增持人", "减持主体", "减持人" }.ToList();
         StockHolderRule.IsTitleEq = true;
         StockHolderRule.IsRequire = true;
 
-        var HoldNumberAfterChangeRule = new TableSearchRule();
+        var HoldNumberAfterChangeRule = new TableSearchTitleRule();
         HoldNumberAfterChangeRule.Name = "变动后持股数";
         HoldNumberAfterChangeRule.IsRequire = true;
         HoldNumberAfterChangeRule.SuperTitle = new string[] { "减持后", "增持后" }.ToList();
@@ -513,7 +534,7 @@ public class StockChange : AnnouceDocument
         }.ToList();
         HoldNumberAfterChangeRule.IsTitleEq = false;
 
-        var HoldPercentAfterChangeRule = new TableSearchRule();
+        var HoldPercentAfterChangeRule = new TableSearchTitleRule();
         HoldPercentAfterChangeRule.Name = "变动后持股数比例";
         HoldPercentAfterChangeRule.IsRequire = true;
         HoldPercentAfterChangeRule.SuperTitle = HoldNumberAfterChangeRule.SuperTitle;
@@ -521,11 +542,11 @@ public class StockChange : AnnouceDocument
         HoldPercentAfterChangeRule.Title = new string[] { "比例" }.ToList();
         HoldPercentAfterChangeRule.IsTitleEq = false;
 
-        var Rules = new List<TableSearchRule>();
+        var Rules = new List<TableSearchTitleRule>();
         Rules.Add(StockHolderRule);
         Rules.Add(HoldNumberAfterChangeRule);
         Rules.Add(HoldPercentAfterChangeRule);
-        var result = HTMLTable.GetMultiInfo(root, Rules, false);
+        var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, false);
         if (result.Count != 0)
         {
             foreach (var item in result)
@@ -554,11 +575,11 @@ public class StockChange : AnnouceDocument
             StockHolderRule.Title = null;
             StockHolderRule.IsTitleEq = false;
 
-            Rules = new List<TableSearchRule>();
+            Rules = new List<TableSearchTitleRule>();
             Rules.Add(HoldNumberAfterChangeRule);
             Rules.Add(HoldPercentAfterChangeRule);
             Rules.Add(StockHolderRule);
-            result = HTMLTable.GetMultiInfo(root, Rules, false);
+            result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, false);
             if (result.Count != 0)
             {
                 foreach (var item in result)
@@ -584,10 +605,11 @@ public class StockChange : AnnouceDocument
         return HoldList;
     }
 
-
-
-
-    (String FullName, String ShortName) GetHolderName(HTMLEngine.MyRootHtmlNode root)
+    /// <summary>
+    /// 获得股东
+    /// </summary>
+    /// <returns></returns>
+    (String FullName, String ShortName) GetHolderName()
     {
         var Extractor = new ExtractPropertyByHTML();
         var StartArray = new string[] { "接到", "收到", "股东" };

@@ -88,9 +88,42 @@ pdfminer：请注意处理中文的时候需要额外的步骤，具体方法不
 * NER实体标识
 * 具体语境
 
+### 表格抽取工具（内容系）
+
+代码内置表头规则系的表抽取工具，对于表格可以设定如下抽取规则：
+
+* Content:匹配内容
+* IsContentEq:内容匹配规则（包含或者相等）
+
+```csharp
+    /// <summary>
+    /// 表抽取规则（内容系）
+    /// </summary>
+    public struct TableSearchContentRule
+    {
+        /// <summary>
+        /// 匹配内容
+        /// </summary>
+        public List<String> Content;
+        /// <summary>
+        /// 是否相等模式
+        /// </summary>
+        public bool IsContentEq;
+    }
+```
+
+下面是一个表格抽取的例子：
+
+```csharp
+        var rule = new TableSearchContentRule();
+        rule.Content = new string[] { "集中竞价交易", "竞价交易", "大宗交易", "约定式购回" }.ToList();
+        rule.IsContentEq = true;
+        var result = HTMLTable.GetMultiRowsByContentRule(root,rule);
+```
+
 ### 表格抽取工具（表头规则系）
 
-代码内置的表抽取工具，对于表格可以设定如下抽取规则：
+代码内置表头规则系的表抽取工具，对于表格可以设定如下抽取规则：
 
 * SuperTitle：层叠表头的情况下，父表头文字
 * IsSuperTitleEq：父表头文字匹配规则（包含或者相等）
@@ -100,13 +133,11 @@ pdfminer：请注意处理中文的时候需要额外的步骤，具体方法不
 * ExcludeTitle：表标题不能包含的文字
 * Normalize：抽取内容预处理器
 
-_以行内容为依据的表格抽取工具开发中..._
-
 ```csharp
   /// <summary>
     /// 表抽取规则
     /// </summary>
-    public struct TableSearchRule
+    public struct TableSearchTitleRule
     {
         public string Name;
         /// <summary>
@@ -182,7 +213,7 @@ _以行内容为依据的表格抽取工具开发中..._
         Rules.Add(StockHolderRule);
         Rules.Add(HoldNumberAfterChangeRule);
         Rules.Add(HoldPercentAfterChangeRule);
-        var result = HTMLTable.GetMultiInfo(root, Rules, false);
+        var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, false);
 ```
 
 ### EntityProperty对象
