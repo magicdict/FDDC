@@ -53,7 +53,7 @@ namespace FDDC
             PosNS.ImportNS(@"Resources" + Path.DirectorySeparatorChar + "ns.dict");
             CIRecord = new StreamWriter("CI.log");
             //预处理
-            Traning(); return;
+            Traning(); 
             Evaluator = new StreamWriter("Evaluator.log");
             Score = new StreamWriter(@"Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
             Extract();
@@ -70,8 +70,8 @@ namespace FDDC
             TraningDataset.InitStockChange();
             TraningDataset.InitIncreaseStock();
             ContractTraning.Train();
-            //StockChangeTraning.Traning();
-            //IncreaseStockTraning.Training(100);
+            StockChangeTraning.Traning();
+            IncreaseStockTraning.Training(100);
             Training.Close();
         }
 

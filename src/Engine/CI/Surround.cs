@@ -71,7 +71,7 @@ public class Surround
                             }
                             //Program.Training.WriteLine("后续关键字：[" + segments[s] + "]");
                         }
-                        return;     //仅统计第一次出现
+                        break;     //仅统计第一次出现
                     }
                 }
             }
