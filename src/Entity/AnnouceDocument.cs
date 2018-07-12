@@ -148,11 +148,10 @@ public class AnnouceDocument
                 ParagraghlocateValue.Add(p);
             }
         }
-
         //表格的处理(表分页)
-        HTMLTable.FixSpiltTable(root, this);
+        HTMLTable.FixSpiltTable(this, new string[] { "集中竞价交易", "竞价交易", "大宗交易", "约定式购回" });
         //NULL的对应
-        HTMLTable.FixNullValue(root, this);
+        HTMLTable.FixNullValue(this);
     }
     ParagraghLoc SentenceLocate(int PosId)
     {

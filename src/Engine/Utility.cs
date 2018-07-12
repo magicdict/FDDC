@@ -8,7 +8,9 @@ using static ExtractProperyBase;
 
 public static class Utility
 {
-
+    /// <summary>
+    /// 排名结构体
+    /// </summary>
     public struct struRankRecord<T>
     {
         public T Value;
@@ -23,13 +25,18 @@ public static class Utility
         }
 
     }
-
+    /// <summary>
+    /// 排名转字典
+    /// </summary>
+    /// <param name="ranks"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
     public static Dictionary<T, int> ConvertRankToCIDict<T>(List<Utility.struRankRecord<T>> ranks)
     {
         var rtn = new Dictionary<T, int>();
         foreach (var rank in ranks)
         {
-            rtn.Add(rank.Value,rank.Percent);
+            rtn.Add(rank.Value, rank.Percent);
         }
         return rtn;
     }
@@ -63,7 +70,12 @@ public static class Utility
         return result;
     }
 
-    //获得开始字符结束字符的排列组合
+    /// <summary>
+    /// 获得开始字符结束字符的排列组合
+    /// </summary>
+    /// <param name="StartStringList"></param>
+    /// <param name="EndStringList"></param>
+    /// <returns></returns>
     public static struStartEndStringFeature[] GetStartEndStringArray(string[] StartStringList, string[] EndStringList)
     {
         var KeyWordListArray = new struStartEndStringFeature[StartStringList.Length * EndStringList.Length];
@@ -79,7 +91,13 @@ public static class Utility
         return KeyWordListArray;
     }
 
-    //提取某个关键字后的信息
+    /// <summary>
+    /// 提取某个关键字后的信息
+    /// </summary>
+    /// <param name="SearchLine"></param>
+    /// <param name="KeyWord"></param>
+    /// <param name="Exclude"></param>
+    /// <returns></returns>
     public static string GetStringAfter(String SearchLine, String KeyWord, String Exclude = "")
     {
 
@@ -97,7 +115,13 @@ public static class Utility
         return String.Empty;
     }
 
-    //提取某个关键字前的信息
+    /// <summary>
+    /// 提取某个关键字前的信息
+    /// </summary>
+    /// <param name="SearchLine"></param>
+    /// <param name="KeyWord"></param>
+    /// <param name="Exclude"></param>
+    /// <returns></returns>
     public static string GetStringBefore(String SearchLine, String KeyWord, String Exclude = "")
     {
         if (Exclude != String.Empty)
@@ -110,5 +134,46 @@ public static class Utility
             return SearchLine.Substring(0, index);
         }
         return String.Empty;
+    }
+
+    /// <summary>
+    /// 除去英语
+    /// </summary>
+    /// <param name="OrgString"></param>
+    /// <returns></returns>
+    public static string TrimEnglish(string OrgString)
+    {
+        var MainWordSentence = String.Empty;
+        var pos = new JiebaNet.Segmenter.PosSeg.PosSegmenter();
+        var list = pos.Cut(OrgString);
+        foreach (var word in list)
+        {
+            if (word.Flag != LTPTrainingNER.英语)
+            {
+                MainWordSentence += word.Word;
+            }
+        }
+        return MainWordSentence;
+    }
+    /// <summary>
+    /// 除去词首助词
+    /// </summary>
+    /// <param name="OrgString"></param>
+    /// <returns></returns>
+    public static string TrimLeadingUL(string OrgString)
+    {
+        var MainWordSentence = String.Empty;
+        var pos = new JiebaNet.Segmenter.PosSeg.PosSegmenter();
+        var list = pos.Cut(OrgString);
+        var HasStart = false;
+        foreach (var word in list)
+        {
+            if (HasStart || (word.Flag != LTPTrainingNER.助词))
+            {
+                HasStart = true;
+                MainWordSentence += word.Word;
+            }
+        }
+        return MainWordSentence;
     }
 }

@@ -43,7 +43,7 @@ public class EntitySelf
         WordLengtFactorItem.AddTraining(Word);
         WordCountFactorItem.AddTraining(Word);
         LastWordFactorItem.AddTraining(Word);
-        Word = EntityWordAnlayzeTool.TrimEnglish(Word);
+        Word = Utility.TrimEnglish(Word);
         if (Word.Length > MaxLength)
         {
             MaxLength = Word.Length;
@@ -74,6 +74,10 @@ public class EntitySelf
         return ci;
     }
 
+    /// <summary>
+    /// 日志输出
+    /// </summary>
+    /// <param name="logger"></param>
     public void WriteToLog(StreamWriter logger)
     {
         logger.WriteLine("最大长度：" + MaxLength);

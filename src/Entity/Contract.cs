@@ -198,8 +198,12 @@ public partial class Contract : AnnouceDocument
         contract.UnionMember = RegularTool.TrimBrackets(contract.UnionMember);
         return contract;
     }
-
-    public string TrimJianCheng(string OrgString)
+    /// <summary>
+    /// 去除尾部的简称
+    /// </summary>
+    /// <param name="OrgString"></param>
+    /// <returns></returns>
+    public string TrimEndJianCheng(string OrgString)
     {
         if (OrgString.Contains("（以下简称"))
         {
@@ -243,18 +247,18 @@ public partial class Contract : AnnouceDocument
         e.ExternalStartEndStringFeatureCandidatePreprocess = (x) => { return x + "合同"; };
         e.MaxLengthCheckPreprocess = str =>
         {
-            return EntityWordAnlayzeTool.TrimEnglish(str);
+            return Utility.TrimEnglish(str);
         };
         //最高级别的置信度，特殊处理器
         e.LeadingColonKeyWordCandidatePreprocess = str =>
         {
-            var c = Normalizer.ClearTrailing(TrimJianCheng(str));
+            var c = Normalizer.ClearTrailing(TrimEndJianCheng(str));
             return c;
         };
 
         e.CandidatePreprocess = str =>
         {
-            var c = Normalizer.ClearTrailing(TrimJianCheng(str));
+            var c = Normalizer.ClearTrailing(TrimEndJianCheng(str));
             var RightQMarkIdx = c.IndexOf("”");
             if (!(RightQMarkIdx != -1 && RightQMarkIdx != c.Length - 1))
             {
@@ -308,7 +312,7 @@ public partial class Contract : AnnouceDocument
             return CompanyNameLogic.AfterProcessFullName(x).secFullName;
         });
         e.MaxLength = ContractTraning.JiaFangES.MaxLength;
-        e.MaxLengthCheckPreprocess = EntityWordAnlayzeTool.TrimEnglish;
+        e.MaxLengthCheckPreprocess = Utility.TrimEnglish;
         e.MinLength = 3;
         e.Extract(this);
 
@@ -337,7 +341,7 @@ public partial class Contract : AnnouceDocument
             if (JiaFang.secFullName.Contains("招标代理")) continue; //特殊业务规则
             JiaFang.secFullName = JiaFang.secFullName.Replace("业主", String.Empty).Trim();
             JiaFang.secFullName = JiaFang.secFullName.Replace("招标单位", String.Empty).Trim();
-            if (EntityWordAnlayzeTool.TrimEnglish(JiaFang.secFullName).Length > ContractTraning.JiaFangES.MaxLength) continue;
+            if (Utility.TrimEnglish(JiaFang.secFullName).Length > ContractTraning.JiaFangES.MaxLength) continue;
             if (JiaFang.secFullName.Length < 3) continue;     //使用实际长度排除全英文的情况
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("甲方候补词(招标)：[" + JiaFang.secFullName + "]");
             CandidateWord.Add(JiaFang.secFullName);
@@ -354,7 +358,7 @@ public partial class Contract : AnnouceDocument
             var JiaFang = CompanyNameLogic.AfterProcessFullName(item.Value.Trim());
             JiaFang.secFullName = JiaFang.secFullName.Replace("业主", String.Empty).Trim();
             if (JiaFang.secFullName.Contains("招标代理")) continue; //特殊业务规则
-            if (EntityWordAnlayzeTool.TrimEnglish(JiaFang.secFullName).Length > ContractTraning.JiaFangES.MaxLength) continue;
+            if (Utility.TrimEnglish(JiaFang.secFullName).Length > ContractTraning.JiaFangES.MaxLength) continue;
             if (JiaFang.secFullName.Length < 3) continue;     //使用实际长度排除全英文的情况
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("甲方候补词(合同)：[" + JiaFang.secFullName + "]");
             CandidateWord.Add(JiaFang.secFullName);
@@ -412,9 +416,9 @@ public partial class Contract : AnnouceDocument
         foreach (var item in ExtractorText.CandidateWord)
         {
             var ProjectName = item.Value.Trim();
-            if (EntityWordAnlayzeTool.TrimEnglish(ProjectName).Length > ContractTraning.ProjectNameES.MaxLength) continue;
-            if (TrimJianCheng(ProjectName) == String.Empty) continue;
-            ProjectName = TrimJianCheng(ProjectName);
+            if (Utility.TrimEnglish(ProjectName).Length > ContractTraning.ProjectNameES.MaxLength) continue;
+            if (TrimEndJianCheng(ProjectName) == String.Empty) continue;
+            ProjectName = TrimEndJianCheng(ProjectName);
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("项目名称候补词(关键字)：[" + ProjectName + "]");
             return ProjectName;
         }
@@ -424,9 +428,9 @@ public partial class Contract : AnnouceDocument
         foreach (var item in Extractor.CandidateWord)
         {
             var ProjectName = item.Value.Trim();
-            if (EntityWordAnlayzeTool.TrimEnglish(ProjectName).Length > ContractTraning.ProjectNameES.MaxLength) continue;
-            if (TrimJianCheng(ProjectName) == String.Empty) continue;
-            ProjectName = TrimJianCheng(ProjectName);
+            if (Utility.TrimEnglish(ProjectName).Length > ContractTraning.ProjectNameES.MaxLength) continue;
+            if (TrimEndJianCheng(ProjectName) == String.Empty) continue;
+            ProjectName = TrimEndJianCheng(ProjectName);
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("项目名称候补词(关键字)：[" + ProjectName + "]");
             return ProjectName;
         }
@@ -455,7 +459,7 @@ public partial class Contract : AnnouceDocument
         foreach (var item in Extractor.CandidateWord)
         {
             var ProjectName = item.Value.Trim();
-            if (EntityWordAnlayzeTool.TrimEnglish(ProjectName).Length > ContractTraning.ProjectNameES.MaxLength) continue;
+            if (Utility.TrimEnglish(ProjectName).Length > ContractTraning.ProjectNameES.MaxLength) continue;
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("工程名称候补词（《XXX》）：[" + item + "]");
             return ProjectName;
         }
@@ -473,7 +477,7 @@ public partial class Contract : AnnouceDocument
         foreach (var item in ExtractDP.CandidateWord)
         {
             var ProjectName = item.Value.Trim();
-            if (EntityWordAnlayzeTool.TrimEnglish(ProjectName).Length > ContractTraning.ProjectNameES.MaxLength) continue;
+            if (Utility.TrimEnglish(ProjectName).Length > ContractTraning.ProjectNameES.MaxLength) continue;
             if (ProjectName.Length <= 4) continue;
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("工程候补词：[" + ProjectName + "]");
             return ProjectName;

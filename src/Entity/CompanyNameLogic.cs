@@ -281,7 +281,7 @@ public class CompanyNameLogic
             FullName = CompanyNameLogic.GetCompanyNameByShortName(FullName).secFullName;
         }
         //删除前导
-        FullName = EntityWordAnlayzeTool.TrimLeadingUL(FullName);
+        FullName = Utility.TrimLeadingUL(FullName);
         FullName = CutOtherLeadingWords(FullName);
         if (ShortName != String.Empty)
         {

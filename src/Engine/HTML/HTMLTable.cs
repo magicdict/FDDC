@@ -251,7 +251,7 @@ public partial class HTMLTable
     /// /// 分页表格的修复
     /// </summary>
     /// <param name="root"></param>
-    public static void FixSpiltTable(MyRootHtmlNode root, AnnouceDocument doc)
+    public static void FixSpiltTable(AnnouceDocument doc, string[] RowHeaderExclude = null)
     {
 
         for (int NextTableId = 2; NextTableId <= doc.root.TableList.Count; NextTableId++)
@@ -260,7 +260,7 @@ public partial class HTMLTable
             {
                 var FirstTablePos = -1;
                 var SecondTablePos = -1;
-                foreach (var p in root.Children)
+                foreach (var p in doc.root.Children)
                 {
                     foreach (var s in p.Children)
                     {
@@ -284,20 +284,20 @@ public partial class HTMLTable
                     //合并表
                     var offset = table.RowCount;
                     //修改第二张表格的数据
-                    foreach (var Nextitem in root.TableList[NextTableId])
+                    foreach (var Nextitem in doc.root.TableList[NextTableId])
                     {
                         tablerec = Nextitem.Split("|");
                         pos = tablerec[0].Split(",");
                         value = tablerec[1];
                         var newtablerec = (NextTableId - 1) + "," + (offset + int.Parse(pos[1])) + "," + pos[2] + "|" + value;
-                        root.TableList[NextTableId - 1].Add(newtablerec);
+                        doc.root.TableList[NextTableId - 1].Add(newtablerec);
                     }
-                    root.TableList[NextTableId].Clear();
-                    for (int i = 0; i < root.Children.Count; i++)
+                    doc.root.TableList[NextTableId].Clear();
+                    for (int i = 0; i < doc.root.Children.Count; i++)
                     {
-                        for (int j = 0; j < root.Children[i].Children.Count; j++)
+                        for (int j = 0; j < doc.root.Children[i].Children.Count; j++)
                         {
-                            var node = root.Children[i].Children[j];
+                            var node = doc.root.Children[i].Children[j];
                             if (node.TableId == NextTableId) node.TableId = -1;
                         }
                     }
@@ -307,11 +307,11 @@ public partial class HTMLTable
         }
 
         //1.是否存在连续表格 NextBrother
-        for (int i = 0; i < root.Children.Count; i++)
+        for (int i = 0; i < doc.root.Children.Count; i++)
         {
-            for (int j = 0; j < root.Children[i].Children.Count; j++)
+            for (int j = 0; j < doc.root.Children[i].Children.Count; j++)
             {
-                var node = root.Children[i].Children[j];
+                var node = doc.root.Children[i].Children[j];
                 if (node.TableId != -1)
                 {
                     if (node.NextBrother != null)
@@ -319,8 +319,8 @@ public partial class HTMLTable
                         if (node.NextBrother.TableId != -1)
                         {
                             var nextnode = node.NextBrother;
-                            var table = new HTMLTable(root.TableList[node.TableId]);
-                            var nexttable = new HTMLTable(root.TableList[nextnode.TableId]);
+                            var table = new HTMLTable(doc.root.TableList[node.TableId]);
+                            var nexttable = new HTMLTable(doc.root.TableList[nextnode.TableId]);
                             //Console.WriteLine("First  Table:" + table.RowCount + "X" + table.ColumnCount);
                             //Console.WriteLine("Second Table:" + nexttable.RowCount + "X" + nexttable.ColumnCount);
                             if (table.ColumnCount != nexttable.ColumnCount) continue;
@@ -370,42 +370,36 @@ public partial class HTMLTable
                             if (ComboCompanyNameColumnNo != -1)
                             {
                                 //补完:注意，不能全部补！！A表以公司名开头，B表以公司名结尾
-                                for (int k = 0; k < root.TableList[node.TableId].Count; k++)
+                                for (int k = 0; k < doc.root.TableList[node.TableId].Count; k++)
                                 {
-                                    var tablerec = root.TableList[node.TableId][k].Split("|");
+                                    var tablerec = doc.root.TableList[node.TableId][k].Split("|");
                                     var value = tablerec[1].Replace(" ", "");
                                     //A表以公司名开头
                                     if (ComboCompanyName.StartsWith(value))
                                     {
-                                        root.TableList[node.TableId][k] = tablerec[0] + "|" + ComboCompanyName;
+                                        doc.root.TableList[node.TableId][k] = tablerec[0] + "|" + ComboCompanyName;
                                     }
                                 }
-                                for (int k = 0; k < root.TableList[nextnode.TableId].Count; k++)
+                                for (int k = 0; k < doc.root.TableList[nextnode.TableId].Count; k++)
                                 {
-                                    var tablerec = root.TableList[nextnode.TableId][k].Split("|");
+                                    var tablerec = doc.root.TableList[nextnode.TableId][k].Split("|");
                                     var value = tablerec[1].Replace(" ", "");
                                     //A表以公司名开头
                                     if (ComboCompanyName.EndsWith(value))
                                     {
-                                        root.TableList[nextnode.TableId][k] = tablerec[0] + "|" + ComboCompanyName;
+                                        doc.root.TableList[nextnode.TableId][k] = tablerec[0] + "|" + ComboCompanyName;
                                     }
                                 }
                             }
 
-
-                            //特殊业务处理:增减持
+                            //表头中不可能出现的词语的检查
                             bool specaillogic = false;
-                            var BuyMethod = new string[]{"集中竞价交易","竞价交易","大宗交易","约定式购回"}.ToList();
-                            if (doc.GetType() == typeof(StockChange))
+                            for (int spCell = 1; spCell <= table.ColumnCount; spCell++)
                             {
-                                //增减持无表头的特殊处理
-                                for (int spCell = 1; spCell <= table.ColumnCount; spCell++)
+                                if (RowHeaderExclude.Contains(nexttable.CellValue(1, spCell)))
                                 {
-                                    if (BuyMethod.Contains(nexttable.CellValue(1, spCell)))
-                                    {
-                                        specaillogic = true;
-                                        break;
-                                    }
+                                    specaillogic = true;
+                                    break;
                                 }
                             }
 
@@ -413,15 +407,15 @@ public partial class HTMLTable
                             {
                                 var offset = table.RowCount;
                                 //修改第二张表格的数据
-                                foreach (var item in root.TableList[nextnode.TableId])
+                                foreach (var item in doc.root.TableList[nextnode.TableId])
                                 {
                                     var tablerec = item.Split("|");
                                     var pos = tablerec[0].Split(",");
                                     var value = tablerec[1];
                                     var newtablerec = node.TableId + "," + (offset + int.Parse(pos[1])) + "," + pos[2] + "|" + value;
-                                    root.TableList[node.TableId].Add(newtablerec);
+                                    doc.root.TableList[node.TableId].Add(newtablerec);
                                 }
-                                root.TableList[nextnode.TableId].Clear();
+                                doc.root.TableList[nextnode.TableId].Clear();
                                 nextnode.TableId = -1;
                                 //Console.WriteLine("Found Split Tables!!");
                             }
@@ -432,13 +426,13 @@ public partial class HTMLTable
         }
     }
 
-    public static void FixNullValue(MyRootHtmlNode root, AnnouceDocument doc)
+    public static void FixNullValue(AnnouceDocument doc)
     {
         var CompanyFullNameList = doc.companynamelist.Select((x) => { return x.secFullName; }).Distinct().ToList();
         var CompanyShortNameList = doc.companynamelist.Select((x) => { return x.secShortName; }).Distinct().ToList();
-        for (int tableId = 1; tableId <= root.TableList.Count; tableId++)
+        for (int tableId = 1; tableId <= doc.root.TableList.Count; tableId++)
         {
-            var table = root.TableList[tableId];
+            var table = doc.root.TableList[tableId];
             for (int checkItemIdx = 0; checkItemIdx < table.Count; checkItemIdx++)
             {
                 var tablerec = table[checkItemIdx].Split("|");
@@ -460,9 +454,9 @@ public partial class HTMLTable
             }
         }
 
-        for (int tableId = 1; tableId <= root.TableList.Count; tableId++)
+        for (int tableId = 1; tableId <= doc.root.TableList.Count; tableId++)
         {
-            var table = root.TableList[tableId];
+            var table = doc.root.TableList[tableId];
             for (int checkItemIdx = 0; checkItemIdx < table.Count; checkItemIdx++)
             {
                 var tablerec = table[checkItemIdx].Split("|");
