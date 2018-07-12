@@ -12,9 +12,9 @@ public class ContractTraning
     {
         Console.WriteLine("开始分析");
         //实体周围语境的统计
-        //AnlayzeEntitySurroundWords(); FDDC.Program.Training.Flush();
+        AnlayzeEntitySurroundWords(); FDDC.Program.Training.Flush();
         //实体周围语境的统计LTP角度
-        //AnlayzeEntitySurroundWordsLTP(); FDDC.Program.Training.Flush();
+        AnlayzeEntitySurroundWordsLTP(); FDDC.Program.Training.Flush();
         //实体自身属性的统计
         EntityWordPerperty(); FDDC.Program.Training.Flush();
         Console.WriteLine("结束分析");
@@ -35,10 +35,11 @@ public class ContractTraning
         Surround YiFangSurround = new Surround();
         Surround ProjectNameSurround = new Surround();
         Surround ContractNameSurround = new Surround();
-        LeadingWord JiaFangNameLeadingWord = new LeadingWord();
-        LeadingWord YiFangNameLeadingWord = new LeadingWord();
-        LeadingWord ProjectNameLeadingWord = new LeadingWord();
-        LeadingWord ContractNameLeadingWord = new LeadingWord();
+
+        LeadingColonWord JiaFangLeadingColonWord = new LeadingColonWord();
+        LeadingColonWord YiFangLeadingColonWord = new LeadingColonWord();
+        LeadingColonWord ProjectNameLeadingColonWord = new LeadingColonWord();
+        LeadingColonWord ContractNameLeadingColonWord = new LeadingColonWord();
         foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\html\"))
         {
             var fi = new System.IO.FileInfo(filename);
@@ -50,15 +51,32 @@ public class ContractTraning
             if (!string.IsNullOrEmpty(contract.YiFang)) YiFangSurround.AnlayzeEntitySurroundWords(doc, contract.YiFang);
             if (!string.IsNullOrEmpty(contract.ProjectName)) ProjectNameSurround.AnlayzeEntitySurroundWords(doc, contract.ProjectName);
             if (!string.IsNullOrEmpty(contract.ContractName)) ContractNameSurround.AnlayzeEntitySurroundWords(doc, contract.ContractName);
-            if (!string.IsNullOrEmpty(contract.JiaFang)) JiaFangNameLeadingWord.AnlayzeLeadingWord(doc, contract.JiaFang);
-            if (!string.IsNullOrEmpty(contract.YiFang)) YiFangNameLeadingWord.AnlayzeLeadingWord(doc, contract.YiFang);
-            if (!string.IsNullOrEmpty(contract.ProjectName)) ProjectNameLeadingWord.AnlayzeLeadingWord(doc, contract.ProjectName);
-            if (!string.IsNullOrEmpty(contract.ContractName)) ContractNameLeadingWord.AnlayzeLeadingWord(doc, contract.ContractName);
+
+            if (!string.IsNullOrEmpty(contract.JiaFang)) JiaFangLeadingColonWord.AnlayzeLeadingWord(doc, contract.JiaFang);
+            if (!string.IsNullOrEmpty(contract.YiFang)) YiFangLeadingColonWord.AnlayzeLeadingWord(doc, contract.YiFang);
+            if (!string.IsNullOrEmpty(contract.ProjectName)) ProjectNameLeadingColonWord.AnlayzeLeadingWord(doc, contract.ProjectName);
+            if (!string.IsNullOrEmpty(contract.ContractName)) ContractNameLeadingColonWord.AnlayzeLeadingWord(doc, contract.ContractName);
         }
-        JiaFangLeadingDict = Utility.ConvertRankToCIDict(Utility.FindTop(5, JiaFangNameLeadingWord.LeadingWordDict));
-        YiFangLeadingDict = Utility.ConvertRankToCIDict(Utility.FindTop(5, YiFangNameLeadingWord.LeadingWordDict));
-        ProjectNameLeadingDict = Utility.ConvertRankToCIDict(Utility.FindTop(5, ProjectNameLeadingWord.LeadingWordDict));
-        ContractNameLeadingDict = Utility.ConvertRankToCIDict(Utility.FindTop(5, ContractNameLeadingWord.LeadingWordDict));
+
+        JiaFangSurround.WriteToLog(Program.Training);
+        Program.Training.WriteLine("甲方：冒号前导词");
+        JiaFangLeadingColonWord.WriteToLog(Program.Training);
+        JiaFangLeadingDict = Utility.ConvertRankToCIDict(Utility.FindTop(5, JiaFangLeadingColonWord.LeadingWordDict));
+
+        YiFangSurround.WriteToLog(Program.Training);
+        Program.Training.WriteLine("乙方：冒号前导词");
+        YiFangLeadingColonWord.WriteToLog(Program.Training);
+        YiFangLeadingDict = Utility.ConvertRankToCIDict(Utility.FindTop(5, YiFangLeadingColonWord.LeadingWordDict));
+
+        ProjectNameSurround.WriteToLog(Program.Training);
+        Program.Training.WriteLine("工程名：冒号前导词");
+        ProjectNameLeadingColonWord.WriteToLog(Program.Training);
+        ProjectNameLeadingDict = Utility.ConvertRankToCIDict(Utility.FindTop(5, ProjectNameLeadingColonWord.LeadingWordDict));
+
+        ContractNameSurround.WriteToLog(Program.Training);
+        Program.Training.WriteLine("合同名：冒号前导词");
+        ContractNameLeadingColonWord.WriteToLog(Program.Training);
+        ContractNameLeadingDict = Utility.ConvertRankToCIDict(Utility.FindTop(5, ContractNameLeadingColonWord.LeadingWordDict));
     }
 
 
@@ -109,13 +127,24 @@ public class ContractTraning
 
 
         Program.Training.WriteLine("甲方附近词语分析（DP）：");
+        JiaFangDP.WriteToLog(Program.Training);
         Program.Training.WriteLine("甲方附近词语分析（SRL）：");
+        JiaFangSRL.WriteToLog(Program.Training);
+
         Program.Training.WriteLine("乙方附近词语分析（DP）：");
+        YiFnagDP.WriteToLog(Program.Training);
         Program.Training.WriteLine("乙方附近词语分析（SRL）：");
+        YiFnagSRL.WriteToLog(Program.Training);
+
         Program.Training.WriteLine("合同名附近词语分析（DP）：");
+        ContractNameDP.WriteToLog(Program.Training);
         Program.Training.WriteLine("合同名附近词语分析（SRL）：");
+        ContractNameSRL.WriteToLog(Program.Training);
+
         Program.Training.WriteLine("工程名附近词语分析（DP）：");
+        ProjectNameDP.WriteToLog(Program.Training);
         Program.Training.WriteLine("工程名附近词语分析（SRL）：");
+        ProjectNameSRL.WriteToLog(Program.Training);
     }
     #endregion
 
@@ -140,10 +169,12 @@ public class ContractTraning
             ContractES.PutEntityWordPerperty(contract.ContractName);
             ProjectNameES.PutEntityWordPerperty(contract.ProjectName);
         }
+
         JiaFangES.Commit();
         YiFangES.Commit();
         ContractES.Commit();
         ProjectNameES.Commit();
+
         Program.Training.WriteLine("甲方统计数据");
         JiaFangES.WriteToLog(Program.Training);
         Program.Training.WriteLine("乙方统计数据");

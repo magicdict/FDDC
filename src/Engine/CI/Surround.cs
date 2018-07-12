@@ -78,4 +78,26 @@ public class Surround
         }
         segmenter.DeleteWord(KeyWord);
     }
+
+    public void WriteToLog(StreamWriter logger)
+    {
+        var ranks = Utility.FindTop(5, LeadingWordDict);
+        logger.WriteLine("前导词语：");
+        foreach (var rank in ranks)
+        {
+            logger.WriteLine(rank.ToString());
+        }
+        ranks = Utility.FindTop(5, LeadingVerbWordDict);
+        logger.WriteLine("前导动词：");
+        foreach (var rank in ranks)
+        {
+            logger.WriteLine(rank.ToString());
+        }
+        ranks = Utility.FindTop(5, TrailingWordDict);
+        logger.WriteLine("后置词语：");
+        foreach (var rank in ranks)
+        {
+            logger.WriteLine(rank.ToString());
+        }
+    }
 }

@@ -4,7 +4,7 @@ using System.IO;
 using JiebaNet.Segmenter;
 using static Utility;
 
-public class LeadingWord
+public class LeadingColonWord
 {
     public Dictionary<string, int> LeadingWordDict = new Dictionary<String, int>();
     JiebaNet.Segmenter.PosSeg.PosSegmenter pos = new JiebaNet.Segmenter.PosSeg.PosSegmenter();
@@ -53,4 +53,14 @@ public class LeadingWord
 
         }
     }
+
+    public void WriteToLog(StreamWriter logger)
+    {
+        var ranks = Utility.FindTop(5, LeadingWordDict);
+        foreach (var rank in ranks)
+        {
+            logger.WriteLine(rank.ToString());
+        }
+    }
+
 }

@@ -233,4 +233,14 @@ public class LTPTrainingSRL
         }
         return list;
     }
+
+        public void WriteToLog(StreamWriter logger)
+    {
+        var ranks = Utility.FindTop(5, WordArgDict);
+        logger.WriteLine("前导词语：");
+        foreach (var rank in ranks)
+        {
+            logger.WriteLine(rank.ToString());
+        }
+    }
 }
