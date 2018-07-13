@@ -53,7 +53,7 @@ namespace FDDC
             PosNS.ImportNS(@"Resources" + Path.DirectorySeparatorChar + "ns.dict");
             CIRecord = new StreamWriter("CI.log");
             //预处理
-            Traning(); 
+            Traning();
             Evaluator = new StreamWriter("Evaluator.log");
             Score = new StreamWriter(@"Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
             Extract();
@@ -104,6 +104,12 @@ namespace FDDC
             var IncreaseStockPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "定增";
             var IncreaseStockPath_TEST = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "定增";
 
+            var IsRunReorganization = false;
+            var IsRunReorganization_TEST = false;
+            var ReorganizationPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round2_train_20180715" + Path.DirectorySeparatorChar + "资产重组";
+            var ReorganizationPath_TEST = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round2_test_a_20180715" + Path.DirectorySeparatorChar + "资产重组";
+
+
             if (IsRunContract)
             {
                 //合同处理
@@ -116,7 +122,7 @@ namespace FDDC
                     var Bag = new ConcurrentBag<struContract>();    //线程安全版本
                     Parallel.ForEach(System.IO.Directory.GetFiles(ContractPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar), (filename) =>
                     {
-                        var contract = new Contract(filename);
+                        var contract = new Contract();
                         foreach (var item in contract.Extract())
                         {
                             Bag.Add(item);
@@ -133,7 +139,7 @@ namespace FDDC
                 {
                     foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
                     {
-                        var contract = new Contract(filename);
+                        var contract = new Contract();
                         foreach (var item in contract.Extract())
                         {
                             Contract_Result.Add(item);
@@ -156,7 +162,7 @@ namespace FDDC
                 {
                     Parallel.ForEach(System.IO.Directory.GetFiles(ContractPath_TEST + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar), (filename) =>
                     {
-                        var contract = new Contract(filename);
+                        var contract = new Contract();
                         foreach (var item in contract.Extract())
                         {
                             Contract_Result.Add(item);
@@ -172,7 +178,88 @@ namespace FDDC
                 {
                     foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TEST + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
                     {
-                        var contract = new Contract(filename);
+                        var contract = new Contract();
+                        foreach (var item in contract.Extract())
+                        {
+                            Contract_Result.Add(item);
+                            ResultCSV.WriteLine(item.ConvertToString(item));
+                        }
+                    }
+                }
+                ResultCSV.Close();
+                Console.WriteLine("Complete Extract Info Contract");
+            }
+
+
+            if (IsRunReorganization)
+            {
+                //资产重组
+                Console.WriteLine("Start To Extract Info Contract TRAIN");
+                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong_train.txt", false, utf8WithoutBom);
+                ResultCSV.WriteLine("公告id\t甲方\t乙方\t项目名称\t合同名称\t合同金额上限\t合同金额下限\t联合体成员");
+                var Contract_Result = new List<struContract>();
+                if (IsMultiThreadMode)
+                {
+                    var Bag = new ConcurrentBag<struContract>();    //线程安全版本
+                    Parallel.ForEach(System.IO.Directory.GetFiles(ReorganizationPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar), (filename) =>
+                    {
+                        var contract = new Contract();
+                        foreach (var item in contract.Extract())
+                        {
+                            Bag.Add(item);
+                        }
+                    });
+                    Contract_Result = Bag.ToList();
+                    Contract_Result.Sort((x, y) => { return x.id.CompareTo(y.id); });
+                    foreach (var item in Contract_Result)
+                    {
+                        ResultCSV.WriteLine(item.ConvertToString(item));
+                    }
+                }
+                else
+                {
+                    foreach (var filename in System.IO.Directory.GetFiles(ReorganizationPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
+                    {
+                        var contract = new Contract();
+                        foreach (var item in contract.Extract())
+                        {
+                            Contract_Result.Add(item);
+                            ResultCSV.WriteLine(item.ConvertToString(item));
+                        }
+                    }
+                }
+
+                ResultCSV.Close();
+                Evaluate.EvaluateContract(Contract_Result);
+                Console.WriteLine("Complete Extract Info Contract");
+            }
+            if (IsRunReorganization_TEST)
+            {
+                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong.txt", false, utf8WithoutBom);
+                ResultCSV.WriteLine("公告id\t甲方\t乙方\t项目名称\t合同名称\t合同金额上限\t合同金额下限\t联合体成员");
+                var Contract_Result = new List<struContract>();
+                Console.WriteLine("Start To Extract Info Contract TEST");
+                if (IsMultiThreadMode)
+                {
+                    Parallel.ForEach(System.IO.Directory.GetFiles(ReorganizationPath_TEST + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar), (filename) =>
+                    {
+                        var contract = new Contract();
+                        foreach (var item in contract.Extract())
+                        {
+                            Contract_Result.Add(item);
+                        }
+                    });
+                    Contract_Result.Sort((x, y) => { return x.id.CompareTo(y.id); });
+                    foreach (var item in Contract_Result)
+                    {
+                        ResultCSV.WriteLine(item.ConvertToString(item));
+                    }
+                }
+                else
+                {
+                    foreach (var filename in System.IO.Directory.GetFiles(ReorganizationPath_TEST + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
+                    {
+                        var contract = new Contract();
                         foreach (var item in contract.Extract())
                         {
                             Contract_Result.Add(item);
@@ -194,7 +281,7 @@ namespace FDDC
                 var StockChange_Result = new List<struStockChange>();
                 foreach (var filename in System.IO.Directory.GetFiles(StockChangePath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
                 {
-                    var stockchange = new StockChange(filename);
+                    var stockchange = new StockChange();
                     foreach (var item in stockchange.Extract())
                     {
                         StockChange_Result.Add(item);
@@ -212,7 +299,7 @@ namespace FDDC
                 Console.WriteLine("Start To Extract Info StockChange TEST");
                 foreach (var filename in System.IO.Directory.GetFiles(StockChangePath_TEST + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
                 {
-                    var stockchange = new StockChange(filename);
+                    var stockchange = new StockChange();
                     foreach (var item in stockchange.Extract())
                     {
                         ResultCSV.WriteLine(item.ConvertToString(item));
@@ -234,7 +321,7 @@ namespace FDDC
                 {
                     Parallel.ForEach(System.IO.Directory.GetFiles(IncreaseStockPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar), (filename) =>
                     {
-                        var increasestock = new IncreaseStock(filename);
+                        var increasestock = new IncreaseStock();
                         foreach (var item in increasestock.Extract())
                         {
                             Increase_Result.Add(item);
@@ -250,7 +337,7 @@ namespace FDDC
                 {
                     foreach (var filename in System.IO.Directory.GetFiles(IncreaseStockPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
                     {
-                        var increasestock = new IncreaseStock(filename);
+                        var increasestock = new IncreaseStock();
                         foreach (var item in increasestock.Extract())
                         {
                             Increase_Result.Add(item);
@@ -262,7 +349,6 @@ namespace FDDC
                 Evaluate.EvaluateIncreaseStock(Increase_Result);
                 Console.WriteLine("Complete Extract Info IncreaseStock");
             }
-
             if (IsRunIncreaseStock_TEST)
             {
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "dingzeng.txt", false, utf8WithoutBom);
@@ -270,7 +356,7 @@ namespace FDDC
                 Console.WriteLine("Start To Extract Info IncreaseStock TEST");
                 foreach (var filename in System.IO.Directory.GetFiles(IncreaseStockPath_TEST + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
                 {
-                    var increasestock = new IncreaseStock(filename);
+                    var increasestock = new IncreaseStock();
                     foreach (var item in increasestock.Extract())
                     {
                         ResultCSV.WriteLine(item.ConvertToString(item));
@@ -279,6 +365,55 @@ namespace FDDC
                 ResultCSV.Close();
                 Console.WriteLine("Complete Extract Info IncreaseStock");
             }
+        }
+
+        /// <summary>
+        /// 运行
+        /// </summary>
+        /// <param name="path"></param>
+        /// <typeparam name="T">公告类型</typeparam>
+        /// <typeparam name="S">记录类型</typeparam>
+        public static void Run<T>(string path) where T : AnnouceDocument, new()
+        {
+            //合同处理
+            Console.WriteLine("Start To Extract Info Contract TRAIN");
+            StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong_train.txt", false, utf8WithoutBom);
+            ResultCSV.WriteLine("公告id\t甲方\t乙方\t项目名称\t合同名称\t合同金额上限\t合同金额下限\t联合体成员");
+            var Contract_Result = new List<IRecord>();
+            if (IsMultiThreadMode)
+            {
+                var Bag = new ConcurrentBag<IRecord>();    //线程安全版本
+                Parallel.ForEach(System.IO.Directory.GetFiles(path + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar), (filename) =>
+                {
+                    var contract = new T();
+                    foreach (var item in contract.Extract())
+                    {
+                        Bag.Add(item);
+                    }
+                });
+                Contract_Result = Bag.ToList();
+                //Contract_Result.Sort((x, y) => { return x.id.CompareTo(y.id); });
+                foreach (var item in Contract_Result)
+                {
+                    ResultCSV.WriteLine(item.ConvertToString());
+                }
+            }
+            else
+            {
+                foreach (var filename in System.IO.Directory.GetFiles(path + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
+                {
+                    var contract = new T();
+                    foreach (var item in contract.Extract())
+                    {
+                        Contract_Result.Add(item);
+                        ResultCSV.WriteLine(item.ConvertToString());
+                    }
+                }
+            }
+
+            ResultCSV.Close();
+            //Evaluate.EvaluateContract(Contract_Result);
+            Console.WriteLine("Complete Extract Info Contract");
         }
 
 
@@ -296,12 +431,6 @@ namespace FDDC
                     if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("SRL：" + m);
                 }
             }
-            //var s0 = "公司子公司山东省路桥集团有限公司（简称“路桥集团”）与山东高速建设集团有限公司（简称“建设集团”）就蓬莱西海岸海洋文化旅游产业聚集区区域建设用海工程项目（简称“本项目”）签署了前期工作委托协议（简称“本协议”）。";
-            //var BracketList = RegularTool.GetChineseBrackets(s0);
-            //var s1 = RegularTool.TrimChineseBrackets(s0);
-            //var contract = new Contract(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\round1_train_20180518\重大合同\html\1450.html");
-            //var result = contract.Extract();
-            //IncreaseStock.Extract(Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增\html\15304036");
         }
     }
 }

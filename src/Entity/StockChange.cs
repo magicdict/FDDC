@@ -11,11 +11,6 @@ using static LocateProperty;
 
 public class StockChange : AnnouceDocument
 {
-
-    public StockChange(string htmlFileName) : base(htmlFileName)
-    {
-
-    }
     public static Dictionary<String, String> PublishTime = new Dictionary<String, String>();
     public static void ImportPublishTime()
     {
@@ -103,7 +98,7 @@ public class StockChange : AnnouceDocument
             record += Normalizer.NormalizeNumberResult(increaseStock.ChangePrice) + "\t";
             record += Normalizer.NormalizeNumberResult(increaseStock.ChangeNumber) + "\t";
             record += Normalizer.NormalizeNumberResult(increaseStock.HoldNumberAfterChange) + "\t";
-            record += Normalizer.NormalizeNumberResult(increaseStock.HoldPercentAfterChange) + "\t";
+            record += Normalizer.NormalizeNumberResult(increaseStock.HoldPercentAfterChange);
             return record;
         }
     }

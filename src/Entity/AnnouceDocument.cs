@@ -39,7 +39,7 @@ public class AnnouceDocument
 
     public String TextFileName;
 
-    public AnnouceDocument(string htmlFileName)
+    public void Init(string htmlFileName)
     {
         var fi = new System.IO.FileInfo(htmlFileName);
         TextFileName = htmlFileName.Replace("html", "txt");
@@ -153,6 +153,12 @@ public class AnnouceDocument
         //NULL的对应
         HTMLTable.FixNullValue(this);
     }
+
+    public List<IRecord> Extract() 
+    {
+        return new List<IRecord>();
+    }
+
     ParagraghLoc SentenceLocate(int PosId)
     {
         var paragragh = new ParagraghLoc();

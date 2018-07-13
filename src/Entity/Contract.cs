@@ -9,10 +9,6 @@ using static LocateProperty;
 
 public partial class Contract : AnnouceDocument
 {
-    public Contract(string htmlFileName) : base(htmlFileName)
-    {
-
-    }
     public struct struContract
     {
         //公告id

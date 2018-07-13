@@ -8,10 +8,6 @@ using static CompanyNameLogic;
 
 public class IncreaseStock : AnnouceDocument
 {
-    public IncreaseStock(string htmlFileName) : base(htmlFileName)
-    {
-
-    }
 
     public struct struIncreaseStock
     {

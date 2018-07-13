@@ -46,7 +46,8 @@ public class ContractTraning
             var Id = fi.Name.Replace(".html", String.Empty);
             if (TraningDataset.GetContractById(Id).Count == 0) continue;
             var contract = TraningDataset.GetContractById(Id).First();
-            var doc = new AnnouceDocument(filename);
+            var doc = new Contract();
+            doc.Init(filename);
             if (!string.IsNullOrEmpty(contract.JiaFang)) JiaFangSurround.AnlayzeEntitySurroundWords(doc, contract.JiaFang);
             if (!string.IsNullOrEmpty(contract.YiFang)) YiFangSurround.AnlayzeEntitySurroundWords(doc, contract.YiFang);
             if (!string.IsNullOrEmpty(contract.ProjectName)) ProjectNameSurround.AnlayzeEntitySurroundWords(doc, contract.ProjectName);
@@ -100,7 +101,8 @@ public class ContractTraning
             var Id = fi.Name.Replace(".html", String.Empty);
             if (TraningDataset.GetContractById(Id).Count == 0) continue;
             var contract = TraningDataset.GetContractById(Id).First();
-            var c = new Contract(filename);
+            var c = new Contract();
+            c.Init(filename);
             if (!string.IsNullOrEmpty(contract.JiaFang))
             {
                 JiaFangDP.Training(c.Dplist, contract.JiaFang);
