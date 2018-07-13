@@ -8,74 +8,12 @@ using static CompanyNameLogic;
 
 public class IncreaseStock : AnnouceDocument
 {
-
-    public struct struIncreaseStock
-    {
-        //公告id
-        public string id;
-
-        //增发对象
-        public string PublishTarget;
-
-        //增发数量
-        public string IncreaseNumber;
-
-        //增发金额
-        public string IncreaseMoney;
-
-        //锁定期（一般原则：定价36个月，竞价12个月）
-        //但是这里牵涉到不同对象不同锁定期的可能性
-        public string FreezeYear;
-
-        //认购方式（现金股票）
-        public string BuyMethod;
-        public string GetKey()
-        {
-            return id + ":" + PublishTarget.NormalizeKey();
-        }
-        public static struIncreaseStock ConvertFromString(string str)
-        {
-            var Array = str.Split("\t");
-            var c = new struIncreaseStock();
-            c.id = Array[0];
-            c.PublishTarget = Array[1];
-            if (Array.Length > 2)
-            {
-                c.IncreaseNumber = Array[2];
-            }
-            if (Array.Length > 3)
-            {
-                c.IncreaseMoney = Array[3];
-            }
-            if (Array.Length > 4)
-            {
-                c.FreezeYear = Array[4];
-            }
-            if (Array.Length > 5)
-            {
-                c.BuyMethod = Array[5];
-            }
-            return c;
-        }
-
-
-        public string ConvertToString(struIncreaseStock increaseStock)
-        {
-            var record = increaseStock.id + "\t" +
-            increaseStock.PublishTarget + "\t";
-            record += Normalizer.NormalizeNumberResult(increaseStock.IncreaseNumber) + "\t";
-            record += Normalizer.NormalizeNumberResult(increaseStock.IncreaseMoney) + "\t";
-            record += increaseStock.FreezeYear + "\t" + increaseStock.BuyMethod;
-            return record;
-        }
-    }
-
-    public List<struIncreaseStock> Extract()
+    public new List<IncreaseStockRec> Extract()
     {
         //认购方式
         var buyMethod = getBuyMethod(root);
         //样本
-        var increaseStock = new struIncreaseStock();
+        var increaseStock = new IncreaseStockRec();
         increaseStock.id = Id;
         increaseStock.BuyMethod = buyMethod;
         var list = GetMultiTarget(root, increaseStock);
@@ -83,7 +21,7 @@ public class IncreaseStock : AnnouceDocument
     }
 
 
-    List<struIncreaseStock> GetMultiTarget(HTMLEngine.MyRootHtmlNode root, struIncreaseStock SampleincreaseStock)
+    List<IncreaseStockRec> GetMultiTarget(HTMLEngine.MyRootHtmlNode root, IncreaseStockRec SampleincreaseStock)
     {
         var PublishTarget = new TableSearchTitleRule();
         PublishTarget.Name = "认购对象";
@@ -123,10 +61,10 @@ public class IncreaseStock : AnnouceDocument
         Rules.Add(FreezeYear);
         Rules.Add(BuyPrice);
         var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, true);
-        var increaseStocklist = new List<struIncreaseStock>();
+        var increaseStocklist = new List<IncreaseStockRec>();
         foreach (var item in result)
         {
-            var increase = new struIncreaseStock();
+            var increase = new IncreaseStockRec();
             increase.id = SampleincreaseStock.id;
             increase.BuyMethod = SampleincreaseStock.BuyMethod;
             increase.PublishTarget = item[0].RawData;

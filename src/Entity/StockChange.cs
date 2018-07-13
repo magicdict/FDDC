@@ -29,86 +29,10 @@ public class StockChange : AnnouceDocument
         }
     }
 
-    public struct struStockChange
-    {
-        //公告id
-        public string id;
-
-        //股东全称
-        public string HolderFullName;
-
-        //股东简称
-        public string HolderShortName;
-
-        //变动截止日期
-        public string ChangeEndDate;
-
-        //变动价格
-        public string ChangePrice;
-
-        //变动数量
-        public string ChangeNumber;
-
-        //变动后持股数
-        public string HoldNumberAfterChange;
-
-        //变动后持股比例
-        public string HoldPercentAfterChange;
-
-        public string GetKey()
-        {
-            return id + ":" + HolderFullName.NormalizeKey() + ":" + ChangeEndDate;
-        }
-        public static struStockChange ConvertFromString(string str)
-        {
-            var Array = str.Split("\t");
-            var c = new struStockChange();
-            c.id = Array[0];
-            c.HolderFullName = Array[1];
-            c.HolderShortName = Array[2];
-            if (Array.Length > 3)
-            {
-                c.ChangeEndDate = Array[3];
-            }
-            if (Array.Length > 4)
-            {
-                c.ChangePrice = Array[4];
-            }
-            if (Array.Length > 5)
-            {
-                c.ChangeNumber = Array[5];
-            }
-            if (Array.Length > 6)
-            {
-                c.HoldNumberAfterChange = Array[6];
-            }
-            if (Array.Length == 8)
-            {
-                c.HoldPercentAfterChange = Array[7];
-            }
-            return c;
-        }
-
-        public string ConvertToString(struStockChange increaseStock)
-        {
-            var record = increaseStock.id + "\t" +
-            increaseStock.HolderFullName + "\t" +
-            increaseStock.HolderShortName + "\t" +
-            increaseStock.ChangeEndDate + "\t";
-            record += Normalizer.NormalizeNumberResult(increaseStock.ChangePrice) + "\t";
-            record += Normalizer.NormalizeNumberResult(increaseStock.ChangeNumber) + "\t";
-            record += Normalizer.NormalizeNumberResult(increaseStock.HoldNumberAfterChange) + "\t";
-            record += Normalizer.NormalizeNumberResult(increaseStock.HoldPercentAfterChange);
-            return record;
-        }
-    }
-
-
-
-    public List<struStockChange> Extract()
+    public new List<StockChangeRec> Extract()
     {
         var DateRange = LocateDateRange(root);
-        var list = new List<struStockChange>();
+        var list = new List<StockChangeRec>();
         var Name = GetHolderName();
         if (!String.IsNullOrEmpty(Name.FullName) && !String.IsNullOrEmpty(Name.ShortName))
         {
@@ -122,7 +46,7 @@ public class StockChange : AnnouceDocument
         //list = ExtractFromTableByContent();
         if (list.Count > 0) return list;    //如果这里直接返回，由于召回率等因素，可以细微提高成绩
 
-        var stockchange = new struStockChange();
+        var stockchange = new StockChangeRec();
         //公告ID
         stockchange.id = Id;
         //if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("公告ID:" + stockchange.id);
@@ -153,9 +77,9 @@ public class StockChange : AnnouceDocument
         return list;
     }
 
-    List<struStockChange> ExtractFromTableByContent()
+    List<StockChangeRec> ExtractFromTableByContent()
     {
-        var stockchangelist = new List<struStockChange>();
+        var stockchangelist = new List<StockChangeRec>();
         var rule = new TableSearchContentRule();
         rule.Content = new string[] { "集中竞价交易", "竞价交易", "大宗交易", "约定式购回" }.ToList();
         rule.IsContentEq = true;
@@ -173,7 +97,7 @@ public class StockChange : AnnouceDocument
     /// <param name="root"></param>
     /// <param name="id"></param>
     /// <returns></returns>
-    List<struStockChange> ExtractFromTable()
+    List<StockChangeRec> ExtractFromTable()
     {
         var StockHolderRule = new TableSearchTitleRule();
         StockHolderRule.Name = "股东全称";
@@ -228,13 +152,13 @@ public class StockChange : AnnouceDocument
             result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, false);
             if (result.Count == 0)
             {
-                return new List<struStockChange>();
+                return new List<StockChangeRec>();
             }
             var NewResult = new List<CellInfo[]>();
             var Name = GetHolderName();
             if (String.IsNullOrEmpty(Name.FullName) && String.IsNullOrEmpty(Name.ShortName))
             {
-                return new List<struStockChange>();
+                return new List<StockChangeRec>();
             }
             foreach (var item in result)
             {
@@ -246,10 +170,10 @@ public class StockChange : AnnouceDocument
 
         var holderafterlist = GetHolderAfter();
 
-        var stockchangelist = new List<struStockChange>();
+        var stockchangelist = new List<StockChangeRec>();
         foreach (var rec in result)
         {
-            var stockchange = new struStockChange();
+            var stockchange = new StockChangeRec();
             stockchange.id = Id;
 
             var ModifyName = rec[0].RawData;
@@ -334,7 +258,7 @@ public class StockChange : AnnouceDocument
 
         //寻找所有的股东全称
         var namelist = stockchangelist.Select(x => x.HolderFullName).Distinct().ToList();
-        var newRec = new List<struStockChange>();
+        var newRec = new List<StockChangeRec>();
         foreach (var name in namelist)
         {
             var stocklist = stockchangelist.Where((x) => { return x.HolderFullName == name; }).ToList();

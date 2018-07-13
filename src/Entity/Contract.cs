@@ -9,86 +9,16 @@ using static LocateProperty;
 
 public partial class Contract : AnnouceDocument
 {
-    public struct struContract
-    {
-        //公告id
-        public string id;
-
-        //甲方
-        public string JiaFang;
-
-        //乙方
-        public string YiFang;
-
-        //项目名称
-        public string ProjectName;
-
-        //合同名称
-        public string ContractName;
-
-        //合同金额上限
-        public string ContractMoneyUpLimit;
-
-        //合同金额下限
-        public string ContractMoneyDownLimit;
-
-        //联合体成员
-        public string UnionMember;
-
-        public string GetKey()
-        {
-            //去空格转小写
-            return id + ":" + JiaFang.NormalizeKey() + ":" + YiFang.NormalizeKey();
-        }
-        public static struContract ConvertFromString(string str)
-        {
-            var Array = str.Split("\t");
-            var c = new struContract();
-            c.id = Array[0];
-            c.JiaFang = Array[1];
-            c.YiFang = Array[2];
-            c.ProjectName = Array[3];
-            if (Array.Length > 4)
-            {
-                c.ContractName = Array[4];
-            }
-            if (Array.Length > 6)
-            {
-                c.ContractMoneyUpLimit = Array[5];
-                c.ContractMoneyDownLimit = Array[6];
-            }
-            if (Array.Length == 8)
-            {
-                c.UnionMember = Array[7];
-            }
-            return c;
-        }
-
-        public string ConvertToString(struContract contract)
-        {
-            var record = contract.id + "\t" +
-                         contract.JiaFang + "\t" +
-                         contract.YiFang + "\t" +
-                         contract.ProjectName + "\t" +
-                         contract.ContractName + "\t";
-            record += contract.ContractMoneyUpLimit + "\t";
-            record += contract.ContractMoneyDownLimit + "\t";
-            record += contract.UnionMember;
-            return record;
-        }
-    }
-
-
     List<String> ProjectNameList = new List<String>();
 
-    public List<struContract> Extract()
+    public new List<ContractRec> Extract()
     {
         ProjectNameList = ProjectNameLogic.GetProjectNameByCutWord(root);
         foreach (var m in ProjectNameList)
         {
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("工程名：" + m);
         }
-        var ContractList = new List<struContract>();
+        var ContractList = new List<ContractRec>();
         //主合同的抽取
         ContractList.Add(ExtractSingle(root, Id));
         return ContractList;
@@ -96,7 +26,7 @@ public partial class Contract : AnnouceDocument
 
     public string contractType = String.Empty;
 
-    struContract ExtractSingle(MyRootHtmlNode root, String Id)
+    ContractRec ExtractSingle(MyRootHtmlNode root, String Id)
     {
         contractType = String.Empty;
         foreach (var paragrah in root.Children)
@@ -122,7 +52,7 @@ public partial class Contract : AnnouceDocument
             Console.WriteLine("contractType Null:" + Id);
         }
 
-        var contract = new struContract();
+        var contract = new ContractRec();
         //公告ID
         contract.id = Id;
         //甲方

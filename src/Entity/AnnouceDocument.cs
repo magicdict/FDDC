@@ -154,9 +154,9 @@ public class AnnouceDocument
         HTMLTable.FixNullValue(this);
     }
 
-    public List<IRecord> Extract() 
+    public List<RecordBase> Extract() 
     {
-        return new List<IRecord>();
+        return new List<RecordBase>();
     }
 
     ParagraghLoc SentenceLocate(int PosId)

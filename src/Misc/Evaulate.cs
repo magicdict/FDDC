@@ -9,7 +9,7 @@ using static Contract;
 public static class Evaluate
 {
 
-    public static void EvaluateContract(List<struContract> resultDataset)
+    public static void EvaluateContract(List<ContractRec> resultDataset)
     {
         //POS:标准数据集中该字段不为空的记录数
         //ACT:选手提交结果中该字段不为空的记录数
@@ -103,7 +103,7 @@ public static class Evaluate
         Program.Score.Flush();
     }
 
-    public static void EvaluateIncreaseStock(List<struIncreaseStock> result)
+    public static void EvaluateIncreaseStock(List<IncreaseStockRec> result)
     {
         //POS:标准数据集中该字段不为空的记录数
         //ACT:选手提交结果中该字段不为空的记录数
@@ -215,7 +215,12 @@ public static class Evaluate
         Program.Score.Flush();
     }
 
-    public static void EvaluateStockChange(List<struStockChange> result)
+    public static void EvaluateReorganization(List<ReorganizationRec> result)
+    {
+        
+    }
+
+    public static void EvaluateStockChange(List<StockChangeRec> result)
     {
         //POS:标准数据集中该字段不为空的记录数
         //ACT:选手提交结果中该字段不为空的记录数

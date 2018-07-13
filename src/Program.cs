@@ -4,12 +4,12 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
 using System.Linq;
-using static Contract;
-using static IncreaseStock;
-using static StockChange;
 using JiebaNet.Segmenter;
 using JiebaNet.Segmenter.PosSeg;
 using System.Threading.Tasks;
+using static Contract;
+using static IncreaseStock;
+using static StockChange;
 
 namespace FDDC
 {
@@ -115,254 +115,66 @@ namespace FDDC
                 //合同处理
                 Console.WriteLine("Start To Extract Info Contract TRAIN");
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong_train.txt", false, utf8WithoutBom);
-                ResultCSV.WriteLine("公告id\t甲方\t乙方\t项目名称\t合同名称\t合同金额上限\t合同金额下限\t联合体成员");
-                var Contract_Result = new List<struContract>();
-                if (IsMultiThreadMode)
-                {
-                    var Bag = new ConcurrentBag<struContract>();    //线程安全版本
-                    Parallel.ForEach(System.IO.Directory.GetFiles(ContractPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar), (filename) =>
-                    {
-                        var contract = new Contract();
-                        foreach (var item in contract.Extract())
-                        {
-                            Bag.Add(item);
-                        }
-                    });
-                    Contract_Result = Bag.ToList();
-                    Contract_Result.Sort((x, y) => { return x.id.CompareTo(y.id); });
-                    foreach (var item in Contract_Result)
-                    {
-                        ResultCSV.WriteLine(item.ConvertToString(item));
-                    }
-                }
-                else
-                {
-                    foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
-                    {
-                        var contract = new Contract();
-                        foreach (var item in contract.Extract())
-                        {
-                            Contract_Result.Add(item);
-                            ResultCSV.WriteLine(item.ConvertToString(item));
-                        }
-                    }
-                }
-
-                ResultCSV.Close();
-                Evaluate.EvaluateContract(Contract_Result);
+                var Contract_Result = Run<Contract>(ContractPath_TRAIN, ResultCSV);
+                Evaluate.EvaluateContract(Contract_Result.Select((x) => (ContractRec)x).ToList());
                 Console.WriteLine("Complete Extract Info Contract");
             }
             if (IsRunContract_TEST)
             {
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong.txt", false, utf8WithoutBom);
-                ResultCSV.WriteLine("公告id\t甲方\t乙方\t项目名称\t合同名称\t合同金额上限\t合同金额下限\t联合体成员");
-                var Contract_Result = new List<struContract>();
                 Console.WriteLine("Start To Extract Info Contract TEST");
-                if (IsMultiThreadMode)
-                {
-                    Parallel.ForEach(System.IO.Directory.GetFiles(ContractPath_TEST + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar), (filename) =>
-                    {
-                        var contract = new Contract();
-                        foreach (var item in contract.Extract())
-                        {
-                            Contract_Result.Add(item);
-                        }
-                    });
-                    Contract_Result.Sort((x, y) => { return x.id.CompareTo(y.id); });
-                    foreach (var item in Contract_Result)
-                    {
-                        ResultCSV.WriteLine(item.ConvertToString(item));
-                    }
-                }
-                else
-                {
-                    foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TEST + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
-                    {
-                        var contract = new Contract();
-                        foreach (var item in contract.Extract())
-                        {
-                            Contract_Result.Add(item);
-                            ResultCSV.WriteLine(item.ConvertToString(item));
-                        }
-                    }
-                }
-                ResultCSV.Close();
+                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong.txt", false, utf8WithoutBom);
+                var Contract_Result = Run<Contract>(ContractPath_TEST, ResultCSV);
                 Console.WriteLine("Complete Extract Info Contract");
             }
 
-
+            //资产重组
             if (IsRunReorganization)
             {
-                //资产重组
                 Console.WriteLine("Start To Extract Info Contract TRAIN");
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong_train.txt", false, utf8WithoutBom);
-                ResultCSV.WriteLine("公告id\t甲方\t乙方\t项目名称\t合同名称\t合同金额上限\t合同金额下限\t联合体成员");
-                var Contract_Result = new List<struContract>();
-                if (IsMultiThreadMode)
-                {
-                    var Bag = new ConcurrentBag<struContract>();    //线程安全版本
-                    Parallel.ForEach(System.IO.Directory.GetFiles(ReorganizationPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar), (filename) =>
-                    {
-                        var contract = new Contract();
-                        foreach (var item in contract.Extract())
-                        {
-                            Bag.Add(item);
-                        }
-                    });
-                    Contract_Result = Bag.ToList();
-                    Contract_Result.Sort((x, y) => { return x.id.CompareTo(y.id); });
-                    foreach (var item in Contract_Result)
-                    {
-                        ResultCSV.WriteLine(item.ConvertToString(item));
-                    }
-                }
-                else
-                {
-                    foreach (var filename in System.IO.Directory.GetFiles(ReorganizationPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
-                    {
-                        var contract = new Contract();
-                        foreach (var item in contract.Extract())
-                        {
-                            Contract_Result.Add(item);
-                            ResultCSV.WriteLine(item.ConvertToString(item));
-                        }
-                    }
-                }
-
-                ResultCSV.Close();
-                Evaluate.EvaluateContract(Contract_Result);
+                var Contract_Result = Run<Reorganization>(ContractPath_TRAIN, ResultCSV);
+                Evaluate.EvaluateReorganization(Contract_Result.Select((x) => (ReorganizationRec)x).ToList());
                 Console.WriteLine("Complete Extract Info Contract");
             }
             if (IsRunReorganization_TEST)
             {
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong.txt", false, utf8WithoutBom);
-                ResultCSV.WriteLine("公告id\t甲方\t乙方\t项目名称\t合同名称\t合同金额上限\t合同金额下限\t联合体成员");
-                var Contract_Result = new List<struContract>();
                 Console.WriteLine("Start To Extract Info Contract TEST");
-                if (IsMultiThreadMode)
-                {
-                    Parallel.ForEach(System.IO.Directory.GetFiles(ReorganizationPath_TEST + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar), (filename) =>
-                    {
-                        var contract = new Contract();
-                        foreach (var item in contract.Extract())
-                        {
-                            Contract_Result.Add(item);
-                        }
-                    });
-                    Contract_Result.Sort((x, y) => { return x.id.CompareTo(y.id); });
-                    foreach (var item in Contract_Result)
-                    {
-                        ResultCSV.WriteLine(item.ConvertToString(item));
-                    }
-                }
-                else
-                {
-                    foreach (var filename in System.IO.Directory.GetFiles(ReorganizationPath_TEST + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
-                    {
-                        var contract = new Contract();
-                        foreach (var item in contract.Extract())
-                        {
-                            Contract_Result.Add(item);
-                            ResultCSV.WriteLine(item.ConvertToString(item));
-                        }
-                    }
-                }
-                ResultCSV.Close();
+                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong.txt", false, utf8WithoutBom);
+                var Contract_Result = Run<Contract>(ContractPath_TEST, ResultCSV);
                 Console.WriteLine("Complete Extract Info Contract");
             }
 
-
+            //增减持
             if (IsRunStockChange)
             {
-                //增减持
                 Console.WriteLine("Start To Extract Info StockChange TRAIN");
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "zengjianchi_train.txt", false, utf8WithoutBom);
-                ResultCSV.WriteLine("公告id\t股东全称\t股东简称\t变动截止日期\t变动价格\t变动数量\t变动后持股数\t变动后持股比例");
-                var StockChange_Result = new List<struStockChange>();
-                foreach (var filename in System.IO.Directory.GetFiles(StockChangePath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
-                {
-                    var stockchange = new StockChange();
-                    foreach (var item in stockchange.Extract())
-                    {
-                        StockChange_Result.Add(item);
-                        ResultCSV.WriteLine(item.ConvertToString(item));
-                    }
-                }
-                ResultCSV.Close();
-                Evaluate.EvaluateStockChange(StockChange_Result);
+                var StockChange_Result = Run<StockChange>(ContractPath_TRAIN, ResultCSV);
+                Evaluate.EvaluateStockChange(StockChange_Result.Select((x) => (StockChangeRec)x).ToList());
                 Console.WriteLine("Complete Extract Info StockChange");
             }
             if (IsRunStockChange_TEST)
             {
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "zengjianchi.txt", false, utf8WithoutBom);
-                ResultCSV.WriteLine("公告id\t股东全称\t股东简称\t变动截止日期\t变动价格\t变动数量\t变动后持股数\t变动后持股比例");
                 Console.WriteLine("Start To Extract Info StockChange TEST");
-                foreach (var filename in System.IO.Directory.GetFiles(StockChangePath_TEST + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
-                {
-                    var stockchange = new StockChange();
-                    foreach (var item in stockchange.Extract())
-                    {
-                        ResultCSV.WriteLine(item.ConvertToString(item));
-                    }
-                }
-                ResultCSV.Close();
+                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "zengjianchi.txt", false, utf8WithoutBom);
+                var StockChange_Result = Run<StockChange>(ContractPath_TEST, ResultCSV);
                 Console.WriteLine("Complete Extract Info StockChange");
             }
 
+            //定增
             if (IsRunIncreaseStock)
             {
-                //定增
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "dingzeng_train.txt", false, utf8WithoutBom);
-                ResultCSV.WriteLine("公告id\t增发对象\t增发数量\t增发金额\t锁定期\t认购方式");
                 Console.WriteLine("Start To Extract Info IncreaseStock TRAIN");
-                var Increase_Result = new List<struIncreaseStock>();
-
-                if (IsMultiThreadMode)
-                {
-                    Parallel.ForEach(System.IO.Directory.GetFiles(IncreaseStockPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar), (filename) =>
-                    {
-                        var increasestock = new IncreaseStock();
-                        foreach (var item in increasestock.Extract())
-                        {
-                            Increase_Result.Add(item);
-                        }
-                    });
-                    Increase_Result.Sort((x, y) => { return x.id.CompareTo(y.id); });
-                    foreach (var item in Increase_Result)
-                    {
-                        ResultCSV.WriteLine(item.ConvertToString(item));
-                    }
-                }
-                else
-                {
-                    foreach (var filename in System.IO.Directory.GetFiles(IncreaseStockPath_TRAIN + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
-                    {
-                        var increasestock = new IncreaseStock();
-                        foreach (var item in increasestock.Extract())
-                        {
-                            Increase_Result.Add(item);
-                            ResultCSV.WriteLine(item.ConvertToString(item));
-                        }
-                    }
-                }
-                ResultCSV.Close();
-                Evaluate.EvaluateIncreaseStock(Increase_Result);
+                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "dingzeng_train.txt", false, utf8WithoutBom);
+                var Increase_Result = Run<IncreaseStock>(IncreaseStockPath_TRAIN, ResultCSV);
+                Evaluate.EvaluateIncreaseStock(Increase_Result.Select((x) => (IncreaseStockRec)x).ToList());
                 Console.WriteLine("Complete Extract Info IncreaseStock");
             }
             if (IsRunIncreaseStock_TEST)
             {
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "dingzeng.txt", false, utf8WithoutBom);
-                ResultCSV.WriteLine("公告id\t增发对象\t增发数量\t增发金额\t锁定期\t认购方式");
                 Console.WriteLine("Start To Extract Info IncreaseStock TEST");
-                foreach (var filename in System.IO.Directory.GetFiles(IncreaseStockPath_TEST + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
-                {
-                    var increasestock = new IncreaseStock();
-                    foreach (var item in increasestock.Extract())
-                    {
-                        ResultCSV.WriteLine(item.ConvertToString(item));
-                    }
-                }
-                ResultCSV.Close();
+                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "dingzeng.txt", false, utf8WithoutBom);
+                var Increase_Result = Run<IncreaseStock>(IncreaseStockPath_TEST, ResultCSV);
                 Console.WriteLine("Complete Extract Info IncreaseStock");
             }
         }
@@ -373,26 +185,24 @@ namespace FDDC
         /// <param name="path"></param>
         /// <typeparam name="T">公告类型</typeparam>
         /// <typeparam name="S">记录类型</typeparam>
-        public static void Run<T>(string path) where T : AnnouceDocument, new()
+        public static List<RecordBase> Run<T>(string path, StreamWriter ResultCSV) where T : AnnouceDocument, new()
         {
-            //合同处理
-            Console.WriteLine("Start To Extract Info Contract TRAIN");
-            StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong_train.txt", false, utf8WithoutBom);
-            ResultCSV.WriteLine("公告id\t甲方\t乙方\t项目名称\t合同名称\t合同金额上限\t合同金额下限\t联合体成员");
-            var Contract_Result = new List<IRecord>();
+            var Contract_Result = new List<RecordBase>();
             if (IsMultiThreadMode)
             {
-                var Bag = new ConcurrentBag<IRecord>();    //线程安全版本
+                var Bag = new ConcurrentBag<RecordBase>();    //线程安全版本
                 Parallel.ForEach(System.IO.Directory.GetFiles(path + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar), (filename) =>
                 {
                     var contract = new T();
+                    contract.Init(filename);
                     foreach (var item in contract.Extract())
                     {
                         Bag.Add(item);
                     }
                 });
                 Contract_Result = Bag.ToList();
-                //Contract_Result.Sort((x, y) => { return x.id.CompareTo(y.id); });
+                Contract_Result.Sort((x, y) => { return x.id.CompareTo(y.id); });
+                ResultCSV.WriteLine(Contract_Result.First().CSVTitle());
                 foreach (var item in Contract_Result)
                 {
                     ResultCSV.WriteLine(item.ConvertToString());
@@ -403,21 +213,25 @@ namespace FDDC
                 foreach (var filename in System.IO.Directory.GetFiles(path + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
                 {
                     var contract = new T();
+                    contract.Init(filename);
                     foreach (var item in contract.Extract())
                     {
+                        if (Contract_Result.Count == 0)
+                        {
+                            ResultCSV.WriteLine(item.CSVTitle());
+                        }
                         Contract_Result.Add(item);
                         ResultCSV.WriteLine(item.ConvertToString());
                     }
                 }
             }
-
             ResultCSV.Close();
-            //Evaluate.EvaluateContract(Contract_Result);
-            Console.WriteLine("Complete Extract Info Contract");
+            return Contract_Result;
         }
 
-
-
+        /// <summary>
+        /// 快速测试区
+        /// </summary>
         private static void UT()
         {
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518\\round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
