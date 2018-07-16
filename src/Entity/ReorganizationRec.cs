@@ -17,30 +17,14 @@ public class ReorganizationRec : RecordBase
     /// </summary>
     public string Price;
     /// <summary>
-    /// 标的承诺归母净利润
-    /// </summary>
-    public string Profits;
-
-    /// <summary>
-    /// 标的归母净资产
-    /// </summary>
-    public string MontherCompanyAsset;
-
-    /// <summary>
-    /// 标的净资产
-    /// </summary>
-    public string TargetAsset;
-
-    /// <summary>
     /// 评估方法
     /// </summary>
     public string EvaluateMethod;
 
     public override string GetKey()
     {
-        return Id + ":" + Target.NormalizeKey();
+        return Id + ":" + Target.NormalizeKey() + ":" + TargetCompany.NormalizeKey();
     }
-
 
     public static ReorganizationRec ConvertFromString(string str)
     {
@@ -57,20 +41,6 @@ public class ReorganizationRec : RecordBase
         {
             c.Price = Array[4];
         }
-        /*        
-            if (Array.Length > 5)
-            {
-                c.profits = Array[5];
-            }
-            if (Array.Length > 6)
-            {
-                c.MontherCompanyAsset = Array[6];
-            }
-            if (Array.Length > 7)
-            {
-                c.TargetAsset = Array[7];
-            } 
-        */
         if (Array.Length == 6)
         {
             c.EvaluateMethod = Array[5];
@@ -80,22 +50,14 @@ public class ReorganizationRec : RecordBase
 
     public override string ConvertToString()
     {
-        var record = Id + "\t" +
-        Target + "\t" +
-        TargetCompany + "\t" +
-        TradeCompany + "\t";
+        var record = Id + "\t" + Target + "\t" + TargetCompany + "\t" + TradeCompany + "\t";
         record += Normalizer.NormalizeNumberResult(Price) + "\t";
-        record += Normalizer.NormalizeNumberResult(Profits) + "\t";
-        record += Normalizer.NormalizeNumberResult(MontherCompanyAsset) + "\t";
-        record += Normalizer.NormalizeNumberResult(TargetAsset) + "\t";
         record += EvaluateMethod;
         return record;
     }
 
-
-
     public override string CSVTitle()
     {
-        return "";
+        return "公告id\t交易标的\t标的公司\t交易对方\t交易标的作价\t评估方法";
     }
 }

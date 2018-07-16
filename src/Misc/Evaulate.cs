@@ -114,9 +114,6 @@ public static class Evaluate
         var F1_TargetCompany = new EvaluateItem("标的公司");
         var F1_TradeCompany = new EvaluateItem("交易对方");
         var F1_Price = new EvaluateItem("交易标的作价");
-        var F1_Profits = new EvaluateItem("标的承诺归母净利润");
-        var F1_MontherCompanyAsset = new EvaluateItem("标的归母净资产");
-        var F1_TargetAsset = new EvaluateItem("标的净资产");
         var F1_EvaluateMethod = new EvaluateItem("评估方法");
 
         foreach (var contract in TraningDataset.ReorganizationList)
@@ -127,9 +124,6 @@ public static class Evaluate
             if (!String.IsNullOrEmpty(contract.TargetCompany)) F1_TargetCompany.POS++;
             if (!String.IsNullOrEmpty(contract.TradeCompany)) F1_TradeCompany.POS++;
             if (!String.IsNullOrEmpty(contract.Price)) F1_Price.POS++;
-            if (!String.IsNullOrEmpty(contract.Profits)) F1_Profits.POS++;
-            if (!String.IsNullOrEmpty(contract.MontherCompanyAsset)) F1_MontherCompanyAsset.POS++;
-            if (!String.IsNullOrEmpty(contract.TargetAsset)) F1_TargetAsset.POS++;
             if (!String.IsNullOrEmpty(contract.EvaluateMethod)) F1_EvaluateMethod.POS++;
         }
 
@@ -141,9 +135,6 @@ public static class Evaluate
             if (!String.IsNullOrEmpty(contract.TargetCompany)) F1_TargetCompany.ACT++;
             if (!String.IsNullOrEmpty(contract.TradeCompany)) F1_TradeCompany.ACT++;
             if (!String.IsNullOrEmpty(contract.Price)) F1_Price.ACT++;
-            if (!String.IsNullOrEmpty(contract.Profits)) F1_Profits.ACT++;
-            if (!String.IsNullOrEmpty(contract.MontherCompanyAsset)) F1_MontherCompanyAsset.ACT++;
-            if (!String.IsNullOrEmpty(contract.TargetAsset)) F1_TargetAsset.ACT++;
             if (!String.IsNullOrEmpty(contract.EvaluateMethod)) F1_EvaluateMethod.ACT++;
         }
 
@@ -162,9 +153,6 @@ public static class Evaluate
                     F1_TargetCompany.PutCORData(reorg.TargetCompany, reorg_Result.TargetCompany);
                     F1_TradeCompany.PutCORData(reorg.TradeCompany, reorg_Result.TradeCompany);
                     F1_Price.PutCORData(reorg.Price, reorg_Result.Price);
-                    F1_Profits.PutCORData(reorg.Profits, reorg_Result.Profits);
-                    F1_MontherCompanyAsset.PutCORData(reorg.MontherCompanyAsset, reorg_Result.MontherCompanyAsset);
-                    F1_TargetAsset.PutCORData(reorg.TargetAsset, reorg_Result.TargetAsset);
                     F1_EvaluateMethod.PutCORData(reorg.EvaluateMethod, reorg_Result.EvaluateMethod);
                     break; //防止测试集出现多条主键重复的记录
                 }
@@ -185,9 +173,6 @@ public static class Evaluate
                     F1_TargetCompany.PutItemData(reorg.TargetCompany, reorg_Result.TargetCompany);
                     F1_TradeCompany.PutItemData(reorg.TradeCompany, reorg_Result.TradeCompany);
                     F1_Price.PutItemData(reorg.Price, reorg_Result.Price);
-                    F1_Profits.PutItemData(reorg.Profits, reorg_Result.Profits);
-                    F1_MontherCompanyAsset.PutItemData(reorg.MontherCompanyAsset, reorg_Result.MontherCompanyAsset);
-                    F1_TargetAsset.PutItemData(reorg.TargetAsset, reorg_Result.TargetAsset);
                     F1_EvaluateMethod.PutItemData(reorg.EvaluateMethod, reorg_Result.EvaluateMethod);
                     break; //防止测试集出现多条主键重复的记录
                 }
@@ -195,7 +180,7 @@ public static class Evaluate
         }
 
         var score = (F1_ID.F1 + F1_Target.F1 + F1_TargetCompany.F1 + F1_TradeCompany.F1 +
-                     F1_Price.F1 + F1_Profits.F1 + F1_MontherCompanyAsset.F1 + F1_TargetAsset.F1 + F1_EvaluateMethod.F1) / 9;
+                     F1_Price.F1 +  F1_EvaluateMethod.F1) / 6;
         Program.Score.WriteLine("资产重组分数：" + score);
         Program.Score.Flush();
 
