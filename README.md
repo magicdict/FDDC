@@ -350,6 +350,7 @@ EntityProperty对象属性如下：
 * DpKeyWordList：句法依存环境
 * ExternalStartEndStringFeature：普通的开始结尾词判定
 * CandidatePreprocess:一般候选词预处理器（**改变抽取内容**）
+* struRegularExpressFeature：正则表达式特征检索条件
 * ExcludeContainsWordList：不能包含词语列表
 * ExcludeEqualsWordList：不能等于词语列表
 * Confidence：置信度对象

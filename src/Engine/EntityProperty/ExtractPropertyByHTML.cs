@@ -105,7 +105,7 @@ public class ExtractPropertyByHTML : ExtractProperyBase
     /// 检索流程方法
     /// </summary>
     /// <param name="root">HTML根</param>
-    /// <param name="ExtractMethod">特定检索方法</param>
+    /// <param name="ExtractMethod">特定检索方法(HTML内容，候补词列表)</param>
     void SearchNormalContent(MyRootHtmlNode root, Func<String, List<String>> ExtractMethod)
     {
         foreach (var paragrah in root.Children)
@@ -191,16 +191,60 @@ public class ExtractPropertyByHTML : ExtractProperyBase
     /// <param name="root"></param>
     void ExtractByRegularExpressFeature(MyRootHtmlNode root)
     {
-        foreach (var word in RegularExpressFeature)
+        foreach (var regularfeature in RegularExpressFeature)
         {
+            //特定检索方法(HTML内容，候补词列表)
             Func<String, List<String>> ExtractMethod = (x) =>
             {
                 var list = new List<String>();
+                var reglist = RegularTool.GetRegular(x, regularfeature.RegularExpress);
+                foreach (var reg in reglist)
+                {
+                    //根据前后词语进行过滤
+                    if (regularfeature.LeadingWordList != null)
+                    {
+                        //前置词语
+                        foreach (var leading in regularfeature.LeadingWordList)
+                        {
+                            if (reg.Index - leading.Length >= 0)
+                            {
+                                var word = x.Substring(reg.Index - leading.Length, leading.Length);
+                                if (word.Equals(leading))
+                                {
+                                    list.Add(x.Substring(reg.Index - leading.Length, leading.Length + reg.Length));
+                                    break;
+                                }
+                                else
+                                {
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                    if (regularfeature.TrailingWordList != null)
+                    {
+                        //后置词语
+                        foreach (var trailing in regularfeature.TrailingWordList)
+                        {
+                            if (reg.Index + reg.Length + trailing.Length < x.Length)
+                            {
+                                var word = x.Substring(reg.Index + reg.Length, trailing.Length);
+                                if (word.Equals(trailing))
+                                {
+                                    list.Add(x.Substring(reg.Index, trailing.Length + reg.Length));
+                                    break;
+                                }
+                                else
+                                {
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                }
                 return list;
             };
             SearchNormalContent(root, ExtractMethod);
         }
     }
-
-
 }

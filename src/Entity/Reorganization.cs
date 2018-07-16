@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using FDDC;
 
 public class Reorganization : AnnouceDocument
@@ -8,9 +9,27 @@ public class Reorganization : AnnouceDocument
         var list = new List<RecordBase>();
         var reorgRec = new ReorganizationRec();
         reorgRec.Id = this.Id;
+        reorgRec.Target = getTarget();
         reorgRec.EvaluateMethod = getEvaluateMethod();
         list.Add(reorgRec);
         return list;
+    }
+
+    /// <summary>
+    /// 获得标的
+    /// </summary>
+    /// <returns></returns>
+    string getTarget()
+    {
+        var p = new EntityProperty();
+        p.RegularExpressFeature = new ExtractProperyBase.struRegularExpressFeature()
+        {
+            RegularExpress = RegularTool.PercentExpress,
+            TrailingWordList = new string[] { "股权" }.ToList()
+        };
+        p.Extract(this);
+        if (p.RegularExpressFeatureCandidate.Count > 0) return p.RegularExpressFeatureCandidate.First();
+        return string.Empty;
     }
 
     /// <summary>

@@ -112,8 +112,16 @@ public class EntityProperty
     /// <returns></returns>
     public List<string> ExternalStartEndStringFeatureCandidate = new List<string>();
 
-
-    
+    /// <summary>
+    /// 正则表达式检索
+    /// </summary>
+    public struRegularExpressFeature RegularExpressFeature;
+    /// <summary>
+    /// 正则表达式检索候选词
+    /// </summary>
+    /// <typeparam name="string"></typeparam>
+    /// <returns></returns>
+    public List<string> RegularExpressFeatureCandidate = new List<string>();
 
     /// <summary>
     /// 不能包含的词语列表

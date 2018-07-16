@@ -90,7 +90,7 @@ public static class RegularTool
     /// </summary>
     /// <param name="value"></param>
     /// <returns></returns>
-    public static List<RegularExResult> GetPercent(string value, string exp)
+    public static List<RegularExResult> GetRegular(string value, string exp)
     {
         var result = new List<RegularExResult>();
         var r = new Regex(exp);
