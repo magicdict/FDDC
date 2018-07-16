@@ -101,9 +101,19 @@ public class EntityProperty
     /// 候选词预处理
     /// </summary>
     public Func<String, String> ExternalStartEndStringFeatureCandidatePreprocess;
+    /// <summary>
+    /// 外部特征
+    /// </summary>
     public struStartEndStringFeature[] ExternalStartEndStringFeature;
-
+    /// <summary>
+    /// 外部特征候选词列表
+    /// </summary>
+    /// <typeparam name="string"></typeparam>
+    /// <returns></returns>
     public List<string> ExternalStartEndStringFeatureCandidate = new List<string>();
+
+
+    
 
     /// <summary>
     /// 不能包含的词语列表
@@ -380,8 +390,8 @@ public class EntityProperty
         var result = new List<string>();
         foreach (var item in KeyWordMap)
         {
-            var cnt = ExtractPropertyByHTML.FindWordCnt(item.Key, root).Count;
-            if (cnt > 0)
+            var HasKey = ExtractPropertyByHTML.HasWord(item.Key, root);
+            if (HasKey)
             {
                 if (!result.Contains(item.Value)) result.Add(item.Value);
             }

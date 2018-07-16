@@ -42,6 +42,9 @@ namespace FDDC
 
         static void Main(string[] args)
         {
+
+            UT(); return;
+
             Logger = new StreamWriter("Log.log");
             //全局编码    
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -141,15 +144,15 @@ namespace FDDC
             {
                 Console.WriteLine("Start To Extract Info Reorganization TRAIN");
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "chongzu_train.txt", false, utf8WithoutBom);
-                var Contract_Result = Run<Reorganization>(ContractPath_TRAIN, ResultCSV);
-                Evaluate.EvaluateReorganization(Contract_Result.Select((x) => (ReorganizationRec)x).ToList());
+                var Reorganization_Result = Run<Reorganization>(ReorganizationPath_TRAIN, ResultCSV);
+                Evaluate.EvaluateReorganization(Reorganization_Result.Select((x) => (ReorganizationRec)x).ToList());
                 Console.WriteLine("Complete Extract Info Reorganization");
             }
             if (IsRunReorganization_TEST)
             {
                 Console.WriteLine("Start To Extract Info Reorganization TEST");
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "chongzu.txt", false, utf8WithoutBom);
-                var Contract_Result = Run<Contract>(ContractPath_TEST, ResultCSV);
+                var Reorganization_Result = Run<Contract>(ReorganizationPath_TEST, ResultCSV);
                 Console.WriteLine("Complete Extract Info Reorganization");
             }
 
@@ -243,16 +246,15 @@ namespace FDDC
         /// </summary>
         private static void UT()
         {
-            var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518\\round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
-            foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + Path.DirectorySeparatorChar + "srl" + Path.DirectorySeparatorChar))
+            var s0 = "占本公司目前总股本的 22.60%股权、占本次重大资产重组完成后本公司总股本 15.29%）无偿划转给山西省国资委。同时山西省国资委同意对上述股份全权委托同煤集团进行管理，并同意以符合规定的方式注";
+            var r = RegularTool.GetPercent(s0, RegularTool.PercentExpress);
+            foreach (var item in r)
             {
-                var Srllist = LTPTrainingSRL.AnlayzeSRL(filename);
-                var fi = new FileInfo(filename);
-                if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("Name：" + fi.Name);
-                foreach (var m in Srllist)
+                if (item.Index + item.Length + 2 < s0.Length)
                 {
-                    if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("SRL：" + m);
+                    Console.WriteLine(s0.Substring(item.Index + item.Length, 2));
                 }
+                Console.WriteLine(item.RawData + "  Idx:" + item.Index + "  Len:" + item.Length);
             }
         }
     }

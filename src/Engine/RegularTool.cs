@@ -68,6 +68,46 @@ public static class RegularTool
         return Regex.IsMatch(value, @"^\d*[.]?\d*%$");
     }
 
+    /// <summary>
+    /// 百分比（非开始结尾类型）
+    /// </summary>
+    public const string PercentExpress = @"\d*[.]?\d*%";
+
+    /// <summary>
+    /// 正则表达式结果
+    /// </summary>
+    public struct RegularExResult
+    {
+        public int Index;
+
+        public int Length;
+
+        public string RawData;
+    }
+
+    /// <summary>
+    /// 获得正则表达式结果
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public static List<RegularExResult> GetPercent(string value, string exp)
+    {
+        var result = new List<RegularExResult>();
+        var r = new Regex(exp);
+        Match m = r.Match(value);
+        while (m.Success)
+        {
+            result.Add(new RegularExResult()
+            {
+                Index = m.Index,
+                Length = m.Length,
+                RawData = m.Value
+            });
+            m = m.NextMatch();
+        }
+        return result;
+    }
+
     public static List<string> GetMultiValueBetweenMark(string str, string s, string e)
     {
         var strList = new List<string>();

@@ -62,6 +62,7 @@ public class HTMLEngine
         doc.Load(htmlfile);
         var node = doc.DocumentNode.SelectNodes("//div[@type='pdf']");
         var root = new MyRootHtmlNode();
+        if (node.Count == 0) return root;
         root.Content = node[0].Attributes["title"].Value;
         //第二层是所有的一定是Paragraph
         foreach (var SecondLayerNode in node[0].ChildNodes)
@@ -125,9 +126,11 @@ public class HTMLEngine
         //根据文本文件内容进行调整
         if (File.Exists(TextFileName))
         {
+            //重大合同之外，其实都无需做
             AdjustItemList(root, TextFileName);
             AdjustTwoLine(root, TextFileName);
         }
+
         for (int i = 0; i < root.Children.Count - 1; i++)
         {
             root.Children[i].NextBrother = root.Children[i + 1];

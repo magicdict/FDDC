@@ -152,9 +152,11 @@ public abstract class AnnouceDocument
         HTMLTable.FixSpiltTable(this, new string[] { "集中竞价交易", "竞价交易", "大宗交易", "约定式购回" });
         //NULL的对应
         HTMLTable.FixNullValue(this);
+
+        GetReplaceTable();
     }
 
-    public abstract List<RecordBase> Extract(); 
+    public abstract List<RecordBase> Extract();
 
     ParagraghLoc SentenceLocate(int PosId)
     {
@@ -174,4 +176,29 @@ public abstract class AnnouceDocument
         }
         return paragragh;
     }
+
+    public Dictionary<String, String> ReplacementDict = new Dictionary<String, String>();
+
+    /// <summary>
+    /// 公告中特殊的指代表
+    /// </summary>
+    /// <returns></returns>
+    public void GetReplaceTable()
+    {
+        foreach (var table in root.TableList)
+        {
+            var htmltable = new HTMLTable(table.Value);
+            if (htmltable.ColumnCount != 3) continue;
+            for (int RowNo = 1; RowNo <= htmltable.RowCount; RowNo++)
+            {
+                if (htmltable.CellValue(RowNo, 2) == "指")
+                {
+                    var key = htmltable.CellValue(RowNo, 1);
+                    var value = htmltable.CellValue(RowNo, 3);
+                    if (!ReplacementDict.ContainsKey(key)) ReplacementDict.Add(key, value);
+                }
+            }
+        }
+    }
+
 }

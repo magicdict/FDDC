@@ -20,6 +20,30 @@ public class ExtractPropertyByHTML : ExtractProperyBase
 
     }
 
+    public static bool HasWord(string KeyWord, MyRootHtmlNode root)
+    {
+        var paragrahIdList = new List<int>();
+        foreach (var paragrah in root.Children)
+        {
+            //从各个段落的内容中取得：内容包含了内置列表，所以，这里不再重复
+            foreach (var contentNode in paragrah.Children)
+            {
+                if (contentNode.TableId == -1)
+                {
+                    if (contentNode.Content.IndexOf(KeyWord) != -1) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+
+    /// <summary>
+    /// 指定词语出现的次数
+    /// /// </summary>
+    /// <param name="KeyWord"></param>
+    /// <param name="root"></param>
+    /// <returns></returns>
     public static List<int> FindWordCnt(string KeyWord, MyRootHtmlNode root)
     {
         var paragrahIdList = new List<int>();
@@ -38,7 +62,10 @@ public class ExtractPropertyByHTML : ExtractProperyBase
     }
 
 
-    //先导词
+    /// <summary>
+    /// 先导词
+    /// </summary>
+    /// <param name="root"></param>
     void ExtractByColonKeyWord(MyRootHtmlNode root)
     {
         foreach (var word in LeadingColonKeyWordList)
@@ -54,7 +81,10 @@ public class ExtractPropertyByHTML : ExtractProperyBase
     }
 
 
-    //先导词
+    /// <summary>
+    /// 结尾词
+    /// </summary>
+    /// <param name="root"></param>
     void ExtractByTrailingKeyWord(MyRootHtmlNode root)
     {
         foreach (var word in TrailingWordList)
@@ -71,7 +101,11 @@ public class ExtractPropertyByHTML : ExtractProperyBase
 
 
 
-    //Search Normal Content
+    /// <summary>
+    /// 检索流程方法
+    /// </summary>
+    /// <param name="root">HTML根</param>
+    /// <param name="ExtractMethod">特定检索方法</param>
     void SearchNormalContent(MyRootHtmlNode root, Func<String, List<String>> ExtractMethod)
     {
         foreach (var paragrah in root.Children)
@@ -99,7 +133,10 @@ public class ExtractPropertyByHTML : ExtractProperyBase
 
 
 
-    //符号包裹
+    /// <summary>
+    /// 符号包裹
+    /// </summary>
+    /// <param name="root"></param>
     void ExtractByMarkFeature(MyRootHtmlNode root)
     {
         foreach (var word in MarkFeature)
@@ -126,7 +163,10 @@ public class ExtractPropertyByHTML : ExtractProperyBase
 
     }
 
-    //符号包裹
+    /// <summary>
+    /// 开始结尾特征词
+    /// </summary>
+    /// <param name="root"></param>
     void ExtractByStartEndStringFeature(MyRootHtmlNode root)
     {
         StartEndResultList.Clear();
@@ -138,10 +178,29 @@ public class ExtractPropertyByHTML : ExtractProperyBase
                 var detail = new struStartEndResultDetail();
                 detail.Feature = word;
                 detail.CandidateWord = list;
+                StartEndResultList.Add(detail);
                 return list;
             };
             SearchNormalContent(root, ExtractMethod);
         }
     }
+
+    /// <summary>
+    /// 正则表达式抽取
+    /// </summary>
+    /// <param name="root"></param>
+    void ExtractByRegularExpressFeature(MyRootHtmlNode root)
+    {
+        foreach (var word in RegularExpressFeature)
+        {
+            Func<String, List<String>> ExtractMethod = (x) =>
+            {
+                var list = new List<String>();
+                return list;
+            };
+            SearchNormalContent(root, ExtractMethod);
+        }
+    }
+
 
 }
