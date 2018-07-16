@@ -11,14 +11,14 @@ public partial class Contract : AnnouceDocument
 {
     List<String> ProjectNameList = new List<String>();
 
-    public new List<ContractRec> Extract()
+    public override List<RecordBase> Extract()
     {
         ProjectNameList = ProjectNameLogic.GetProjectNameByCutWord(root);
         foreach (var m in ProjectNameList)
         {
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("工程名：" + m);
         }
-        var ContractList = new List<ContractRec>();
+        var ContractList = new List<RecordBase>();
         //主合同的抽取
         ContractList.Add(ExtractSingle(root, Id));
         return ContractList;

@@ -9,7 +9,7 @@ using static LocateProperty;
 using static LTPTrainingNER;
 using static LTPTrainingDP;
 
-public class AnnouceDocument
+public abstract class AnnouceDocument
 {
     public String Id;
     public MyRootHtmlNode root;
@@ -154,10 +154,7 @@ public class AnnouceDocument
         HTMLTable.FixNullValue(this);
     }
 
-    public List<RecordBase> Extract() 
-    {
-        return new List<RecordBase>();
-    }
+    public abstract List<RecordBase> Extract(); 
 
     ParagraghLoc SentenceLocate(int PosId)
     {

@@ -29,10 +29,10 @@ public class StockChange : AnnouceDocument
         }
     }
 
-    public new List<StockChangeRec> Extract()
+    public override List<RecordBase> Extract()
     {
         var DateRange = LocateDateRange(root);
-        var list = new List<StockChangeRec>();
+        var list = new List<RecordBase>();
         var Name = GetHolderName();
         if (!String.IsNullOrEmpty(Name.FullName) && !String.IsNullOrEmpty(Name.ShortName))
         {
@@ -97,7 +97,7 @@ public class StockChange : AnnouceDocument
     /// <param name="root"></param>
     /// <param name="id"></param>
     /// <returns></returns>
-    List<StockChangeRec> ExtractFromTable()
+    List<RecordBase> ExtractFromTable()
     {
         var StockHolderRule = new TableSearchTitleRule();
         StockHolderRule.Name = "股东全称";
@@ -152,13 +152,13 @@ public class StockChange : AnnouceDocument
             result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, false);
             if (result.Count == 0)
             {
-                return new List<StockChangeRec>();
+                return new List<RecordBase>();
             }
             var NewResult = new List<CellInfo[]>();
             var Name = GetHolderName();
             if (String.IsNullOrEmpty(Name.FullName) && String.IsNullOrEmpty(Name.ShortName))
             {
-                return new List<StockChangeRec>();
+                return new List<RecordBase>();
             }
             foreach (var item in result)
             {
@@ -170,7 +170,7 @@ public class StockChange : AnnouceDocument
 
         var holderafterlist = GetHolderAfter();
 
-        var stockchangelist = new List<StockChangeRec>();
+        var stockchangelist = new List<RecordBase>();
         foreach (var rec in result)
         {
             var stockchange = new StockChangeRec();
@@ -257,13 +257,13 @@ public class StockChange : AnnouceDocument
 
 
         //寻找所有的股东全称
-        var namelist = stockchangelist.Select(x => x.HolderFullName).Distinct().ToList();
+        var namelist = stockchangelist.Select(x => ((StockChangeRec)x).HolderFullName).Distinct().ToList();
         var newRec = new List<StockChangeRec>();
         foreach (var name in namelist)
         {
-            var stocklist = stockchangelist.Where((x) => { return x.HolderFullName == name; }).ToList();
-            stocklist.Sort((x, y) => { return x.ChangeEndDate.CompareTo(y.ChangeEndDate); });
-            var last = stocklist.Last();
+            var stocklist = stockchangelist.Where((x) => { return ((StockChangeRec)x).HolderFullName == name; }).ToList();
+            stocklist.Sort((x, y) => { return ((StockChangeRec)x).ChangeEndDate.CompareTo(((StockChangeRec)x).ChangeEndDate); });
+            var last = (StockChangeRec)stocklist.Last();
             for (int i = 0; i < holderafterlist.Count; i++)
             {
                 var after = holderafterlist[i];

@@ -6,7 +6,7 @@ using static ExtractProperyBase;
 
 public class EntityProperty
 {
-    public StreamWriter Logger;
+    public static StreamWriter Logger;
 
     /// <summary>
     /// 属性类型

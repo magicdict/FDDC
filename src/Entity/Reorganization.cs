@@ -2,8 +2,8 @@ using System.Collections.Generic;
 
 public class Reorganization : AnnouceDocument
 {
-    public new List<ReorganizationRec> Extract()
+    public override List<RecordBase> Extract()
     {
-        return new List<ReorganizationRec>();
+        throw new System.NotImplementedException();
     }
 }

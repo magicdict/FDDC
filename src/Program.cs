@@ -56,6 +56,7 @@ namespace FDDC
             Traning();
             Evaluator = new StreamWriter("Evaluator.log");
             Score = new StreamWriter(@"Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
+            EntityProperty.Logger = Logger;
             Extract();
             CIRecord.Close();
             Score.Close();
@@ -94,20 +95,22 @@ namespace FDDC
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
             var ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
 
-            var IsRunStockChange = false;
-            var IsRunStockChange_TEST = false;
+            var IsRunStockChange = true;
+            var IsRunStockChange_TEST = true;
             var StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
             var StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "增减持";
 
+            //复赛中删除
             var IsRunIncreaseStock = false;
             var IsRunIncreaseStock_TEST = false;
             var IncreaseStockPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "定增";
             var IncreaseStockPath_TEST = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "定增";
 
+            //复赛中新增
             var IsRunReorganization = false;
             var IsRunReorganization_TEST = false;
-            var ReorganizationPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round2_train_20180715" + Path.DirectorySeparatorChar + "资产重组";
-            var ReorganizationPath_TEST = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round2_test_a_20180715" + Path.DirectorySeparatorChar + "资产重组";
+            var ReorganizationPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型训练数据-20180712" + Path.DirectorySeparatorChar + "资产重组";
+            var ReorganizationPath_TEST = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型测试数据-20180712" + Path.DirectorySeparatorChar + "资产重组";
 
 
             if (IsRunContract)
@@ -149,7 +152,7 @@ namespace FDDC
             {
                 Console.WriteLine("Start To Extract Info StockChange TRAIN");
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "zengjianchi_train.txt", false, utf8WithoutBom);
-                var StockChange_Result = Run<StockChange>(ContractPath_TRAIN, ResultCSV);
+                var StockChange_Result = Run<StockChange>(StockChangePath_TRAIN, ResultCSV);
                 Evaluate.EvaluateStockChange(StockChange_Result.Select((x) => (StockChangeRec)x).ToList());
                 Console.WriteLine("Complete Extract Info StockChange");
             }
@@ -157,7 +160,7 @@ namespace FDDC
             {
                 Console.WriteLine("Start To Extract Info StockChange TEST");
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "zengjianchi.txt", false, utf8WithoutBom);
-                var StockChange_Result = Run<StockChange>(ContractPath_TEST, ResultCSV);
+                var StockChange_Result = Run<StockChange>(StockChangePath_TEST, ResultCSV);
                 Console.WriteLine("Complete Extract Info StockChange");
             }
 

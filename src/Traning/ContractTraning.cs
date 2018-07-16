@@ -12,9 +12,9 @@ public class ContractTraning
     {
         Console.WriteLine("开始分析");
         //实体周围语境的统计
-        AnlayzeEntitySurroundWords(); FDDC.Program.Training.Flush();
+        //AnlayzeEntitySurroundWords(); FDDC.Program.Training.Flush();
         //实体周围语境的统计LTP角度
-        AnlayzeEntitySurroundWordsLTP(); FDDC.Program.Training.Flush();
+        //AnlayzeEntitySurroundWordsLTP(); FDDC.Program.Training.Flush();
         //实体自身属性的统计
         EntityWordPerperty(); FDDC.Program.Training.Flush();
         Console.WriteLine("结束分析");

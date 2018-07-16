@@ -8,7 +8,7 @@ using static CompanyNameLogic;
 
 public class IncreaseStock : AnnouceDocument
 {
-    public new List<IncreaseStockRec> Extract()
+   public override List<RecordBase> Extract()
     {
         //认购方式
         var buyMethod = getBuyMethod(root);
@@ -21,7 +21,7 @@ public class IncreaseStock : AnnouceDocument
     }
 
 
-    List<IncreaseStockRec> GetMultiTarget(HTMLEngine.MyRootHtmlNode root, IncreaseStockRec SampleincreaseStock)
+    List<RecordBase> GetMultiTarget(HTMLEngine.MyRootHtmlNode root, IncreaseStockRec SampleincreaseStock)
     {
         var PublishTarget = new TableSearchTitleRule();
         PublishTarget.Name = "认购对象";
@@ -61,7 +61,7 @@ public class IncreaseStock : AnnouceDocument
         Rules.Add(FreezeYear);
         Rules.Add(BuyPrice);
         var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, true);
-        var increaseStocklist = new List<IncreaseStockRec>();
+        var increaseStocklist = new List<RecordBase>();
         foreach (var item in result)
         {
             var increase = new IncreaseStockRec();
