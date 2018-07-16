@@ -45,6 +45,9 @@ namespace FDDC
             Logger = new StreamWriter("Log.log");
             //全局编码    
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            PDFToTXT.GetPdf2TxtBatchFile();
+
             //公司全称简称曾用名字典   
             CompanyNameLogic.LoadCompanyName(@"Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
             //增减持公告日期的读入
@@ -92,31 +95,30 @@ namespace FDDC
             PDFToTXT.GetLTPXMLBatchFile();
         }
 
+        public static bool IsRunContract = false;
+        public static bool IsRunContract_TEST = false;
+        public static string ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
+        public static string ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
+
+        public static bool IsRunStockChange = false;
+        public static bool IsRunStockChange_TEST = false;
+        public static string StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
+        public static string StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "增减持";
+
+        //定增 复赛中删除
+        public static bool IsRunIncreaseStock = false;
+        public static bool IsRunIncreaseStock_TEST = false;
+        public static string IncreaseStockPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "定增";
+        public static string IncreaseStockPath_TEST = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "定增";
+
+        //资产重组 复赛中新增
+        public static bool IsRunReorganization = true;
+        public static bool IsRunReorganization_TEST = false;
+        public static string ReorganizationPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型训练数据-20180712" + Path.DirectorySeparatorChar + "资产重组";
+        public static string ReorganizationPath_TEST = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型测试数据-20180712" + Path.DirectorySeparatorChar + "资产重组";
+
         private static void Extract()
         {
-            var IsRunContract = false;
-            var IsRunContract_TEST = false;
-            var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
-            var ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
-
-            var IsRunStockChange = false;
-            var IsRunStockChange_TEST = false;
-            var StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
-            var StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "增减持";
-
-            //定增 复赛中删除
-            var IsRunIncreaseStock = false;
-            var IsRunIncreaseStock_TEST = false;
-            var IncreaseStockPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "定增";
-            var IncreaseStockPath_TEST = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "定增";
-
-            //资产重组 复赛中新增
-            var IsRunReorganization = false;
-            var IsRunReorganization_TEST = false;
-            var ReorganizationPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型训练数据-20180712" + Path.DirectorySeparatorChar + "资产重组";
-            var ReorganizationPath_TEST = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型测试数据-20180712" + Path.DirectorySeparatorChar + "资产重组";
-
-
             if (IsRunContract)
             {
                 //合同处理
@@ -137,18 +139,18 @@ namespace FDDC
             //资产重组
             if (IsRunReorganization)
             {
-                Console.WriteLine("Start To Extract Info Contract TRAIN");
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong_train.txt", false, utf8WithoutBom);
+                Console.WriteLine("Start To Extract Info Reorganization TRAIN");
+                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "chongzu_train.txt", false, utf8WithoutBom);
                 var Contract_Result = Run<Reorganization>(ContractPath_TRAIN, ResultCSV);
                 Evaluate.EvaluateReorganization(Contract_Result.Select((x) => (ReorganizationRec)x).ToList());
-                Console.WriteLine("Complete Extract Info Contract");
+                Console.WriteLine("Complete Extract Info Reorganization");
             }
             if (IsRunReorganization_TEST)
             {
-                Console.WriteLine("Start To Extract Info Contract TEST");
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong.txt", false, utf8WithoutBom);
+                Console.WriteLine("Start To Extract Info Reorganization TEST");
+                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "chongzu.txt", false, utf8WithoutBom);
                 var Contract_Result = Run<Contract>(ContractPath_TEST, ResultCSV);
-                Console.WriteLine("Complete Extract Info Contract");
+                Console.WriteLine("Complete Extract Info Reorganization");
             }
 
             //增减持
@@ -194,23 +196,23 @@ namespace FDDC
         /// <typeparam name="S">记录类型</typeparam>
         public static List<RecordBase> Run<T>(string path, StreamWriter ResultCSV) where T : AnnouceDocument, new()
         {
-            var Contract_Result = new List<RecordBase>();
+            var Announce_Result = new List<RecordBase>();
             if (IsMultiThreadMode)
             {
                 var Bag = new ConcurrentBag<RecordBase>();    //线程安全版本
                 Parallel.ForEach(System.IO.Directory.GetFiles(path + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar), (filename) =>
                 {
-                    var contract = new T();
-                    contract.Init(filename);
-                    foreach (var item in contract.Extract())
+                    var announce = new T();
+                    announce.Init(filename);
+                    foreach (var item in announce.Extract())
                     {
                         Bag.Add(item);
                     }
                 });
-                Contract_Result = Bag.ToList();
-                Contract_Result.Sort((x, y) => { return x.id.CompareTo(y.id); });
-                ResultCSV.WriteLine(Contract_Result.First().CSVTitle());
-                foreach (var item in Contract_Result)
+                Announce_Result = Bag.ToList();
+                Announce_Result.Sort((x, y) => { return x.Id.CompareTo(y.Id); });
+                ResultCSV.WriteLine(Announce_Result.First().CSVTitle());
+                foreach (var item in Announce_Result)
                 {
                     ResultCSV.WriteLine(item.ConvertToString());
                 }
@@ -223,17 +225,17 @@ namespace FDDC
                     contract.Init(filename);
                     foreach (var item in contract.Extract())
                     {
-                        if (Contract_Result.Count == 0)
+                        if (Announce_Result.Count == 0)
                         {
                             ResultCSV.WriteLine(item.CSVTitle());
                         }
-                        Contract_Result.Add(item);
+                        Announce_Result.Add(item);
                         ResultCSV.WriteLine(item.ConvertToString());
                     }
                 }
             }
             ResultCSV.Close();
-            return Contract_Result;
+            return Announce_Result;
         }
 
         /// <summary>

@@ -54,7 +54,7 @@ public partial class Contract : AnnouceDocument
 
         var contract = new ContractRec();
         //公告ID
-        contract.id = Id;
+        contract.Id = Id;
         //甲方
         contract.JiaFang = GetJiaFang();
         contract.JiaFang = CompanyNameLogic.AfterProcessFullName(contract.JiaFang).secFullName;
@@ -201,7 +201,7 @@ public partial class Contract : AnnouceDocument
         e.Extract(this);
 
         //是否所有的候选词里面包括（测试集无法使用）
-        var contractlist = TraningDataset.ContractList.Where((x) => { return x.id == this.Id; });
+        var contractlist = TraningDataset.ContractList.Where((x) => { return x.Id == this.Id; });
         if (contractlist.Count() > 0)
         {
             var contract = contractlist.First();

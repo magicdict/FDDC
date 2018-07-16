@@ -28,7 +28,7 @@ public static class TraningDataset
 
     public static List<ContractRec> GetContractById(string id)
     {
-        return ContractList.Where((c) => { return c.id == id; }).ToList();
+        return ContractList.Where((c) => { return c.Id == id; }).ToList();
     }
 
 

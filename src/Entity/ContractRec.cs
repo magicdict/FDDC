@@ -25,13 +25,13 @@
         public override string GetKey()
         {
             //去空格转小写
-            return id + ":" + JiaFang.NormalizeKey() + ":" + YiFang.NormalizeKey();
+            return Id + ":" + JiaFang.NormalizeKey() + ":" + YiFang.NormalizeKey();
         }
         public static ContractRec ConvertFromString(string str)
         {
             var Array = str.Split("\t");
             var c = new ContractRec();
-            c.id = Array[0];
+            c.Id = Array[0];
             c.JiaFang = Array[1];
             c.YiFang = Array[2];
             c.ProjectName = Array[3];
@@ -53,7 +53,7 @@
 
         public override string ConvertToString()
         {
-            var record = id + "\t" +
+            var record = Id + "\t" +
                          JiaFang + "\t" +
                          YiFang + "\t" +
                          ProjectName + "\t" +

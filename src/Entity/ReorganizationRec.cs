@@ -19,7 +19,7 @@ public class ReorganizationRec : RecordBase
     /// <summary>
     /// 标的承诺归母净利润
     /// </summary>
-    public string profits;
+    public string Profits;
 
     /// <summary>
     /// 标的归母净资产
@@ -38,7 +38,7 @@ public class ReorganizationRec : RecordBase
 
     public override string GetKey()
     {
-        return id + ":" + Target.NormalizeKey();
+        return Id + ":" + Target.NormalizeKey();
     }
 
 
@@ -46,7 +46,7 @@ public class ReorganizationRec : RecordBase
     {
         var Array = str.Split("\t");
         var c = new ReorganizationRec();
-        c.id = Array[0];
+        c.Id = Array[0];
         c.Target = Array[1];
         c.TargetCompany = Array[2];
         if (Array.Length > 3)
@@ -80,12 +80,12 @@ public class ReorganizationRec : RecordBase
 
     public override string ConvertToString()
     {
-        var record = id + "\t" +
+        var record = Id + "\t" +
         Target + "\t" +
         TargetCompany + "\t" +
         TradeCompany + "\t";
         record += Normalizer.NormalizeNumberResult(Price) + "\t";
-        record += Normalizer.NormalizeNumberResult(profits) + "\t";
+        record += Normalizer.NormalizeNumberResult(Profits) + "\t";
         record += Normalizer.NormalizeNumberResult(MontherCompanyAsset) + "\t";
         record += Normalizer.NormalizeNumberResult(TargetAsset) + "\t";
         record += EvaluateMethod;

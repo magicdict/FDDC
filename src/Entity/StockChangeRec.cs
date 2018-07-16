@@ -23,13 +23,13 @@
 
         public override string GetKey()
         {
-            return id + ":" + HolderFullName.NormalizeKey() + ":" + ChangeEndDate;
+            return Id + ":" + HolderFullName.NormalizeKey() + ":" + ChangeEndDate;
         }
         public static StockChangeRec ConvertFromString(string str)
         {
             var Array = str.Split("\t");
             var c = new StockChangeRec();
-            c.id = Array[0];
+            c.Id = Array[0];
             c.HolderFullName = Array[1];
             c.HolderShortName = Array[2];
             if (Array.Length > 3)
@@ -57,7 +57,7 @@
 
         public override string ConvertToString()
         {
-            var record = id + "\t" +
+            var record = Id + "\t" +
             HolderFullName + "\t" +
             HolderShortName + "\t" +
             ChangeEndDate + "\t";

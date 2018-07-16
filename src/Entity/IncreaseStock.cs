@@ -14,7 +14,7 @@ public class IncreaseStock : AnnouceDocument
         var buyMethod = getBuyMethod(root);
         //样本
         var increaseStock = new IncreaseStockRec();
-        increaseStock.id = Id;
+        increaseStock.Id = Id;
         increaseStock.BuyMethod = buyMethod;
         var list = GetMultiTarget(root, increaseStock);
         return list;
@@ -65,7 +65,7 @@ public class IncreaseStock : AnnouceDocument
         foreach (var item in result)
         {
             var increase = new IncreaseStockRec();
-            increase.id = SampleincreaseStock.id;
+            increase.Id = SampleincreaseStock.Id;
             increase.BuyMethod = SampleincreaseStock.BuyMethod;
             increase.PublishTarget = item[0].RawData;
             if (String.IsNullOrEmpty(increase.PublishTarget)) continue;

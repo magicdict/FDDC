@@ -13,7 +13,7 @@ public abstract class RecordBase
     public abstract string ConvertToString();
 
     //公告id
-    public string id;
+    public string Id;
 
     public abstract string CSVTitle();
 }

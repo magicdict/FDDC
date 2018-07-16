@@ -6,56 +6,63 @@ using FDDC;
 
 public class PDFToTXT
 {
-
+    /// <summary>
+    /// PDF转TXT的批处理文件做成
+    /// </summary>
     public static void GetPdf2TxtBatchFile()
     {
-        var Logger = new StreamWriter("pdf2txt.bat", false, Encoding.GetEncoding("gb2312"));
+        var batchwriter = new StreamWriter("pdf2txt.bat", false, Encoding.GetEncoding("gb2312"));
 
-        var ContractPath_TRAIN = Program.DocBase + @"/FDDC_announcements_round1_test_b_20180708/重大合同";
-        Logger.WriteLine("mkdir " + ContractPath_TRAIN + "\\txt");
-        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"/pdf/"))
+        batchwriter.WriteLine("mkdir " + Program.ReorganizationPath_TRAIN + "\\txt");
+        foreach (var filename in System.IO.Directory.GetFiles(Program.ReorganizationPath_TRAIN + @"/pdf/"))
         {
-            Logger.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
+            batchwriter.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
+        }
+        foreach (var filename in System.IO.Directory.GetFiles(Program.ReorganizationPath_TEST + @"\pdf\"))
+        {
+            batchwriter.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
         }
 
-        var ContractPath_TEST = Program.DocBase + @"\FDDC_announcements_round1_test_b_20180708\重大合同";
-        Logger.WriteLine("mkdir " + ContractPath_TEST + "\\txt");
-        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TEST + @"\pdf\"))
+        batchwriter.WriteLine("mkdir " + Program.ContractPath_TRAIN + "\\txt");
+        foreach (var filename in System.IO.Directory.GetFiles(Program.ContractPath_TRAIN + @"/pdf/"))
         {
-            Logger.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
+            batchwriter.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
         }
 
-        //Logger.Close();return;
-
-        ContractPath_TRAIN = Program.DocBase + @"/FDDC_announcements_round1_test_b_20180708/增减持";
-        Logger.WriteLine("mkdir " + ContractPath_TRAIN + "\\txt");
-        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\pdf\"))
+        batchwriter.WriteLine("mkdir " + Program.ContractPath_TEST + "\\txt");
+        foreach (var filename in System.IO.Directory.GetFiles(Program.ContractPath_TEST + @"\pdf\"))
         {
-            Logger.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
-        }
-        ContractPath_TEST = Program.DocBase + @"/FDDC_announcements_round1_test_b_20180708/增减持";
-        Logger.WriteLine("mkdir " + ContractPath_TEST + "\\txt");
-        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TEST + @"\pdf\"))
-        {
-            Logger.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
+            batchwriter.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
         }
 
+        batchwriter.WriteLine("mkdir " + Program.ContractPath_TRAIN + "\\txt");
+        foreach (var filename in System.IO.Directory.GetFiles(Program.ContractPath_TRAIN + @"\pdf\"))
+        {
+            batchwriter.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
+        }
+        batchwriter.WriteLine("mkdir " + Program.ContractPath_TEST + "\\txt");
+        foreach (var filename in System.IO.Directory.GetFiles(Program.ContractPath_TEST + @"\pdf\"))
+        {
+            batchwriter.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
+        }
 
-        ContractPath_TRAIN = Program.DocBase + @"/FDDC_announcements_round1_train_20180518/round1_train_20180518/定增";
-        Logger.WriteLine("mkdir " + ContractPath_TRAIN + "\\txt");
-        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\pdf\"))
+
+        batchwriter.WriteLine("mkdir " + Program.ContractPath_TRAIN + "\\txt");
+        foreach (var filename in System.IO.Directory.GetFiles(Program.ContractPath_TRAIN + @"\pdf\"))
         {
-            Logger.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
+            batchwriter.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
         }
-        ContractPath_TEST = Program.DocBase + @"/FDDC_announcements_round1_test_b_20180708/定增";
-        Logger.WriteLine("mkdir " + ContractPath_TEST + "\\txt");
-        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TEST + @"\pdf\"))
+        batchwriter.WriteLine("mkdir " + Program.ContractPath_TEST + "\\txt");
+        foreach (var filename in System.IO.Directory.GetFiles(Program.ContractPath_TEST + @"\pdf\"))
         {
-            Logger.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
+            batchwriter.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
         }
-        Logger.Close();
+        batchwriter.Close();
     }
 
+    /// <summary>
+    /// LTP的XML文件做成
+    /// </summary>
     public static void GetLTPXMLBatchFileMac()
     {
         var Logger = new StreamWriter("ltp.sh", false, Encoding.GetEncoding("utf-8"));
@@ -83,61 +90,58 @@ public class PDFToTXT
         Logger.Close();
     }
 
-
+    /// <summary>
+    /// LTP的XML文件做成
+    /// </summary>
     public static void GetLTPXMLBatchFile()
     {
         var Logger = new StreamWriter("ltp.bat", false, Encoding.GetEncoding("gb2312"));
 
         Logger.WriteLine(@"D:");
         Logger.WriteLine(@"cd D:\Download\ltp-3.3.2-win-x64-Release\bin\Release");
-        var ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\重大合同";
-
-        Logger.WriteLine("mkdir " + ContractPath_TRAIN + "\\ner");
-        Logger.WriteLine("mkdir " + ContractPath_TRAIN + "\\dp");
-        Logger.WriteLine("mkdir " + ContractPath_TRAIN + "\\srl");
-        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\txt\"))
+        Logger.WriteLine("mkdir " + Program.ContractPath_TRAIN + "\\ner");
+        Logger.WriteLine("mkdir " + Program.ContractPath_TRAIN + "\\dp");
+        Logger.WriteLine("mkdir " + Program.ContractPath_TRAIN + "\\srl");
+        foreach (var filename in System.IO.Directory.GetFiles(Program.ContractPath_TRAIN + @"\txt\"))
         {
-            var nerPath = ContractPath_TRAIN + @"\ner\";
-            var dpPath = ContractPath_TRAIN + @"\dp\";
-            var srlPath = ContractPath_TRAIN + @"\srl\";
-            var fi = new FileInfo(filename);
-            var xml = fi.Name.Replace("txt", "xml");
-            if (!xml.Contains("xml")) xml += ".xml";
-            //Logger.WriteLine("ltp_test.exe --last-stage ner --input " + filename + " > " + nerPath + xml);
-            //Logger.WriteLine("ltp_test.exe --last-stage dp --input " + filename + " > " + dpPath + xml);
-            //Logger.WriteLine("ltp_test.exe --input " + filename + " > " + srlPath + xml);
-        }
-
-        var ContractPath_TEST = Program.DocBase + @"\FDDC_announcements_round1_test_b_20180708\重大合同";
-        Logger.WriteLine("mkdir " + ContractPath_TEST + "\\ner");
-        Logger.WriteLine("mkdir " + ContractPath_TEST + "\\dp");
-        Logger.WriteLine("mkdir " + ContractPath_TEST + "\\srl");
-        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TEST + @"\txt\"))
-        {
-            var nerPath = ContractPath_TEST + @"\ner\";
-            var dpPath = ContractPath_TEST + @"\dp\";
-            var srlPath = ContractPath_TEST + @"\srl\";
+            var nerPath = Program.ContractPath_TRAIN + @"\ner\";
+            var dpPath = Program.ContractPath_TRAIN + @"\dp\";
+            var srlPath = Program.ContractPath_TRAIN + @"\srl\";
             var fi = new FileInfo(filename);
             var xml = fi.Name.Replace("txt", "xml");
             if (!xml.Contains("xml")) xml += ".xml";
             Logger.WriteLine("ltp_test.exe --last-stage ner --input " + filename + " > " + nerPath + xml);
             Logger.WriteLine("ltp_test.exe --last-stage dp --input " + filename + " > " + dpPath + xml);
-            //Logger.WriteLine("ltp_test.exe --input " + filename + " > " + srlPath + xml);
+            Logger.WriteLine("ltp_test.exe --input " + filename + " > " + srlPath + xml);
         }
 
-        //Logger.Close(); return;
+        Logger.WriteLine("mkdir " + Program.ContractPath_TEST + "\\ner");
+        Logger.WriteLine("mkdir " + Program.ContractPath_TEST + "\\dp");
+        Logger.WriteLine("mkdir " + Program.ContractPath_TEST + "\\srl");
+        foreach (var filename in System.IO.Directory.GetFiles(Program.ContractPath_TEST + @"\txt\"))
+        {
+            var nerPath = Program.ContractPath_TEST + @"\ner\";
+            var dpPath = Program.ContractPath_TEST + @"\dp\";
+            var srlPath = Program.ContractPath_TEST + @"\srl\";
+            var fi = new FileInfo(filename);
+            var xml = fi.Name.Replace("txt", "xml");
+            if (!xml.Contains("xml")) xml += ".xml";
+            Logger.WriteLine("ltp_test.exe --last-stage ner --input " + filename + " > " + nerPath + xml);
+            Logger.WriteLine("ltp_test.exe --last-stage dp --input " + filename + " > " + dpPath + xml);
+            Logger.WriteLine("ltp_test.exe --input " + filename + " > " + srlPath + xml);
+        }
 
-        ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\增减持";
-        Logger.WriteLine("mkdir " + ContractPath_TRAIN + "\\xml");
-        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\txt\"))
+
+        Logger.WriteLine("mkdir " + Program.StockChangePath_TRAIN + "\\xml");
+        foreach (var filename in System.IO.Directory.GetFiles(Program.StockChangePath_TRAIN + @"\txt\"))
         {
             var txt = filename;
             var xml = filename.Replace("txt", "xml");
             Logger.Write("ltp_test.exe --last-stage ner --input " + txt + " > " + xml);
         }
-        ContractPath_TEST = Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\增减持";
-        Logger.WriteLine("mkdir " + ContractPath_TEST + "\\xml");
-        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TEST + @"\txt\"))
+
+        Logger.WriteLine("mkdir " + Program.StockChangePath_TEST + "\\xml");
+        foreach (var filename in System.IO.Directory.GetFiles(Program.StockChangePath_TEST + @"\txt\"))
         {
             var txt = filename;
             var xml = filename.Replace("txt", "xml");
@@ -145,17 +149,16 @@ public class PDFToTXT
         }
 
 
-        ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\定增";
-        Logger.WriteLine("mkdir " + ContractPath_TRAIN + "\\xml");
-        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TRAIN + @"\txt\"))
+        Logger.WriteLine("mkdir " + Program.ReorganizationPath_TRAIN + "\\xml");
+        foreach (var filename in System.IO.Directory.GetFiles(Program.ReorganizationPath_TRAIN + @"\txt\"))
         {
             var txt = filename;
             var xml = filename.Replace("txt", "xml");
             Logger.Write("ltp_test.exe --last-stage ner --input " + txt + " > " + xml);
         }
-        ContractPath_TEST = Program.DocBase + @"\FDDC_announcements_round1_test_a_20180605\定增";
-        Logger.WriteLine("mkdir " + ContractPath_TEST + "\\xml");
-        foreach (var filename in System.IO.Directory.GetFiles(ContractPath_TEST + @"\txt\"))
+
+        Logger.WriteLine("mkdir " + Program.ReorganizationPath_TEST + "\\xml");
+        foreach (var filename in System.IO.Directory.GetFiles(Program.ReorganizationPath_TEST + @"\txt\"))
         {
             var txt = filename;
             var xml = filename.Replace("txt", "xml");
@@ -164,16 +167,25 @@ public class PDFToTXT
         Logger.Close();
     }
 
+    /// <summary>
+    /// 整理TXT文件入口
+    /// </summary>
     public static void FormatTxtFile()
     {
-        FormatTextFile(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\重大合同");
-        FormatTextFile(Program.DocBase + @"\FDDC_announcements_round1_test_b_20180708\重大合同");
-        FormatTextFile(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\增减持");
-        FormatTextFile(Program.DocBase + @"\FDDC_announcements_round1_test_b_20180708\增减持");
-        FormatTextFile(Program.DocBase + @"\FDDC_announcements_round1_train_20180518\定增");
-        FormatTextFile(Program.DocBase + @"\FDDC_announcements_round1_test_b_20180708\定增");
+        FormatTextFile(Program.ContractPath_TRAIN);
+        FormatTextFile(Program.ContractPath_TEST);
+        FormatTextFile(Program.StockChangePath_TRAIN);
+        FormatTextFile(Program.StockChangePath_TEST);
+        FormatTextFile(Program.IncreaseStockPath_TRAIN);
+        FormatTextFile(Program.IncreaseStockPath_TEST);
+        FormatTextFile(Program.ReorganizationPath_TRAIN);
+        FormatTextFile(Program.ReorganizationPath_TEST);
     }
 
+    /// <summary>
+    /// 整理TXT文件具体方法
+    /// </summary>
+    /// <param name="path"></param>
     internal static void FormatTextFile(string path)
     {
         foreach (var filename in System.IO.Directory.GetFiles(path + @"\txt\"))

@@ -5,11 +5,12 @@ public class Reorganization : AnnouceDocument
 {
     public override List<RecordBase> Extract()
     {
-       var list = new List<RecordBase>();
-       var reorgRec = new ReorganizationRec();
-       reorgRec.EvaluateMethod = getEvaluateMethod(); 
-
-       return list;
+        var list = new List<RecordBase>();
+        var reorgRec = new ReorganizationRec();
+        reorgRec.Id = this.Id;
+        reorgRec.EvaluateMethod = getEvaluateMethod();
+        list.Add(reorgRec);
+        return list;
     }
 
     /// <summary>

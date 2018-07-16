@@ -18,11 +18,11 @@ public class StockChangeTraning
         int Cnt = 0;
         foreach (var stockchange in TraningDataset.StockChangeList)
         {
-            if (!PreviewId.Equals(stockchange.id))
+            if (!PreviewId.Equals(stockchange.Id))
             {
-                var htmlfile = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\增减持\html\" + stockchange.id + ".html";
+                var htmlfile = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\增减持\html\" + stockchange.Id + ".html";
                 PreviewRoot = new HTMLEngine().Anlayze(htmlfile, "");
-                PreviewId = stockchange.id;
+                PreviewId = stockchange.Id;
                 Cnt++; if (Cnt == TraningCnt) break;
             }
             ChangeMethodTool.PutValueTrainingItem(PreviewRoot, new string[] { "减持方式", "增持方式" }.ToList());

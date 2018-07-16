@@ -48,7 +48,7 @@ public class StockChange : AnnouceDocument
 
         var stockchange = new StockChangeRec();
         //公告ID
-        stockchange.id = Id;
+        stockchange.Id = Id;
         //if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("公告ID:" + stockchange.id);
         stockchange.HolderFullName = Name.FullName.NormalizeTextResult();
         if (Utility.TrimEnglish(stockchange.HolderFullName).Length > ContractTraning.JiaFangES.MaxLength)
@@ -174,7 +174,7 @@ public class StockChange : AnnouceDocument
         foreach (var rec in result)
         {
             var stockchange = new StockChangeRec();
-            stockchange.id = Id;
+            stockchange.Id = Id;
 
             var ModifyName = rec[0].RawData;
             //表格里面长的名字可能被分页切割掉

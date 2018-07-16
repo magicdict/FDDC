@@ -22,11 +22,11 @@ public class IncreaseStockTraning
         int Cnt = 0;
         foreach (var increase in TraningDataset.IncreaseStockList)
         {
-            if (!PreviewId.Equals(increase.id))
+            if (!PreviewId.Equals(increase.Id))
             {
-                var htmlfile = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\定增\html\" + increase.id + ".html";
+                var htmlfile = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\定增\html\" + increase.Id + ".html";
                 PreviewRoot = new HTMLEngine().Anlayze(htmlfile, "");
-                PreviewId = increase.id;
+                PreviewId = increase.Id;
                 Cnt++; if (Cnt == TraningCnt) break;
             }
             TargetTool.PutTitleTrainingItem(PreviewRoot, increase.PublishTarget);

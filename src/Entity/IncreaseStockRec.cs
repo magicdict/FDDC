@@ -18,13 +18,13 @@ public class IncreaseStockRec: RecordBase
     public string BuyMethod;
     public override string GetKey()
     {
-        return id + ":" + PublishTarget.NormalizeKey();
+        return Id + ":" + PublishTarget.NormalizeKey();
     }
     public static IncreaseStockRec ConvertFromString(string str)
     {
         var Array = str.Split("\t");
         var c = new IncreaseStockRec();
-        c.id = Array[0];
+        c.Id = Array[0];
         c.PublishTarget = Array[1];
         if (Array.Length > 2)
         {
@@ -48,7 +48,7 @@ public class IncreaseStockRec: RecordBase
 
     public override string ConvertToString()
     {
-        var record = id + "\t" +
+        var record = Id + "\t" +
         PublishTarget + "\t";
         record += Normalizer.NormalizeNumberResult(IncreaseNumber) + "\t";
         record += Normalizer.NormalizeNumberResult(IncreaseMoney) + "\t";
