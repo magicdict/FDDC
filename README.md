@@ -1,6 +1,6 @@
 # 开放域实体抽取泛用工具
 
-更新时间 2018年7月13日 By 带着兔子去旅行
+更新时间 2018年7月16日 By 带着兔子去旅行
 
 开发这个工具的起源是天池大数据竞赛，FDDC2018金融算法挑战赛02－A股上市公司公告信息抽取。这个比赛是针对金融公告开展的信息抽取比赛。在参赛过程中，萌生出一个念头，是否能够开发出一个泛用的信息抽取工具呢？
 
@@ -426,6 +426,29 @@ EntityProperty对象属性如下：
         //置信度
         e.Confidence = ContractTraning.ContractES.GetStardardCI();
         return e.EvaluateCI();
+    }
+```
+
+### 简单关键字抽取
+
+对于一些及其简单的关键字抽取，例如，出现"现金认购"，则将认购方法标记为"现金"，则可以使用KeyWordMap属性即可。
+
+```csharp
+    /// <summary>
+    /// 评估方式
+    /// </summary>
+    /// <param name="root"></param>
+    /// <returns></returns>
+    string getEvaluateMethod()
+    {
+        var p = new EntityProperty();
+        foreach (var method in ReOrganizationTraning.EvaluateMethodList)
+        {
+            p.KeyWordMap.Add(method, method);
+        }
+        p.Extract(this);
+        if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("评估方式:" + string.Join("、", p.WordMapResult));
+        return string.Join("、", p.WordMapResult);
     }
 ```
 

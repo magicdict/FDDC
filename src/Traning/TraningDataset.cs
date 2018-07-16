@@ -10,6 +10,8 @@ public static class TraningDataset
     static string StockChangePath_TRAIN = Program.DocBase + @"\FDDC_SRC\Result\Train\zengjianchi.train";
     static string IncreaseStockPath_TRAIN = Program.DocBase + @"\FDDC_SRC\Result\Train\dingzeng.train";
 
+    static string ReorganizationPath_TRAIN = Program.DocBase + @"\FDDC_SRC\Result\Train\chongzu.train";
+
     public static List<ContractRec> ContractList = new List<ContractRec>();
 
     public static void InitContract()
@@ -57,4 +59,15 @@ public static class TraningDataset
     }
 
 
+    public static List<ReorganizationRec> ReorganizationList = new List<ReorganizationRec>();
+    public static void InitReorganization()
+    {
+        var sr = new StreamReader(ReorganizationPath_TRAIN);
+        while (!sr.EndOfStream)
+        {
+            ReorganizationList.Add(ReorganizationRec.ConvertFromString(sr.ReadLine()));
+        }
+        Console.WriteLine("资产重组标准结果数:" + ReorganizationList.Count);
+        sr.Close();
+    }
 }

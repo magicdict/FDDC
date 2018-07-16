@@ -120,12 +120,7 @@ public class EntityProperty
         //纯关键字类型
         if (KeyWordMap.Count != 0)
         {
-            var candidate = ExtractByKeyWordMap(doc.root);
-            if (candidate.Count == 1) WordMapResult = candidate.First();
-            if (candidate.Count > 1)
-            {
-                Logger.WriteLine("找到纯关键字类型两个关键字");
-            }
+            WordMapResult = ExtractByKeyWordMap(doc.root);
             return;
         }
 
@@ -378,7 +373,7 @@ public class EntityProperty
     //纯关键字类型
     public Dictionary<string, string> KeyWordMap = new Dictionary<string, string>();
 
-    public String WordMapResult = "";
+    public List<string> WordMapResult;
 
     List<string> ExtractByKeyWordMap(HTMLEngine.MyRootHtmlNode root)
     {

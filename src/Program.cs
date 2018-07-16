@@ -69,10 +69,14 @@ namespace FDDC
             Training = new StreamWriter("Training.log");
             TraningDataset.InitContract();
             TraningDataset.InitStockChange();
-            TraningDataset.InitIncreaseStock();
-            ContractTraning.Train();
-            StockChangeTraning.Traning();
-            IncreaseStockTraning.Training(100);
+            //TraningDataset.InitIncreaseStock();   复赛删除
+            TraningDataset.InitReorganization();
+
+            //ContractTraning.Train();
+            //StockChangeTraning.Traning();
+            ReOrganizationTraning.Train();
+
+            //IncreaseStockTraning.Training(100);   复赛删除
             Training.Close();
         }
 
@@ -95,18 +99,18 @@ namespace FDDC
             var ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
             var ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
 
-            var IsRunStockChange = true;
-            var IsRunStockChange_TEST = true;
+            var IsRunStockChange = false;
+            var IsRunStockChange_TEST = false;
             var StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
             var StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "增减持";
 
-            //复赛中删除
+            //定增 复赛中删除
             var IsRunIncreaseStock = false;
             var IsRunIncreaseStock_TEST = false;
             var IncreaseStockPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "定增";
             var IncreaseStockPath_TEST = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "定增";
 
-            //复赛中新增
+            //资产重组 复赛中新增
             var IsRunReorganization = false;
             var IsRunReorganization_TEST = false;
             var ReorganizationPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型训练数据-20180712" + Path.DirectorySeparatorChar + "资产重组";

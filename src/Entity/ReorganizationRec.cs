@@ -57,21 +57,23 @@ public class ReorganizationRec : RecordBase
         {
             c.Price = Array[4];
         }
-        if (Array.Length > 5)
+        /*        
+            if (Array.Length > 5)
+            {
+                c.profits = Array[5];
+            }
+            if (Array.Length > 6)
+            {
+                c.MontherCompanyAsset = Array[6];
+            }
+            if (Array.Length > 7)
+            {
+                c.TargetAsset = Array[7];
+            } 
+        */
+        if (Array.Length == 6)
         {
-            c.profits = Array[5];
-        }
-        if (Array.Length > 6)
-        {
-            c.MontherCompanyAsset = Array[6];
-        }
-        if (Array.Length > 7)
-        {
-            c.TargetAsset = Array[7];
-        }
-        if (Array.Length == 9)
-        {
-            c.EvaluateMethod = Array[8];
+            c.EvaluateMethod = Array[5];
         }
         return c;
     }

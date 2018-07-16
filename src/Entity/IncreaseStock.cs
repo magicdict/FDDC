@@ -145,17 +145,18 @@ public class IncreaseStock : AnnouceDocument
         return orgString.Trim();
     }
 
-    //认购方式
+    /// <summary>
+    /// 认购方式
+    /// </summary>
+    /// <param name="root"></param>
+    /// <returns></returns>
     string getBuyMethod(HTMLEngine.MyRootHtmlNode root)
     {
         var p = new EntityProperty();
         //是否包含关键字 "现金认购"
         p.KeyWordMap.Add("现金认购", "现金");
         p.Extract(this);
-        if (!String.IsNullOrEmpty(p.WordMapResult))
-        {
-            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("认购方式:" + p.WordMapResult);
-        }
-        return p.WordMapResult;
+        if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("认购方式:" + string.Join("、", p.WordMapResult));
+        return string.Join("、", p.WordMapResult);
     }
 }
