@@ -54,7 +54,7 @@ public class MoneyUtility
         OrgString = OrgString.Replace("九", "9");
         OrgString = OrgString.Replace("十", "10");
 
-        OrgString = OrgString.Replace("０", "0");    //本次HTML的特殊处理
+        OrgString = OrgString.Replace("０", "0");    
         OrgString = OrgString.Replace("１", "1");
         OrgString = OrgString.Replace("２", "2");
         OrgString = OrgString.Replace("３", "3");

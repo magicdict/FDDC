@@ -29,6 +29,7 @@ public class TableAnlayzeTool
     /// <param name="KeyWord"></param>
     public void PutTitleTrainingItem(HTMLEngine.MyRootHtmlNode root, string KeyWord)
     {
+        if (root.TableList == null) return;
         foreach (var Table in root.TableList)
         {
             var t = new HTMLTable(Table.Value);

@@ -127,7 +127,7 @@ namespace FDDC
         public static string IncreaseStockPath_TEST = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "定增";
 
         //资产重组 复赛中新增
-        public static bool IsRunReorganization = true;
+        public static bool IsRunReorganization = false;
         public static bool IsRunReorganization_TEST = false;
         public static string ReorganizationPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型训练数据-20180712" + Path.DirectorySeparatorChar + "资产重组";
         public static string ReorganizationPath_TEST = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型测试数据-20180712" + Path.DirectorySeparatorChar + "资产重组";

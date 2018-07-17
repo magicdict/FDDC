@@ -85,7 +85,7 @@ public partial class HTMLTable
                                 }
                             }
 
-                            var cellvalue = Normalizer.Normalize(tableData.InnerText);
+                            var cellvalue = HTMLEngine.CorrectHTML(Normalizer.Normalize(tableData.InnerText));
                             var cellpos = CurrentRow + "," + NextNeedToFillColumn;
                             if (cellvalue == String.Empty)
                             {

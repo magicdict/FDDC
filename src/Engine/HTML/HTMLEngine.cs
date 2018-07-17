@@ -51,6 +51,25 @@ public class HTMLEngine
 
     Dictionary<int, List<String>> DetailItemList;
 
+    /// <summary>
+    /// PDF转HTML时候的错位文字的纠正
+    /// </summary>
+    /// <param name="OrgString"></param>
+    /// <returns></returns>
+    public static string CorrectHTML(string OrgString)
+    {
+        OrgString = OrgString.Replace("ft", "山");
+        OrgString = OrgString.Replace("惩", "亿");
+        OrgString = OrgString.Replace("○", "０");
+        return OrgString;
+    }
+
+    /// <summary>
+    /// 分析
+    /// </summary>
+    /// <param name="htmlfile"></param>
+    /// <param name="TextFileName"></param>
+    /// <returns></returns>
     public MyRootHtmlNode Anlayze(string htmlfile, string TextFileName)
     {
         TableId = 0;
@@ -62,7 +81,7 @@ public class HTMLEngine
         doc.Load(htmlfile);
         var node = doc.DocumentNode.SelectNodes("//div[@type='pdf']");
         var root = new MyRootHtmlNode();
-        if (node.Count == 0) return root;
+        if (node == null) return root;
         root.Content = node[0].Attributes["title"].Value;
         //第二层是所有的一定是Paragraph
         foreach (var SecondLayerNode in node[0].ChildNodes)
@@ -94,6 +113,16 @@ public class HTMLEngine
                     secondNode.Children[i].PreviewBrother = secondNode.Children[i - 1];
                 }
                 root.Children.Add(secondNode);
+            }
+        }
+
+        //特殊字符的矫正
+        foreach (var x1 in root.Children)
+        {
+            x1.Content = CorrectHTML(x1.Content);
+            foreach (var x2 in x1.Children)
+            {
+                x2.Content = CorrectHTML(x2.Content);
             }
         }
 
