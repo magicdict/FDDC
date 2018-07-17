@@ -4,14 +4,26 @@ using System.Text.RegularExpressions;
 using System.Linq;
 public static class LocateProperty
 {
-
+    /// <summary>
+    /// 位置和值
+    /// </summary>
     public struct LocAndValue<T>
     {
-        //位置
+        /// <summary>
+        /// HTML整体位置
+        /// </summary>
         public int Loc;
-        //值
+        /// <summary>
+        /// 开始位置
+        /// </summary>
+        public int StartIdx;
+        /// <summary>
+        /// 值
+        /// </summary>
         public T Value;
-        //类型
+        /// <summary>
+        /// 类型
+        /// </summary>
         public string Type;
     }
 

@@ -115,7 +115,7 @@ public class EntityProperty
     /// <summary>
     /// 正则表达式检索
     /// </summary>
-    public struRegularExpressFeature RegularExpressFeature;
+    public struRegularExpressFeature[] RegularExpressFeature;
     /// <summary>
     /// 正则表达式检索候选词
     /// </summary>
@@ -241,6 +241,21 @@ public class EntityProperty
                 if (!ExternalStartEndStringFeatureCandidate.Contains(PropertyValue)) ExternalStartEndStringFeatureCandidate.Add(PropertyValue);
             }
         }
+
+        if (RegularExpressFeature != null)
+        {
+            var Extractor = new ExtractPropertyByHTML();
+            Extractor.RegularExpressFeature = RegularExpressFeature;
+            Extractor.Extract(doc.root);
+            foreach (var item in Extractor.CandidateWord)
+            {
+                var PropertyValue = item.Value;
+                if (String.IsNullOrEmpty(PropertyValue)) continue;
+                Logger.WriteLine(this.PropertyName + "：[" + PropertyValue + "]");
+                if (!RegularExpressFeatureCandidate.Contains(PropertyValue)) RegularExpressFeatureCandidate.Add(PropertyValue);
+            }
+        }
+
     }
 
     public string CheckCandidate(string PropertyValue)

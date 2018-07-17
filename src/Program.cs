@@ -40,16 +40,29 @@ namespace FDDC
         /// </summary>
         public static bool IsMultiThreadMode = true;
 
+
+        /// <summary>
+        /// 快速测试区
+        /// </summary>
+        private static void QuickTestArea()
+        {
+            var t = new Reorganization();
+            t.Init(ReorganizationPath_TRAIN + "\\html\\1317477.html");
+            t.Extract();
+        }
+
         static void Main(string[] args)
         {
-
-            UT(); return;
-
+            //日志
             Logger = new StreamWriter("Log.log");
+            //实体属性器日志设定
+            EntityProperty.Logger = Logger;
             //全局编码    
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            PDFToTXT.GetPdf2TxtBatchFile();
+            //QuickTestArea(); return;
+
+            //PDFToTXT.GetPdf2TxtBatchFile();
 
             //公司全称简称曾用名字典   
             CompanyNameLogic.LoadCompanyName(@"Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
@@ -62,7 +75,6 @@ namespace FDDC
             Traning();
             Evaluator = new StreamWriter("Evaluator.log");
             Score = new StreamWriter(@"Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
-            EntityProperty.Logger = Logger;
             Extract();
             CIRecord.Close();
             Score.Close();
@@ -239,23 +251,6 @@ namespace FDDC
             }
             ResultCSV.Close();
             return Announce_Result;
-        }
-
-        /// <summary>
-        /// 快速测试区
-        /// </summary>
-        private static void UT()
-        {
-            var s0 = "占本公司目前总股本的 22.60%股权、占本次重大资产重组完成后本公司总股本 15.29%）无偿划转给山西省国资委。同时山西省国资委同意对上述股份全权委托同煤集团进行管理，并同意以符合规定的方式注";
-            var r = RegularTool.GetRegular(s0, RegularTool.PercentExpress);
-            foreach (var item in r)
-            {
-                if (item.Index + item.Length + 2 < s0.Length)
-                {
-                    Console.WriteLine(s0.Substring(item.Index + item.Length, 2));
-                }
-                Console.WriteLine(item.RawData + "  Idx:" + item.Index + "  Len:" + item.Length);
-            }
         }
     }
 }

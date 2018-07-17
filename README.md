@@ -453,6 +453,95 @@ EntityProperty对象属性如下：
     }
 ```
 
+## 实体位置体系
+
+在寻在实体的时候，尽可能的将找到的实体及其位置进行记录，下面的结构体则是一个实体的记录。
+
+```csharp
+    /// <summary>
+    /// 位置和值
+    /// </summary>
+    public struct LocAndValue<T>
+    {
+        /// <summary>
+        /// HTML整体位置
+        /// </summary>
+        public int Loc;
+        /// <summary>
+        /// 开始位置
+        /// </summary>
+        public int StartIdx;
+        /// <summary>
+        /// 值
+        /// </summary>
+        public T Value;
+        /// <summary>
+        /// 类型
+        /// </summary>
+        public string Type;
+    }
+```
+
+下面则是一个实体位置的应用。公司里面放着所有公司实体的位置，标的则放着百分比 + “股权”字样的实体。通过位置信息，则可以将“公司”和“标的”成对发现。
+
+```csharp
+    /// <summary>
+    /// 获得标的
+    /// </summary>
+    /// <returns></returns>
+    List<(string Target, string Comany)> getTargetList()
+    {
+        var rtn = new List<(string Target, string Comany)>();
+
+        var targetRegular = new ExtractProperyBase.struRegularExpressFeature()
+        {
+            RegularExpress = RegularTool.PercentExpress,
+            TrailingWordList = new string[] { "股权" }.ToList()
+        };
+        var targetLoc = ExtractPropertyByHTML.FindRegularExpressLoc(targetRegular, root);
+
+        //所有公司名称
+        var CompanyList = new List<string>();
+        foreach (var companyname in companynamelist)
+        {
+            //注意，这里的companyname.WordIdx是分词之后的开始位置，不是位置信息！
+            if (!CompanyList.Contains(companyname.secFullName))
+            {
+                if (!string.IsNullOrEmpty(companyname.secFullName)) CompanyList.Add(companyname.secFullName);
+            }
+            if (!CompanyList.Contains(companyname.secShortName))
+            {
+                if (!string.IsNullOrEmpty(companyname.secShortName)) CompanyList.Add(companyname.secShortName);
+            }
+        }
+
+        var targetlist = new List<string>();
+
+        foreach (var companyname in CompanyList)
+        {
+            var companyLoc = ExtractPropertyByHTML.FindWordLoc(companyname, root);
+            foreach (var company in companyLoc)
+            {
+                foreach (var target in targetLoc)
+                {
+                    var EndIdx = company.StartIdx + company.Value.Length;
+                    if (company.Loc == target.Loc && Math.Abs(target.StartIdx - EndIdx) < 2)
+                    {
+                        if (!targetlist.Contains(target.Value + ":" + company.Value))
+                        {
+                            rtn.Add((target.Value, company.Value));
+                            targetlist.Add(target.Value + ":" + company.Value);
+                        }
+                    }
+                }
+            }
+        }
+
+        return rtn;
+    }
+```
+
+
 ## 参考文献
 
 * [自然语言处理和信息抽取](https://wenku.baidu.com/view/9df6408971fe910ef12df8af.html)
