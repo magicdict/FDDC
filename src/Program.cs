@@ -85,16 +85,15 @@ namespace FDDC
         private static void Traning()
         {
             Training = new StreamWriter("Training.log");
+
             TraningDataset.InitContract();
             TraningDataset.InitStockChange();
-            //TraningDataset.InitIncreaseStock();   复赛删除
             TraningDataset.InitReorganization();
 
-            //ContractTraning.Train();
-            //StockChangeTraning.Traning();
+            ContractTraning.Train();
+            StockChangeTraning.Traning();
             ReOrganizationTraning.Train();
 
-            //IncreaseStockTraning.Training(100);   复赛删除
             Training.Close();
         }
 
@@ -110,25 +109,21 @@ namespace FDDC
             PDFToTXT.GetLTPXMLBatchFile();
         }
 
+        //重大合同
         public static bool IsRunContract = false;
         public static bool IsRunContract_TEST = false;
         public static string ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
         public static string ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
 
+        //增减持
         public static bool IsRunStockChange = false;
         public static bool IsRunStockChange_TEST = false;
         public static string StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
         public static string StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "增减持";
 
-        //定增 复赛中删除
-        public static bool IsRunIncreaseStock = false;
-        public static bool IsRunIncreaseStock_TEST = false;
-        public static string IncreaseStockPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "定增";
-        public static string IncreaseStockPath_TEST = DocBase + Path.DirectorySeparatorChar + @"FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "定增";
-
-        //资产重组 复赛中新增
-        public static bool IsRunReorganization = false;
-        public static bool IsRunReorganization_TEST = false;
+        //资产重组
+        public static bool IsRunReorganization = true;
+        public static bool IsRunReorganization_TEST = true;
         public static string ReorganizationPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型训练数据-20180712" + Path.DirectorySeparatorChar + "资产重组";
         public static string ReorganizationPath_TEST = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型测试数据-20180712" + Path.DirectorySeparatorChar + "资产重组";
 
@@ -183,23 +178,6 @@ namespace FDDC
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "zengjianchi.txt", false, utf8WithoutBom);
                 var StockChange_Result = Run<StockChange>(StockChangePath_TEST, ResultCSV);
                 Console.WriteLine("Complete Extract Info StockChange");
-            }
-
-            //定增
-            if (IsRunIncreaseStock)
-            {
-                Console.WriteLine("Start To Extract Info IncreaseStock TRAIN");
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "dingzeng_train.txt", false, utf8WithoutBom);
-                var Increase_Result = Run<IncreaseStock>(IncreaseStockPath_TRAIN, ResultCSV);
-                Evaluate.EvaluateIncreaseStock(Increase_Result.Select((x) => (IncreaseStockRec)x).ToList());
-                Console.WriteLine("Complete Extract Info IncreaseStock");
-            }
-            if (IsRunIncreaseStock_TEST)
-            {
-                Console.WriteLine("Start To Extract Info IncreaseStock TEST");
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "dingzeng.txt", false, utf8WithoutBom);
-                var Increase_Result = Run<IncreaseStock>(IncreaseStockPath_TEST, ResultCSV);
-                Console.WriteLine("Complete Extract Info IncreaseStock");
             }
         }
 

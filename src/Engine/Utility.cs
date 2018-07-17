@@ -9,6 +9,11 @@ using static ExtractProperyBase;
 public static class Utility
 {
     /// <summary>
+    /// 分割符号
+    /// </summary>
+    public const string SplitChar = "、";
+
+    /// <summary>
     /// 排名结构体
     /// </summary>
     public struct struRankRecord<T>

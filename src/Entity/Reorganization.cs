@@ -28,6 +28,36 @@ public class Reorganization : AnnouceDocument
     }
 
     /// <summary>
+    /// 从指代表格中抽取
+    /// </summary>
+    /// <returns></returns>
+    List<(string Target, string Comany)> getTargetListFromReplaceTable()
+    {
+        var rtn = new List<(string Target, string Comany)>();
+        foreach (var item in ReplacementDict)
+        {
+            var keys = item.Key.Split(Utility.SplitChar);
+            var keys2 = item.Key.Split("/");
+            if (keys.Length == 1 && keys2.Length > 1)
+            {
+                keys = keys2;
+            }
+            var values = item.Value.Split(Utility.SplitChar);
+            foreach (var key in keys)
+            {
+                if (key == "交易标的")
+                {
+                    foreach (var value in values)
+                    {
+                        Program.Logger.WriteLine("交易标的：" + value);
+                    }
+                }
+            }
+        }
+        return rtn;
+    }
+
+    /// <summary>
     /// 获得标的
     /// </summary>
     /// <returns></returns>
@@ -43,7 +73,7 @@ public class Reorganization : AnnouceDocument
         var targetLoc = ExtractPropertyByHTML.FindRegularExpressLoc(targetRegular, root);
         targetLoc.AddRange(ExtractPropertyByHTML.FindWordLoc("资产及负债", root));
         targetLoc.AddRange(ExtractPropertyByHTML.FindWordLoc("业务及相关资产负债", root));
-        
+
 
         //所有公司名称
         var CompanyList = new List<string>();
@@ -94,7 +124,7 @@ public class Reorganization : AnnouceDocument
         var TradeCompany = new TableSearchTitleRule();
         TradeCompany.Name = "交易对方";
         //"投资者名称","股东名称"
-        TradeCompany.Title = new string[] {"交易对方" }.ToList();
+        TradeCompany.Title = new string[] { "交易对方" }.ToList();
         TradeCompany.IsTitleEq = true;
         TradeCompany.IsRequire = true;
         var Rules = new List<TableSearchTitleRule>();
@@ -102,7 +132,7 @@ public class Reorganization : AnnouceDocument
         var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, true);
         if (result.Count != 0)
         {
-            return string.Join("、", result.Select(x => x[0].RawData));
+            return string.Join(Utility.SplitChar, result.Select(x => x[0].RawData));
         }
         return string.Empty;
     }
@@ -150,7 +180,7 @@ public class Reorganization : AnnouceDocument
         }
         p.Extract(this);
         if (p.WordMapResult == null) return string.Empty;
-        if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("评估方式:" + string.Join("、", p.WordMapResult));
-        return string.Join("、", p.WordMapResult);
+        if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("评估方式:" + string.Join(Utility.SplitChar, p.WordMapResult));
+        return string.Join(Utility.SplitChar, p.WordMapResult);
     }
 }

@@ -156,7 +156,7 @@ public class IncreaseStock : AnnouceDocument
         //是否包含关键字 "现金认购"
         p.KeyWordMap.Add("现金认购", "现金");
         p.Extract(this);
-        if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("认购方式:" + string.Join("、", p.WordMapResult));
-        return string.Join("、", p.WordMapResult);
+        if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("认购方式:" + string.Join(Utility.SplitChar, p.WordMapResult));
+        return string.Join(Utility.SplitChar, p.WordMapResult);
     }
 }

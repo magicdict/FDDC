@@ -10,14 +10,14 @@ public class ContractTraning
 {
     public static void Train()
     {
-        Console.WriteLine("开始分析");
+        Console.WriteLine("开始分析 重大合同");
         //实体周围语境的统计
         //AnlayzeEntitySurroundWords(); FDDC.Program.Training.Flush();
         //实体周围语境的统计LTP角度
         //AnlayzeEntitySurroundWordsLTP(); FDDC.Program.Training.Flush();
         //实体自身属性的统计
         EntityWordPerperty(); FDDC.Program.Training.Flush();
-        Console.WriteLine("结束分析");
+        Console.WriteLine("结束分析 重大合同");
     }
 
     #region 周围环境
@@ -27,7 +27,9 @@ public class ContractTraning
     public static Dictionary<String, int> YiFangLeadingDict = new Dictionary<String, int>();
     public static Dictionary<String, int> ProjectNameLeadingDict = new Dictionary<String, int>();
     public static Dictionary<String, int> ContractNameLeadingDict = new Dictionary<String, int>();
-
+    /// <summary>
+    /// 分析实体周边词语
+    /// </summary>
     public static void AnlayzeEntitySurroundWords()
     {
         var ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\重大合同";
@@ -81,7 +83,9 @@ public class ContractTraning
     }
 
 
-
+    /// <summary>
+    /// 使用LTP方式分析实体周边词语
+    /// </summary>
     public static void AnlayzeEntitySurroundWordsLTP()
     {
         var ContractPath_TRAIN = Program.DocBase + @"\FDDC_announcements_round1_train_20180518\重大合同";

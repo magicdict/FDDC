@@ -448,8 +448,8 @@ EntityProperty对象属性如下：
             p.KeyWordMap.Add(method, method);
         }
         p.Extract(this);
-        if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("评估方式:" + string.Join("、", p.WordMapResult));
-        return string.Join("、", p.WordMapResult);
+        if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("评估方式:" + string.Join(Utility.SplitChar, p.WordMapResult));
+        return string.Join(Utility.SplitChar, p.WordMapResult);
     }
 ```
 

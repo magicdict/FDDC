@@ -28,31 +28,18 @@ public class PDFToTXT
         {
             batchwriter.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
         }
-
         batchwriter.WriteLine("mkdir " + Program.ContractPath_TEST + "\\txt");
         foreach (var filename in System.IO.Directory.GetFiles(Program.ContractPath_TEST + @"\pdf\"))
         {
             batchwriter.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
         }
 
-        batchwriter.WriteLine("mkdir " + Program.ContractPath_TRAIN + "\\txt");
+        batchwriter.WriteLine("mkdir " + Program.StockChangePath_TRAIN + "\\txt");
         foreach (var filename in System.IO.Directory.GetFiles(Program.ContractPath_TRAIN + @"\pdf\"))
         {
             batchwriter.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
         }
-        batchwriter.WriteLine("mkdir " + Program.ContractPath_TEST + "\\txt");
-        foreach (var filename in System.IO.Directory.GetFiles(Program.ContractPath_TEST + @"\pdf\"))
-        {
-            batchwriter.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
-        }
-
-
-        batchwriter.WriteLine("mkdir " + Program.ContractPath_TRAIN + "\\txt");
-        foreach (var filename in System.IO.Directory.GetFiles(Program.ContractPath_TRAIN + @"\pdf\"))
-        {
-            batchwriter.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
-        }
-        batchwriter.WriteLine("mkdir " + Program.ContractPath_TEST + "\\txt");
+        batchwriter.WriteLine("mkdir " + Program.StockChangePath_TEST + "\\txt");
         foreach (var filename in System.IO.Directory.GetFiles(Program.ContractPath_TEST + @"\pdf\"))
         {
             batchwriter.WriteLine("pdf2txt.py " + filename + " >" + filename.Replace("pdf", "txt"));
@@ -176,8 +163,6 @@ public class PDFToTXT
         FormatTextFile(Program.ContractPath_TEST);
         FormatTextFile(Program.StockChangePath_TRAIN);
         FormatTextFile(Program.StockChangePath_TEST);
-        FormatTextFile(Program.IncreaseStockPath_TRAIN);
-        FormatTextFile(Program.IncreaseStockPath_TEST);
         FormatTextFile(Program.ReorganizationPath_TRAIN);
         FormatTextFile(Program.ReorganizationPath_TEST);
     }

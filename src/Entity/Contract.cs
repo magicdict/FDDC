@@ -501,7 +501,7 @@ public partial class Contract : AnnouceDocument
                 }
             }
         }
-        return String.Join("、", Union);
+        return String.Join(Utility.SplitChar, Union);
     }
 
 }
