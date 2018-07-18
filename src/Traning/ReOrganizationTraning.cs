@@ -8,8 +8,8 @@ public class ReOrganizationTraning
     {
         Console.WriteLine("开始分析 资产重组");
         GetEvaluateMethodEnum();
-        GetTradeCompanyTitle();
-        GetTradeCompanyFromReplaceTable();
+        //GetTradeCompanyTitle();
+        //GetTradeCompanyFromReplaceTable();
         Console.WriteLine("结束分析 资产重组");
     }
 

@@ -1,9 +1,18 @@
 using System;
 using FDDC;
+using System.Linq;
 
 public class EvaluateItem
 {
-    String ItemName = "";
+    /// <summary>
+    /// 项目名称
+    /// </summary>
+    string ItemName = "";
+    /// <summary>
+    /// 列表形式
+    /// </summary>
+    public bool IsList;
+
     public int POS = 0;
     public int ACT = 0;
     int COR = 0;
@@ -44,13 +53,42 @@ public class EvaluateItem
             if (!String.IsNullOrEmpty(EvaluateValue))
             {
                 //存在标准值 存在测评值
-                if (StardardValue.Equals(EvaluateValue))
+                if (IsList)
                 {
-                    CorrentCnt++;
+                    //多项的情况
+                    var StardardList = StardardValue.Split(Utility.SplitChar).ToList();
+                    var EvaluateList = EvaluateValue.Split(Utility.SplitChar).ToList();
+                    var IsOk = false;
+                    if (StardardList.Count == EvaluateList.Count)
+                    {
+                        IsOk = true;
+                        for (int i = 0; i < StardardList.Count; i++)
+                        {
+                            if (StardardList[i].Equals(EvaluateList[i])) continue;
+                            IsOk = false;
+                            break;
+                        }
+                    }
+                    if (IsOk)
+                    {
+                        CorrentCnt++;
+                    }
+                    else
+                    {
+                        WrongCnt++;
+                    }
                 }
                 else
                 {
-                    WrongCnt++;
+                    //单项的情况
+                    if (StardardValue.Equals(EvaluateValue))
+                    {
+                        CorrentCnt++;
+                    }
+                    else
+                    {
+                        WrongCnt++;
+                    }
                 }
             }
             else

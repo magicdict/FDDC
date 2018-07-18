@@ -47,7 +47,7 @@ namespace FDDC
         private static void QuickTestArea()
         {
             var t = new Reorganization();
-            t.Init(ReorganizationPath_TRAIN + "\\html\\1317477.html");
+            t.Init(ReorganizationPath_TEST + "\\html\\369.html");
             t.Extract();
         }
 
@@ -86,12 +86,12 @@ namespace FDDC
         {
             Training = new StreamWriter("Training.log");
 
-            TraningDataset.InitContract();
-            TraningDataset.InitStockChange();
+            //TraningDataset.InitContract();
+            //TraningDataset.InitStockChange();
             TraningDataset.InitReorganization();
 
-            ContractTraning.Train();
-            StockChangeTraning.Traning();
+            //ContractTraning.Train();
+            //StockChangeTraning.Traning();
             ReOrganizationTraning.Train();
 
             Training.Close();
@@ -123,7 +123,7 @@ namespace FDDC
 
         //资产重组
         public static bool IsRunReorganization = true;
-        public static bool IsRunReorganization_TEST = true;
+        public static bool IsRunReorganization_TEST = false;
         public static string ReorganizationPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型训练数据-20180712" + Path.DirectorySeparatorChar + "资产重组";
         public static string ReorganizationPath_TEST = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型测试数据-20180712" + Path.DirectorySeparatorChar + "资产重组";
 

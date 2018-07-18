@@ -8,7 +8,10 @@ using static Contract;
 
 public static class Evaluate
 {
-
+    /// <summary>
+    /// 合同结果测评
+    /// </summary>
+    /// <param name="resultDataset"></param>
     public static void EvaluateContract(List<ContractRec> resultDataset)
     {
         //POS:标准数据集中该字段不为空的记录数
@@ -113,8 +116,10 @@ public static class Evaluate
         var F1_Target = new EvaluateItem("交易标的");
         var F1_TargetCompany = new EvaluateItem("标的公司");
         var F1_TradeCompany = new EvaluateItem("交易对方");
+        F1_TradeCompany.IsList = true;
         var F1_Price = new EvaluateItem("交易标的作价");
         var F1_EvaluateMethod = new EvaluateItem("评估方法");
+        F1_EvaluateMethod.IsList = true;
 
         foreach (var contract in TraningDataset.ReorganizationList)
         {

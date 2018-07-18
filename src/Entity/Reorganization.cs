@@ -9,10 +9,10 @@ public class Reorganization : AnnouceDocument
     public override List<RecordBase> Extract()
     {
         var list = new List<RecordBase>();
-        var targets = getTargetList();
+        var targets = getTargetListFromReplaceTable();      //优先使用指代表中的内容
+        if (targets.Count == 0) targets = getTargetList();   //文章中抽取
         var EvaluateMethod = getEvaluateMethod();
         var TradeCompany = getTradeCompany();
-        var Price = GetPrice();
         foreach (var item in targets)
         {
             var reorgRec = new ReorganizationRec();
@@ -21,6 +21,7 @@ public class Reorganization : AnnouceDocument
             reorgRec.TargetCompany = item.Comany;
             reorgRec.EvaluateMethod = EvaluateMethod;
             reorgRec.TradeCompany = TradeCompany;
+            var Price = GetPrice(reorgRec);
             reorgRec.Price = MoneyUtility.Format(Price.MoneyAmount, String.Empty);
             list.Add(reorgRec);
         }
@@ -33,7 +34,7 @@ public class Reorganization : AnnouceDocument
     /// <returns></returns>
     List<(string Target, string Comany)> getTargetListFromReplaceTable()
     {
-        var rtn = new List<(string Target, string Comany)>();
+        var TargetAndCompanyList = new List<(string Target, string Comany)>();
         foreach (var item in ReplacementDict)
         {
             var keys = item.Key.Split(Utility.SplitChar);
@@ -49,12 +50,24 @@ public class Reorganization : AnnouceDocument
                 {
                     foreach (var value in values)
                     {
-                        Program.Logger.WriteLine("交易标的：" + value);
+                        var targetAndcompany = value.Trim();
+                        //将公司名称和交易标的划分开来
+                        foreach (var companyname in companynamelist)
+                        {
+                            if (!string.IsNullOrEmpty(companyname.secShortName) && targetAndcompany.StartsWith(companyname.secShortName))
+                            {
+                                TargetAndCompanyList.Add((targetAndcompany.Substring(companyname.secShortName.Length), companyname.secShortName));
+                            }
+                            if (!string.IsNullOrEmpty(companyname.secFullName) && targetAndcompany.StartsWith(companyname.secFullName))
+                            {
+                                TargetAndCompanyList.Add((targetAndcompany.Substring(companyname.secFullName.Length), companyname.secFullName));
+                            }
+                        }
                     }
                 }
             }
         }
-        return rtn;
+        return TargetAndCompanyList;
     }
 
     /// <summary>
@@ -132,15 +145,16 @@ public class Reorganization : AnnouceDocument
         var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, true);
         if (result.Count != 0)
         {
-            return string.Join(Utility.SplitChar, result.Select(x => x[0].RawData));
+            return string.Join(Utility.SplitChar, result.Select(x => x[0].RawData).Where(y => !y.Contains("不超过")));
         }
         return string.Empty;
     }
-    (String MoneyAmount, String MoneyCurrency) GetPrice()
+    (String MoneyAmount, String MoneyCurrency) GetPrice(ReorganizationRec rec)
     {
         var Extractor = new ExtractPropertyByHTML();
         //这些关键字后面（暂时无法自动抽取）
-        Extractor.LeadingColonKeyWordList = new string[] { "作价" };
+        var target = rec.TargetCompany + rec.Target;
+        Extractor.LeadingColonKeyWordList = new string[] { target };
         Extractor.Extract(root);
         var AllMoneyList = new List<(String MoneyAmount, String MoneyCurrency)>();
         foreach (var item in Extractor.CandidateWord)

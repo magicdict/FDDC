@@ -148,11 +148,13 @@ public abstract class AnnouceDocument
                 ParagraghlocateValue.Add(p);
             }
         }
+
+        if (root.TableList == null) return;
         //表格的处理(表分页)
         HTMLTable.FixSpiltTable(this, new string[] { "集中竞价交易", "竞价交易", "大宗交易", "约定式购回" });
         //NULL的对应
         HTMLTable.FixNullValue(this);
-
+        //指代表
         GetReplaceTable();
     }
 
@@ -177,14 +179,20 @@ public abstract class AnnouceDocument
         return paragragh;
     }
 
+    /// <summary>
+    /// 指代表的字典
+    /// </summary>
+    /// <typeparam name="String"></typeparam>
+    /// <typeparam name="String"></typeparam>
+    /// <returns></returns>
     public Dictionary<String, String> ReplacementDict = new Dictionary<String, String>();
-
     /// <summary>
     /// 公告中特殊的指代表
     /// </summary>
     /// <returns></returns>
     public void GetReplaceTable()
     {
+        //指代表的抽取
         foreach (var table in root.TableList)
         {
             var htmltable = new HTMLTable(table.Value);
@@ -199,6 +207,23 @@ public abstract class AnnouceDocument
                 }
             }
         }
-    }
 
+        //寻找指代表中表示公司简称和公司全称的项目，加入到Companylist中
+        //注意，左边的主键需要根据分隔符好切分
+        foreach (var item in ReplacementDict)
+        {
+            if (item.Key.Length == 4)
+            {
+                //一般来说简称是4个字的
+                if (item.Value.EndsWith("公司") || item.Value.EndsWith("有限合伙"))
+                {
+                    companynamelist.Add(new struCompanyName()
+                    {
+                        secFullName = item.Value,
+                        secShortName = item.Key
+                    });
+                }
+            }
+        }
+    }
 }
