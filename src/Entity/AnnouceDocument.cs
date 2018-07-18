@@ -9,22 +9,47 @@ using static LocateProperty;
 using static LTPTrainingNER;
 using static LTPTrainingDP;
 
+/// <summary>
+/// 公告
+/// </summary>
 public abstract class AnnouceDocument
 {
+    /// <summary>
+    /// 公告ID
+    /// </summary>
     public String Id;
+    /// <summary>
+    /// HTML根节点
+    /// </summary>
     public MyRootHtmlNode root;
-    //公司
+    /// <summary>
+    /// 公司
+    /// </summary>
     public List<struCompanyName> companynamelist;
-    //日期
+    /// <summary>
+    /// 日期
+    /// </summary>
     public List<LocAndValue<DateTime>> datelist;
-    //金额
+    /// <summary>
+    /// 金额
+    /// </summary>
+    /// <param name="MoneyAmount"></param>
+    /// <param name="MoneyCurrency"></param>
     public List<LocAndValue<(String MoneyAmount, String MoneyCurrency)>> moneylist;
 
+    /// <summary>
+    /// 引号
+    /// </summary>
     public List<LocAndValue<String>> quotationList;
 
+    /// <summary>
+    /// NER列表
+    /// </summary>
     public List<String> Nerlist;
 
-
+    /// <summary>
+    /// DP列表
+    /// </summary>
     public List<List<struWordDP>> Dplist;
 
     /// <summary>
@@ -32,13 +57,22 @@ public abstract class AnnouceDocument
     /// </summary>
     public List<List<LTPTrainingSRL.struWordSRL>> Srllist;
 
-    //公告日期
+    /// <summary>
+    /// 公告日期
+    /// </summary>
     public DateTime AnnouceDate;
-
+    /// <summary>
+    /// 发布公告的公司
+    /// </summary>
     public String AnnouceCompanyName;
-
+    /// <summary>
+    /// 文本文件
+    /// </summary>
     public String TextFileName;
-
+    /// <summary>
+    /// 初始化
+    /// </summary>
+    /// <param name="htmlFileName"></param>
     public void Init(string htmlFileName)
     {
         var fi = new System.IO.FileInfo(htmlFileName);
@@ -160,6 +194,11 @@ public abstract class AnnouceDocument
 
     public abstract List<RecordBase> Extract();
 
+    /// <summary>
+    /// 每句句子中，各种实体的聚合
+    /// </summary>
+    /// <param name="PosId"></param>
+    /// <returns></returns>
     ParagraghLoc SentenceLocate(int PosId)
     {
         var paragragh = new ParagraghLoc();
@@ -212,16 +251,26 @@ public abstract class AnnouceDocument
         //注意，左边的主键需要根据分隔符好切分
         foreach (var item in ReplacementDict)
         {
-            if (item.Key.Length == 4)
+            var keys = item.Key.Split(Utility.SplitChar);
+            var keys2 = item.Key.Split("/");
+            if (keys.Length == 1 && keys2.Length > 1)
             {
-                //一般来说简称是4个字的
-                if (item.Value.EndsWith("公司") || item.Value.EndsWith("有限合伙"))
+                keys = keys2;
+            }
+            foreach (var key in keys)
+            {
+                if (key.Length == 4 || key.Length == 3)
                 {
-                    companynamelist.Add(new struCompanyName()
+                    //一般来说简称是3，4个字的
+                    if (item.Value.EndsWith("公司") || item.Value.EndsWith("有限合伙"))
                     {
-                        secFullName = item.Value,
-                        secShortName = item.Key
-                    });
+                        companynamelist.Add(new struCompanyName()
+                        {
+                            secFullName = item.Value,
+                            secShortName = key,
+                            positionId = -1 //表示从释义表格来的
+                        });
+                    }
                 }
             }
         }

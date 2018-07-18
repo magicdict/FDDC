@@ -26,6 +26,9 @@ namespace FDDC
         /// </summary>
         public static String DocBase = @"E:\WorkSpace2018\FDDC2018";
 
+        
+        public static String AppBase = @"E:\WorkSpace2018\FDDC2018\FDDC_SRC";
+
         /// <summary>
         /// Mac
         /// </summary>
@@ -47,34 +50,34 @@ namespace FDDC
         private static void QuickTestArea()
         {
             var t = new Reorganization();
-            t.Init(ReorganizationPath_TEST + "\\html\\369.html");
+            t.Init(ReorganizationPath_TRAIN + "\\html\\1015599.html");
             t.Extract();
         }
 
         static void Main(string[] args)
         {
             //日志
-            Logger = new StreamWriter("Log.log");
+            Logger = new StreamWriter(AppBase + Path.DirectorySeparatorChar + "Log.log");
             //实体属性器日志设定
             EntityProperty.Logger = Logger;
             //全局编码    
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            //QuickTestArea(); return;
+            QuickTestArea(); return;
 
             //PDFToTXT.GetPdf2TxtBatchFile();
 
             //公司全称简称曾用名字典   
-            CompanyNameLogic.LoadCompanyName(@"Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
+            CompanyNameLogic.LoadCompanyName(AppBase + Path.DirectorySeparatorChar + "Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
             //增减持公告日期的读入
             StockChange.ImportPublishTime();
             //结巴分词的地名修正词典
-            PosNS.ImportNS(@"Resources" + Path.DirectorySeparatorChar + "ns.dict");
-            CIRecord = new StreamWriter("CI.log");
+            PosNS.ImportNS(AppBase + Path.DirectorySeparatorChar + "Resources" + Path.DirectorySeparatorChar + "ns.dict");
+            CIRecord = new StreamWriter(AppBase + Path.DirectorySeparatorChar + "CI.log");
             //预处理
             Traning();
-            Evaluator = new StreamWriter("Evaluator.log");
-            Score = new StreamWriter(@"Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
+            Evaluator = new StreamWriter(AppBase + Path.DirectorySeparatorChar + "Evaluator.log");
+            Score = new StreamWriter(AppBase  + Path.DirectorySeparatorChar + "Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
             Extract();
             CIRecord.Close();
             Score.Close();
@@ -84,7 +87,7 @@ namespace FDDC
 
         private static void Traning()
         {
-            Training = new StreamWriter("Training.log");
+            Training = new StreamWriter(AppBase + Path.DirectorySeparatorChar + "Training.log");
 
             //TraningDataset.InitContract();
             //TraningDataset.InitStockChange();
@@ -133,7 +136,7 @@ namespace FDDC
             {
                 //合同处理
                 Console.WriteLine("Start To Extract Info Contract TRAIN");
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong_train.txt", false, utf8WithoutBom);
+                StreamWriter ResultCSV = new StreamWriter(AppBase + Path.DirectorySeparatorChar + "Result" + Path.DirectorySeparatorChar + "hetong_train.txt", false, utf8WithoutBom);
                 var Contract_Result = Run<Contract>(ContractPath_TRAIN, ResultCSV);
                 Evaluate.EvaluateContract(Contract_Result.Select((x) => (ContractRec)x).ToList());
                 Console.WriteLine("Complete Extract Info Contract");
@@ -141,7 +144,7 @@ namespace FDDC
             if (IsRunContract_TEST)
             {
                 Console.WriteLine("Start To Extract Info Contract TEST");
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong.txt", false, utf8WithoutBom);
+                StreamWriter ResultCSV = new StreamWriter(AppBase + Path.DirectorySeparatorChar + "Result" + Path.DirectorySeparatorChar + "hetong.txt", false, utf8WithoutBom);
                 var Contract_Result = Run<Contract>(ContractPath_TEST, ResultCSV);
                 Console.WriteLine("Complete Extract Info Contract");
             }
@@ -150,7 +153,7 @@ namespace FDDC
             if (IsRunReorganization)
             {
                 Console.WriteLine("Start To Extract Info Reorganization TRAIN");
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "chongzu_train.txt", false, utf8WithoutBom);
+                StreamWriter ResultCSV = new StreamWriter(AppBase + Path.DirectorySeparatorChar + "Result" + Path.DirectorySeparatorChar + "chongzu_train.txt", false, utf8WithoutBom);
                 var Reorganization_Result = Run<Reorganization>(ReorganizationPath_TRAIN, ResultCSV);
                 Evaluate.EvaluateReorganization(Reorganization_Result.Select((x) => (ReorganizationRec)x).ToList());
                 Console.WriteLine("Complete Extract Info Reorganization");
@@ -158,7 +161,7 @@ namespace FDDC
             if (IsRunReorganization_TEST)
             {
                 Console.WriteLine("Start To Extract Info Reorganization TEST");
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "chongzu.txt", false, utf8WithoutBom);
+                StreamWriter ResultCSV = new StreamWriter(AppBase + Path.DirectorySeparatorChar + "Result" + Path.DirectorySeparatorChar + "chongzu.txt", false, utf8WithoutBom);
                 var Reorganization_Result = Run<Contract>(ReorganizationPath_TEST, ResultCSV);
                 Console.WriteLine("Complete Extract Info Reorganization");
             }
@@ -167,7 +170,7 @@ namespace FDDC
             if (IsRunStockChange)
             {
                 Console.WriteLine("Start To Extract Info StockChange TRAIN");
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "zengjianchi_train.txt", false, utf8WithoutBom);
+                StreamWriter ResultCSV = new StreamWriter(AppBase + Path.DirectorySeparatorChar + "Result" + Path.DirectorySeparatorChar + "zengjianchi_train.txt", false, utf8WithoutBom);
                 var StockChange_Result = Run<StockChange>(StockChangePath_TRAIN, ResultCSV);
                 Evaluate.EvaluateStockChange(StockChange_Result.Select((x) => (StockChangeRec)x).ToList());
                 Console.WriteLine("Complete Extract Info StockChange");
@@ -175,7 +178,7 @@ namespace FDDC
             if (IsRunStockChange_TEST)
             {
                 Console.WriteLine("Start To Extract Info StockChange TEST");
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "zengjianchi.txt", false, utf8WithoutBom);
+                StreamWriter ResultCSV = new StreamWriter(AppBase + Path.DirectorySeparatorChar + "Result" + Path.DirectorySeparatorChar + "zengjianchi.txt", false, utf8WithoutBom);
                 var StockChange_Result = Run<StockChange>(StockChangePath_TEST, ResultCSV);
                 Console.WriteLine("Complete Extract Info StockChange");
             }

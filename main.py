@@ -11,8 +11,8 @@ from pdfminer.layout import LAParams
 #将一个pdf转换成txt
 def pdfTotxtfile(filepath,outpath):
     try:
-        fp = file(filepath, 'rb')
-        outfp=file(outpath,'w')
+        fp = open(filepath, 'rb')
+        outfp=open(outpath,'w')
         #创建一个PDF资源管理器对象来存储共享资源
         #caching = False不缓存
         rsrcmgr = PDFResourceManager(caching = False)
@@ -36,16 +36,22 @@ def pdfTotxtfile(filepath,outpath):
 
 #一个文件夹下的所有pdf文档转换成txt
 def pdfTotxt(fileDir):
-    files=os.listdir(fileDir)
-    tarDir=fileDir+'txt'
+    files=os.listdir(fileDir + 'pdf\\')
+    tarDir=fileDir + 'txt\\'
     if not os.path.exists(tarDir):
         os.mkdir(tarDir)
     replace=re.compile(r'\.pdf',re.I)
     for file in files:
-        filePath=fileDir+'\\'+file
-        outPath=tarDir+'\\'+re.sub(replace,'',file)+'.txt'
-        pdfTotxtfile(filePath,outPath)
-        print ("Saved "+outPath)
+        filePath=fileDir + 'pdf\\' +file
+        outPath=tarDir + re.sub(replace,'',file) + '.txt'
+        try:
+            #pdfTotxtfile(filePath,outPath)
+            if not os.path.exists(outPath):
+                os.system("pdf2txt.py " + filePath + " > " + outPath)
+                print ("Saved "+outPath)
+        except Exception as e:
+             print ("Exception:",e)
 
-pdfTotxt(u'E:\\WorkSpace2018\\FDDC2018\\FDDC_announcements_round1_test_a_20180605\\重大合同\\pdf')
+pdfTotxt(u'E:\\WorkSpace2018\\FDDC2018\\FDDC_announcements_round1_test_a_20180605\\重大合同\\')
+os.chdir("E:\\WorkSpace2018\\FDDC2018\\FDDC_SRC")
 os.system("dotnet run")

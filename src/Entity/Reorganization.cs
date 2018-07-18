@@ -10,7 +10,8 @@ public class Reorganization : AnnouceDocument
     {
         var list = new List<RecordBase>();
         var targets = getTargetListFromReplaceTable();      //优先使用指代表中的内容
-        if (targets.Count == 0) targets = getTargetList();   //文章中抽取
+        if (targets.Count == 0) return list;
+        //if (targets.Count == 0) targets = getTargetList();   //文章中抽取
         var EvaluateMethod = getEvaluateMethod();
         var TradeCompany = getTradeCompany();
         foreach (var item in targets)
@@ -34,7 +35,29 @@ public class Reorganization : AnnouceDocument
     /// <returns></returns>
     List<(string Target, string Comany)> getTargetListFromReplaceTable()
     {
+
+        var ReplaceCompany = new List<String>();
+        foreach (var c in companynamelist)
+        {
+            if (c.positionId == -1)
+            {
+                //释义表
+                //if (!String.IsNullOrEmpty(c.secFullName)) ReplaceCompany.Add(c.secFullName);
+                if (!String.IsNullOrEmpty(c.secShortName)) ReplaceCompany.Add(c.secShortName);
+            }
+        }
+
         var TargetAndCompanyList = new List<(string Target, string Comany)>();
+        var targetRegular = new ExtractProperyBase.struRegularExpressFeature()
+        {
+            LeadingWordList = ReplaceCompany,
+            RegularExpress = RegularTool.PercentExpress,
+            TrailingWordList = new string[] { "的股权", "股权", "的权益", "权益" }.ToList()
+        };
+        /*         var targetLoc = ExtractPropertyByHTML.FindRegularExpressLoc(targetRegular, root);
+                targetLoc.AddRange(ExtractPropertyByHTML.FindWordLoc("资产及负债", root));
+                targetLoc.AddRange(ExtractPropertyByHTML.FindWordLoc("业务及相关资产负债", root));
+         */
         foreach (var item in ReplacementDict)
         {
             var keys = item.Key.Split(Utility.SplitChar);
@@ -44,24 +67,39 @@ public class Reorganization : AnnouceDocument
                 keys = keys2;
             }
             var values = item.Value.Split(Utility.SplitChar);
+            var values2 = item.Value.Split("；");
+            if (values.Length == 1 && values2.Length > 1)
+            {
+                values = values2;
+            }
+
+            var ReplacementKeys = new string[]
+            {
+                "标的资产", //15%	00464
+                "本次交易", //12%	00369
+                "交易标的", //09%	00303
+                "本次重组", //09%	00297
+                "拟购买资产",      //07%	00221
+                "本次重大资产重组", //07%	 00219
+                "置入资产",        //03%	00107
+                "本次发行",        //02%	00070
+                "拟注入资产",      //02%	00068
+                "目标资产"         //02%	00067
+            };
             foreach (var key in keys)
             {
-                if (key == "交易标的")
+                if (ReplacementKeys.Contains(key))
                 {
                     foreach (var value in values)
                     {
                         var targetAndcompany = value.Trim();
                         //将公司名称和交易标的划分开来
-                        foreach (var companyname in companynamelist)
+                        var ExpResult = ExtractPropertyByHTML.RegularExFinder(0, value, targetRegular, "|");
+                        foreach (var r in ExpResult)
                         {
-                            if (!string.IsNullOrEmpty(companyname.secShortName) && targetAndcompany.StartsWith(companyname.secShortName))
-                            {
-                                TargetAndCompanyList.Add((targetAndcompany.Substring(companyname.secShortName.Length), companyname.secShortName));
-                            }
-                            if (!string.IsNullOrEmpty(companyname.secFullName) && targetAndcompany.StartsWith(companyname.secFullName))
-                            {
-                                TargetAndCompanyList.Add((targetAndcompany.Substring(companyname.secFullName.Length), companyname.secFullName));
-                            }
+                            var arr = r.Value.Split("|");
+                            var extra = (arr[0], arr[1] + arr[2]);
+                            if (!TargetAndCompanyList.Contains(extra)) TargetAndCompanyList.Add(extra);
                         }
                     }
                 }
@@ -71,7 +109,7 @@ public class Reorganization : AnnouceDocument
     }
 
     /// <summary>
-    /// 获得标的
+    /// 获得标的(不建议方法)
     /// </summary>
     /// <returns></returns>
     List<(string Target, string Comany)> getTargetList()

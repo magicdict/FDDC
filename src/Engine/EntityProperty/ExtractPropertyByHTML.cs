@@ -252,32 +252,36 @@ public class ExtractPropertyByHTML : ExtractProperyBase
         return list;
     }
 
-
-    public static List<LocAndValue<String>> RegularExFinder(int loc, string x, struRegularExpressFeature regularfeature)
+    /// <summary>
+    /// 正则表达式检索方法(前置，正则，后置)
+    /// </summary>
+    /// <param name="loc"></param>
+    /// <param name="OrgString"></param>
+    /// <param name="regularfeature"></param>
+    /// <param name="SplitChar"></param>
+    /// <returns></returns>
+    public static List<LocAndValue<String>> RegularExFinder(int loc, string OrgString, struRegularExpressFeature regularfeature, string SplitChar = "")
     {
         var list = new List<LocAndValue<String>>();
-        var reglist = RegularTool.GetRegular(x, regularfeature.RegularExpress);
+        var reglist = RegularTool.GetRegular(OrgString, regularfeature.RegularExpress);
         foreach (var reg in reglist)
         {
             //根据前后词语进行过滤
+            bool IsBeforeOK = true;
+            string BeforeString = "";
             if (regularfeature.LeadingWordList != null)
             {
+                IsBeforeOK = false;
                 //前置词语
                 foreach (var leading in regularfeature.LeadingWordList)
                 {
                     if (reg.Index - leading.Length >= 0)
                     {
-                        var word = x.Substring(reg.Index - leading.Length, leading.Length);
+                        var word = OrgString.Substring(reg.Index - leading.Length, leading.Length);
                         if (word.Equals(leading))
                         {
-                            var value = x.Substring(reg.Index - leading.Length, leading.Length + reg.Length);
-                            var Loc = new LocAndValue<String>()
-                            {
-                                Value = value,
-                                StartIdx = reg.Index - leading.Length,
-                                Loc = loc
-                            };
-                            list.Add(Loc);
+                            BeforeString = leading;
+                            IsBeforeOK = true;
                             break;
                         }
                         else
@@ -287,24 +291,23 @@ public class ExtractPropertyByHTML : ExtractProperyBase
                     }
                 }
             }
+            if (!IsBeforeOK) continue;
+
+            bool IsAfterOK = true;
+            string AfterString = "";
             if (regularfeature.TrailingWordList != null)
             {
+                IsAfterOK = false;
                 //后置词语
                 foreach (var trailing in regularfeature.TrailingWordList)
                 {
-                    if (reg.Index + reg.Length + trailing.Length < x.Length)
+                    if (reg.Index + reg.Length + trailing.Length <= OrgString.Length)
                     {
-                        var word = x.Substring(reg.Index + reg.Length, trailing.Length);
+                        var word = OrgString.Substring(reg.Index + reg.Length, trailing.Length);
                         if (word.Equals(trailing))
                         {
-                            var value = x.Substring(reg.Index, trailing.Length + reg.Length);
-                            var Loc = new LocAndValue<String>()
-                            {
-                                Value = value,
-                                StartIdx = reg.Index,
-                                Loc = loc
-                            };
-                            list.Add(Loc);
+                            AfterString = trailing;
+                            IsAfterOK = true;
                             break;
                         }
                         else
@@ -314,6 +317,18 @@ public class ExtractPropertyByHTML : ExtractProperyBase
                     }
                 }
             }
+
+            if (IsBeforeOK && IsAfterOK)
+            {
+                var Loc = new LocAndValue<String>()
+                {
+                    Value = BeforeString + SplitChar + reg.RawData + SplitChar + AfterString,
+                    StartIdx = reg.Index - BeforeString.Length,
+                    Loc = loc
+                };
+                list.Add(Loc);
+            }
+
         }
         return list;
     }

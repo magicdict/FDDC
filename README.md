@@ -482,65 +482,68 @@ EntityProperty对象属性如下：
     }
 ```
 
-下面则是一个实体位置的应用。公司里面放着所有公司实体的位置，标的则放着百分比 + “股权”字样的实体。通过位置信息，则可以将“公司”和“标的”成对发现。
+下面则是一个实体位置的应用。公司里面放着所有公司实体的位置，标的则放着 公司 + 数字百分比 + “股权”等 字样的实体。通过位置信息，则可以将“公司”和“标的”成对发现。
 
 ```csharp
     /// <summary>
-    /// 获得标的
+    /// 从指代表格中抽取
     /// </summary>
     /// <returns></returns>
-    List<(string Target, string Comany)> getTargetList()
+    List<(string Target, string Comany)> getTargetListFromReplaceTable()
     {
-        var rtn = new List<(string Target, string Comany)>();
 
-        var targetRegular = new ExtractProperyBase.struRegularExpressFeature()
+        var ReplaceCompany = new List<String>();
+        foreach (var c in companynamelist)
         {
-            RegularExpress = RegularTool.PercentExpress,
-            TrailingWordList = new string[] { "股权" }.ToList()
-        };
-        var targetLoc = ExtractPropertyByHTML.FindRegularExpressLoc(targetRegular, root);
-
-        //所有公司名称
-        var CompanyList = new List<string>();
-        foreach (var companyname in companynamelist)
-        {
-            //注意，这里的companyname.WordIdx是分词之后的开始位置，不是位置信息！
-            if (!CompanyList.Contains(companyname.secFullName))
+            if (c.positionId == -1)
             {
-                if (!string.IsNullOrEmpty(companyname.secFullName)) CompanyList.Add(companyname.secFullName);
-            }
-            if (!CompanyList.Contains(companyname.secShortName))
-            {
-                if (!string.IsNullOrEmpty(companyname.secShortName)) CompanyList.Add(companyname.secShortName);
+                //释义表
+                if (!String.IsNullOrEmpty(c.secFullName)) ReplaceCompany.Add(c.secFullName);
+                if (!String.IsNullOrEmpty(c.secShortName)) ReplaceCompany.Add(c.secShortName);
             }
         }
 
-        var targetlist = new List<string>();
-
-        foreach (var companyname in CompanyList)
+        var TargetAndCompanyList = new List<(string Target, string Comany)>();
+        var targetRegular = new ExtractProperyBase.struRegularExpressFeature()
         {
-            var companyLoc = ExtractPropertyByHTML.FindWordLoc(companyname, root);
-            foreach (var company in companyLoc)
+            LeadingWordList = ReplaceCompany,
+            RegularExpress = RegularTool.PercentExpress,
+            TrailingWordList = new string[] { "的股权", "股权", "的权益", "权益" }.ToList()
+        };
+        var targetLoc = ExtractPropertyByHTML.FindRegularExpressLoc(targetRegular, root);
+        targetLoc.AddRange(ExtractPropertyByHTML.FindWordLoc("资产及负债", root));
+        targetLoc.AddRange(ExtractPropertyByHTML.FindWordLoc("业务及相关资产负债", root));
+
+        foreach (var item in ReplacementDict)
+        {
+            var keys = item.Key.Split(Utility.SplitChar);
+            var keys2 = item.Key.Split("/");
+            if (keys.Length == 1 && keys2.Length > 1)
             {
-                foreach (var target in targetLoc)
+                keys = keys2;
+            }
+            var values = item.Value.Split(Utility.SplitChar);
+            var values2 = item.Value.Split("；");
+            if (values.Length == 1 && values2.Length > 1)
+            {
+                values = values2;
+            }
+            foreach (var key in keys)
+            {
+                if (key == "交易标的")
                 {
-                    var EndIdx = company.StartIdx + company.Value.Length;
-                    if (company.Loc == target.Loc && Math.Abs(target.StartIdx - EndIdx) < 2)
+                    foreach (var value in values)
                     {
-                        if (!targetlist.Contains(target.Value + ":" + company.Value))
-                        {
-                            rtn.Add((target.Value, company.Value));
-                            targetlist.Add(target.Value + ":" + company.Value);
-                        }
+                        var targetAndcompany = value.Trim();
+                        //将公司名称和交易标的划分开来
+                        ExtractPropertyByHTML.RegularExFinder(0, value, targetRegular, "|");
                     }
                 }
             }
         }
-
-        return rtn;
+        return TargetAndCompanyList;
     }
 ```
-
 
 ## 参考文献
 
