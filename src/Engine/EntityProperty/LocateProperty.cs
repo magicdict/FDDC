@@ -241,8 +241,41 @@ public static class LocateProperty
                     {
                         Loc = sentence.PositionId,
                         Type = "金额",
-                        Value = money
+                        Value = money,
+                        StartIdx = OrgString.IndexOf(money.MoneyAmount)
                     });
+                }
+            }
+        }
+        return list;
+    }
+
+    /// <summary>
+    /// 自定义字符列表
+    /// </summary>
+    /// <param name="root"></param>
+    /// <param name="CustomerWord"></param>
+    /// <returns></returns>
+    public static List<LocAndValue<String>> LocateCustomerWord(HTMLEngine.MyRootHtmlNode root, List<String> CustomerWord)
+    {
+        var list = new List<LocAndValue<String>>();
+        foreach (var paragrah in root.Children)
+        {
+            foreach (var sentence in paragrah.Children)
+            {
+                var OrgString = sentence.Content;
+                foreach (var word in CustomerWord)
+                {
+                    if (OrgString.IndexOf(word) != -1)
+                    {
+                        list.Add(new LocAndValue<String>()
+                        {
+                            Loc = sentence.PositionId,
+                            Type = "字符",
+                            Value = word,
+                            StartIdx = OrgString.IndexOf(word)
+                        });
+                    }
                 }
             }
         }
@@ -254,14 +287,20 @@ public static class LocateProperty
     /// </summary>
     public struct ParagraghLoc
     {
-        //日期
+        /// <summary>
+        /// 日期
+        /// </summary>
         public List<LocAndValue<DateTime>> datelist;
-        //金额
+        /// <summary>
+        /// 金额
+        /// </summary>
+        /// <param name="MoneyAmount"></param>
+        /// <param name="MoneyCurrency"></param>
         public List<LocAndValue<(String MoneyAmount, String MoneyCurrency)>> moneylist;
-
+        /// <summary>
+        /// 括号
+        /// </summary>
         public List<LocAndValue<String>> bracketlist;
-
-
         public void Init()
         {
             datelist = new List<LocAndValue<DateTime>>();

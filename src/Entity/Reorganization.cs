@@ -9,21 +9,26 @@ public class Reorganization : AnnouceDocument
     public override List<RecordBase> Extract()
     {
         var list = new List<RecordBase>();
-        var targets = getTargetListFromReplaceTable();      //优先使用指代表中的内容
+        var targets = getTargetListFromReplaceTable();
         if (targets.Count == 0) return list;
-        //if (targets.Count == 0) targets = getTargetList();   //文章中抽取
-        var EvaluateMethod = getEvaluateMethod();
-        var TradeCompany = getTradeCompany();
+        var TradeCompany = getTradeCompany(targets);
         foreach (var item in targets)
         {
             var reorgRec = new ReorganizationRec();
             reorgRec.Id = this.Id;
             reorgRec.Target = item.Target;
             reorgRec.TargetCompany = item.Comany;
-            reorgRec.EvaluateMethod = EvaluateMethod;
-            reorgRec.TradeCompany = TradeCompany;
+            foreach (var tc in TradeCompany)
+            {
+                if (tc.TargetCompany == item.Comany)
+                {
+                    reorgRec.TradeCompany = tc.TradeCompany;
+                    break;
+                }
+            }
             var Price = GetPrice(reorgRec);
             reorgRec.Price = MoneyUtility.Format(Price.MoneyAmount, String.Empty);
+            reorgRec.EvaluateMethod = getEvaluateMethod(reorgRec);
             list.Add(reorgRec);
         }
         return list;
@@ -42,7 +47,6 @@ public class Reorganization : AnnouceDocument
             if (c.positionId == -1)
             {
                 //释义表
-                //if (!String.IsNullOrEmpty(c.secFullName)) ReplaceCompany.Add(c.secFullName);
                 if (!String.IsNullOrEmpty(c.secShortName)) ReplaceCompany.Add(c.secShortName);
             }
         }
@@ -54,10 +58,6 @@ public class Reorganization : AnnouceDocument
             RegularExpress = RegularTool.PercentExpress,
             TrailingWordList = new string[] { "的股权", "股权", "的权益", "权益" }.ToList()
         };
-        /*         var targetLoc = ExtractPropertyByHTML.FindRegularExpressLoc(targetRegular, root);
-                targetLoc.AddRange(ExtractPropertyByHTML.FindWordLoc("资产及负债", root));
-                targetLoc.AddRange(ExtractPropertyByHTML.FindWordLoc("业务及相关资产负债", root));
-         */
         foreach (var item in ReplacementDict)
         {
             var keys = item.Key.Split(Utility.SplitChar);
@@ -98,7 +98,7 @@ public class Reorganization : AnnouceDocument
                         foreach (var r in ExpResult)
                         {
                             var arr = r.Value.Split("|");
-                            var extra = (arr[0], arr[1] + arr[2]);
+                            var extra = (arr[1] + arr[2], arr[0]);
                             if (!TargetAndCompanyList.Contains(extra)) TargetAndCompanyList.Add(extra);
                         }
                     }
@@ -109,130 +109,203 @@ public class Reorganization : AnnouceDocument
     }
 
     /// <summary>
-    /// 获得标的(不建议方法)
-    /// </summary>
-    /// <returns></returns>
-    List<(string Target, string Comany)> getTargetList()
-    {
-        var rtn = new List<(string Target, string Comany)>();
-
-        var targetRegular = new ExtractProperyBase.struRegularExpressFeature()
-        {
-            RegularExpress = RegularTool.PercentExpress,
-            TrailingWordList = new string[] { "的股权", "股权", "的权益", "权益" }.ToList()
-        };
-        var targetLoc = ExtractPropertyByHTML.FindRegularExpressLoc(targetRegular, root);
-        targetLoc.AddRange(ExtractPropertyByHTML.FindWordLoc("资产及负债", root));
-        targetLoc.AddRange(ExtractPropertyByHTML.FindWordLoc("业务及相关资产负债", root));
-
-
-        //所有公司名称
-        var CompanyList = new List<string>();
-        foreach (var companyname in companynamelist)
-        {
-            //注意，这里的companyname.WordIdx是分词之后的开始位置，不是位置信息！
-            if (!CompanyList.Contains(companyname.secFullName))
-            {
-                if (!string.IsNullOrEmpty(companyname.secFullName)) CompanyList.Add(companyname.secFullName);
-            }
-            if (!CompanyList.Contains(companyname.secShortName))
-            {
-                if (!string.IsNullOrEmpty(companyname.secShortName)) CompanyList.Add(companyname.secShortName);
-            }
-        }
-
-        var targetlist = new List<string>();
-
-        foreach (var companyname in CompanyList)
-        {
-            var companyLoc = ExtractPropertyByHTML.FindWordLoc(companyname, root);
-            foreach (var company in companyLoc)
-            {
-                foreach (var target in targetLoc)
-                {
-                    var EndIdx = company.StartIdx + company.Value.Length;
-                    if (company.Loc == target.Loc && Math.Abs(target.StartIdx - EndIdx) < 2)
-                    {
-                        if (!targetlist.Contains(target.Value + ":" + company.Value))
-                        {
-                            rtn.Add((target.Value, company.Value));
-                            targetlist.Add(target.Value + ":" + company.Value);
-                        }
-                    }
-                }
-            }
-        }
-
-        return rtn;
-    }
-
-    /// <summary>
     /// 交易对方
     /// </summary>
     /// <returns></returns>
-    public string getTradeCompany()
+    public List<(string TargetCompany, string TradeCompany)> getTradeCompany(List<(string Target, string TargetCompany)> targets)
     {
+        var rtn = new List<(string TargetCompany, string TradeCompany)>();
         var TradeCompany = new TableSearchTitleRule();
         TradeCompany.Name = "交易对方";
-        //"投资者名称","股东名称"
         TradeCompany.Title = new string[] { "交易对方" }.ToList();
         TradeCompany.IsTitleEq = true;
         TradeCompany.IsRequire = true;
         var Rules = new List<TableSearchTitleRule>();
         Rules.Add(TradeCompany);
         var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, true);
-        if (result.Count != 0)
+        //首页表格提取出交易者列表
+        var trades = result.Select(x => x[0].RawData).Where(y => !y.Contains("不超过")).ToList();
+        foreach (var item in ReplacementDict)
         {
-            return string.Join(Utility.SplitChar, result.Select(x => x[0].RawData).Where(y => !y.Contains("不超过")));
-        }
-        return string.Empty;
-    }
-    (String MoneyAmount, String MoneyCurrency) GetPrice(ReorganizationRec rec)
-    {
-        var Extractor = new ExtractPropertyByHTML();
-        //这些关键字后面（暂时无法自动抽取）
-        var target = rec.TargetCompany + rec.Target;
-        Extractor.LeadingColonKeyWordList = new string[] { target };
-        Extractor.Extract(root);
-        var AllMoneyList = new List<(String MoneyAmount, String MoneyCurrency)>();
-        foreach (var item in Extractor.CandidateWord)
-        {
-            var moneylist = MoneyUtility.SeekMoney(item.Value);
-            AllMoneyList.AddRange(moneylist);
-        }
-        if (AllMoneyList.Count == 0) return (String.Empty, String.Empty);
-        foreach (var money in AllMoneyList)
-        {
-            if (money.MoneyCurrency == "人民币" ||
-                money.MoneyCurrency == "元")
+            var keys = item.Key.Split(Utility.SplitChar);
+            var keys2 = item.Key.Split("/");
+            if (keys.Length == 1 && keys2.Length > 1)
             {
-                var amount = MoneyUtility.Format(money.MoneyAmount, String.Empty);
-                var m = 0.0;
-                if (double.TryParse(amount, out m))
+                keys = keys2;
+            }
+            var values = item.Value.Split(Utility.SplitChar);
+            var values2 = item.Value.Split("；");
+            if (values.Length == 1 && values2.Length > 1)
+            {
+                values = values2;
+            }
+            var ReplacementKeys = new string[]
+            {
+                "交易对方",
+            };
+            foreach (var key in keys)
+            {
+                if (ReplacementKeys.Contains(key))
                 {
-                    if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("标的资产的作价[" + money.MoneyAmount + ":" + money.MoneyCurrency + "]");
-                    return money;
+                    foreach (var value in values)
+                    {
+                        var trade = value.Replace("自然人", "");
+                        if (!trades.Contains(trade)) trades.Append(trade);
+                    }
                 }
             }
         }
-        if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("标的资产的作价[" + AllMoneyList[0].MoneyAmount + ":" + AllMoneyList[0].MoneyCurrency + "]");
-        return AllMoneyList[0];
+
+        //在全文中寻找交易对象出现的地方
+        var traderLoc = LocateProperty.LocateCustomerWord(root, trades);
+        var targetLoc = LocateProperty.LocateCustomerWord(root, targets.Select(x => x.TargetCompany).ToList());
+        var TradeLocMap = new Dictionary<int, List<LocateProperty.LocAndValue<String>>>();
+        var TargetLocMap = new Dictionary<int, List<LocateProperty.LocAndValue<String>>>();
+        //按照段落为依据，进行分组
+        foreach (var trloc in traderLoc)
+        {
+            if (!TradeLocMap.ContainsKey(trloc.Loc))
+            {
+                TradeLocMap.Add(trloc.Loc, new List<LocateProperty.LocAndValue<String>>());
+            }
+            TradeLocMap[trloc.Loc].Add(trloc);
+        }
+        foreach (var trloc in targetLoc)
+        {
+            if (!TargetLocMap.ContainsKey(trloc.Loc))
+            {
+                TargetLocMap.Add(trloc.Loc, new List<LocateProperty.LocAndValue<String>>());
+            }
+            TargetLocMap[trloc.Loc].Add(trloc);
+        }
+
+        foreach (var t in targets)
+        {
+            var targetcompany = t.TargetCompany;
+            var rankdict = new Dictionary<String, int>();
+            foreach (var loc in TargetLocMap.Keys)
+            {
+                //寻找交集
+                if (TradeLocMap.ContainsKey(loc))
+                {
+                    if (TargetLocMap[loc].Count == 1 && TradeLocMap[loc].Count > 1)
+                    {
+                        //单标的，多人物的
+                        var comp = String.Join(Utility.SplitChar, TargetLocMap[loc].Select(x => x.Value));
+                        if (!comp.Equals(targetcompany)) continue;
+                        var ctrades = String.Join(Utility.SplitChar, TradeLocMap[loc].Select(x => x.Value));
+                        if (rankdict.ContainsKey(ctrades))
+                        {
+                            rankdict[ctrades]++;
+                        }
+                        else
+                        {
+                            rankdict.Add(ctrades, 1);
+                        }
+                        Console.WriteLine("标的：" + targetcompany);
+                        Console.WriteLine("对手：" + ctrades);
+                    }
+                }
+            }
+            if (rankdict.Count > 1)
+            {
+                var top = Utility.FindTop<string>(1, rankdict).First().Value;
+                Console.WriteLine("TOP标的：" + targetcompany);
+                Console.WriteLine("TOP对手：" + top);
+                rtn.Add((targetcompany, top));
+            }
+        }
+
+
+        return rtn;
+    }
+    /// <summary>
+    /// 标的作价
+    /// </summary>
+    /// <param name="rec"></param>
+    /// <returns></returns>
+    (String MoneyAmount, String MoneyCurrency) GetPrice(ReorganizationRec rec)
+    {
+        var targetLoc = LocateProperty.LocateCustomerWord(root, new string[] { rec.TargetCompany + rec.Target }.ToList());
+        //按照段落为依据，进行分组
+        var MoneyLocMap = new Dictionary<int, List<LocateProperty.LocAndValue<(String MoneyAmount, String MoneyCurrency)>>>();
+        var TargetLocMap = new Dictionary<int, List<LocateProperty.LocAndValue<String>>>();
+        foreach (var moneyloc in moneylist)
+        {
+            if (!MoneyLocMap.ContainsKey(moneyloc.Loc))
+            {
+                MoneyLocMap.Add(moneyloc.Loc, new List<LocateProperty.LocAndValue<(String MoneyAmount, String MoneyCurrency)>>());
+            }
+            MoneyLocMap[moneyloc.Loc].Add(moneyloc);
+        }
+        foreach (var trloc in targetLoc)
+        {
+            if (!TargetLocMap.ContainsKey(trloc.Loc))
+            {
+                TargetLocMap.Add(trloc.Loc, new List<LocateProperty.LocAndValue<String>>());
+            }
+            TargetLocMap[trloc.Loc].Add(trloc);
+        }
+        foreach (var targetloc in TargetLocMap)
+        {
+            if (MoneyLocMap.ContainsKey(targetloc.Key))
+            {
+                //寻找标的之后的金额：
+                var targets = targetloc.Value;
+                var moneys = MoneyLocMap[targetloc.Key];
+                if (targets.Count == 1 && moneys.Count == 1)
+                {
+                    Console.WriteLine(targets.First().Value + ":" + moneys.First().Value.MoneyAmount);
+                    return moneys.First().Value;
+                }
+            }
+        }
+        return ("", "");
     }
     /// <summary>
     /// 评估方式
     /// </summary>
     /// <param name="root"></param>
     /// <returns></returns>
-    string getEvaluateMethod()
+    string getEvaluateMethod(ReorganizationRec rec)
     {
-        var p = new EntityProperty();
-        foreach (var method in ReOrganizationTraning.EvaluateMethodList)
+        var evaluateLoc = LocateProperty.LocateCustomerWord(root, ReOrganizationTraning.EvaluateMethodList);
+        if (evaluateLoc.Count == 0) return string.Empty;
+        var targetLoc = LocateProperty.LocateCustomerWord(root, new string[] { rec.TargetCompany + rec.Target }.ToList());
+        //按照段落为依据，进行分组
+        var EvaluteLocMap = new Dictionary<int, List<LocateProperty.LocAndValue<String>>>();
+        var TargetLocMap = new Dictionary<int, List<LocateProperty.LocAndValue<String>>>();
+        foreach (var evaluateloc in evaluateLoc)
         {
-            p.KeyWordMap.Add(method, method);
+            if (!EvaluteLocMap.ContainsKey(evaluateloc.Loc))
+            {
+                EvaluteLocMap.Add(evaluateloc.Loc, new List<LocateProperty.LocAndValue<String>>());
+            }
+            EvaluteLocMap[evaluateloc.Loc].Add(evaluateloc);
         }
-        p.Extract(this);
-        if (p.WordMapResult == null) return string.Empty;
-        if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("评估方式:" + string.Join(Utility.SplitChar, p.WordMapResult));
-        return string.Join(Utility.SplitChar, p.WordMapResult);
+        foreach (var trloc in targetLoc)
+        {
+            if (!TargetLocMap.ContainsKey(trloc.Loc))
+            {
+                TargetLocMap.Add(trloc.Loc, new List<LocateProperty.LocAndValue<String>>());
+            }
+            TargetLocMap[trloc.Loc].Add(trloc);
+        }
+        foreach (var targetloc in TargetLocMap)
+        {
+            if (EvaluteLocMap.ContainsKey(targetloc.Key))
+            {
+                //寻找标的之后的金额：
+                var targets = targetloc.Value;
+                var evs = EvaluteLocMap[targetloc.Key];
+                if (targets.Count == 1)
+                {
+                    var ev = string.Join(Utility.SplitChar, evs.Select(x => x.Value));
+                    Console.WriteLine(targets.First().Value + ":" + ev);
+                    return evs.First().Value;
+                }
+            }
+        }
+        return string.Empty;
     }
 }

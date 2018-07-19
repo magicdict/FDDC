@@ -545,6 +545,33 @@ EntityProperty对象属性如下：
     }
 ```
 
+LocateProperty.LocateCustomerWord方法用来定位自定义的字符串列表
+
+```csharp
+       //在全文中寻找交易对象出现的地方
+        var traderLoc = LocateProperty.LocateCustomerWord(root, trades);
+        var targetLoc = LocateProperty.LocateCustomerWord(root, targets.Select(x => x.TargetCompany).ToList());
+        var TradeLocMap = new Dictionary<int, List<LocateProperty.LocAndValue<String>>>();
+        var TargetLocMap = new Dictionary<int, List<LocateProperty.LocAndValue<String>>>();
+        //按照段落为依据，进行分组
+        foreach (var trloc in traderLoc)
+        {
+            if (!TradeLocMap.ContainsKey(trloc.Loc))
+            {
+                TradeLocMap.Add(trloc.Loc, new List<LocateProperty.LocAndValue<String>>());
+            }
+            TradeLocMap[trloc.Loc].Add(trloc);
+        }
+        foreach (var trloc in targetLoc)
+        {
+            if (!TargetLocMap.ContainsKey(trloc.Loc))
+            {
+                TargetLocMap.Add(trloc.Loc, new List<LocateProperty.LocAndValue<String>>());
+            }
+            TargetLocMap[trloc.Loc].Add(trloc);
+        }
+```
+
 ## 参考文献
 
 * [自然语言处理和信息抽取](https://wenku.baidu.com/view/9df6408971fe910ef12df8af.html)

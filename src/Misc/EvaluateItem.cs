@@ -139,7 +139,7 @@ public class EvaluateItem
         double Recall = COR / POS;
         double Precision = COR / ACT;
         double F1 = 2 * Recall * Precision / (Recall + Precision);
-        if (POS == 0 || ACT == 0) F1 = 0;
+        if ((Recall + Precision) == 0) F1 = 0;
         Program.Score.WriteLine("Item:" + ItemName);
         Program.Score.WriteLine("POS:" + POS.ToString());
         Program.Score.WriteLine("ACT:" + ACT.ToString());
