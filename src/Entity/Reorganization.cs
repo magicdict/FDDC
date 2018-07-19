@@ -52,56 +52,75 @@ public class Reorganization : AnnouceDocument
         }
 
         var TargetAndCompanyList = new List<(string Target, string Comany)>();
+        //股份的抽取
         var targetRegular = new ExtractProperyBase.struRegularExpressFeature()
         {
             LeadingWordList = ReplaceCompany,
             RegularExpress = RegularTool.PercentExpress,
             TrailingWordList = new string[] { "的股权", "股权", "的权益", "权益" }.ToList()
         };
-        foreach (var item in ReplacementDict)
+        var ReplacementKeys = new string[]
         {
-            var keys = item.Key.Split(Utility.SplitChar);
-            var keys2 = item.Key.Split("/");
-            if (keys.Length == 1 && keys2.Length > 1)
-            {
-                keys = keys2;
-            }
-            var values = item.Value.Split(Utility.SplitChar);
-            var values2 = item.Value.Split("；");
-            if (values.Length == 1 && values2.Length > 1)
-            {
-                values = values2;
-            }
+            "交易标的", //09%	00303
+            "标的资产", //15%	00464
+            "本次交易", //12%	00369
+            "本次重组", //09%	00297
+            "拟购买资产",      //07%	00221
+            "本次重大资产重组", //07%	 00219
+            "置入资产",        //03%	00107
+            "本次发行",        //02%	00070
+            "拟注入资产",      //02%	00068
+            "目标资产"         //02%	00067
+        };
 
-            var ReplacementKeys = new string[]
+        foreach (var Rplkey in ReplacementKeys)
+        {
+            //可能性最大的排在最前
+            foreach (var item in ReplacementDict)
             {
-                "标的资产", //15%	00464
-                "本次交易", //12%	00369
-                "交易标的", //09%	00303
-                "本次重组", //09%	00297
-                "拟购买资产",      //07%	00221
-                "本次重大资产重组", //07%	 00219
-                "置入资产",        //03%	00107
-                "本次发行",        //02%	00070
-                "拟注入资产",      //02%	00068
-                "目标资产"         //02%	00067
-            };
-            foreach (var key in keys)
-            {
-                if (ReplacementKeys.Contains(key))
+                var keys = item.Key.Split(Utility.SplitChar);
+                var keys2 = item.Key.Split("/");
+                if (keys.Length == 1 && keys2.Length > 1)
+                {
+                    keys = keys2;
+                }
+                var values = item.Value.Split(Utility.SplitChar);
+                var values2 = item.Value.Split("；");
+                if (values.Length == 1 && values2.Length > 1)
+                {
+                    values = values2;
+                }
+                if (keys.Contains(Rplkey))
                 {
                     foreach (var value in values)
                     {
                         var targetAndcompany = value.Trim();
                         //将公司名称和交易标的划分开来
                         var ExpResult = ExtractPropertyByHTML.RegularExFinder(0, value, targetRegular, "|");
-                        foreach (var r in ExpResult)
+                        if (ExpResult.Count == 0)
                         {
-                            var arr = r.Value.Split("|");
-                            var extra = (arr[1] + arr[2], arr[0]);
-                            if (!TargetAndCompanyList.Contains(extra)) TargetAndCompanyList.Add(extra);
+                            //其他类型的标的
+                            foreach (var rc in ReplaceCompany)
+                            {
+                                if (targetAndcompany.StartsWith(rc))
+                                {
+                                    var extra = (value.Substring(rc.Length), rc);
+                                    if (!TargetAndCompanyList.Contains(extra)) TargetAndCompanyList.Add(extra);
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            foreach (var r in ExpResult)
+                            {
+                                var arr = r.Value.Split("|");
+                                var extra = (arr[1] + arr[2], arr[0]);
+                                if (!TargetAndCompanyList.Contains(extra)) TargetAndCompanyList.Add(extra);
+                            }
                         }
                     }
+                    if (TargetAndCompanyList.Count != 0) return TargetAndCompanyList;
                 }
             }
         }
@@ -122,9 +141,13 @@ public class Reorganization : AnnouceDocument
         TradeCompany.IsRequire = true;
         var Rules = new List<TableSearchTitleRule>();
         Rules.Add(TradeCompany);
+        //注意：由于表格检索的问题，这里只将第一个表格的内容作为依据
+        //交易对方是释义表的一个项目，这里被错误识别为表头
         var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, true);
+        if (result.Count == 0) return rtn;
         //首页表格提取出交易者列表
-        var trades = result.Select(x => x[0].RawData).Where(y => !y.Contains("不超过")).ToList();
+        var tableid = result[0][0].TableId;
+        var trades = result.Where(z => z[0].TableId == tableid).Select(x => x[0].RawData).Where(y => !y.Contains("不超过")).ToList();
         foreach (var item in ReplacementDict)
         {
             var keys = item.Key.Split(Utility.SplitChar);

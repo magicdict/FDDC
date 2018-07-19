@@ -259,7 +259,7 @@ public abstract class AnnouceDocument
             }
             foreach (var key in keys)
             {
-                if (key.Length == 4 || key.Length == 3)
+                if (key.Length >= 3 && key.Length <= 6)
                 {
                     //一般来说简称是3，4个字的
                     if (item.Value.EndsWith("公司") || item.Value.EndsWith("有限合伙"))
