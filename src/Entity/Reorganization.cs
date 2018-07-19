@@ -61,10 +61,10 @@ public class Reorganization : AnnouceDocument
         };
         var ReplacementKeys = new string[]
         {
-            "交易标的", //09%	00303
-            "标的资产", //15%	00464
-            "本次交易", //12%	00369
-            "本次重组", //09%	00297
+            "交易标的",        //09%	00303
+            "标的资产",        //15%	00464
+            "本次交易",        //12%	00369
+            "本次重组",        //09%	00297
             "拟购买资产",      //07%	00221
             "本次重大资产重组", //07%	 00219
             "置入资产",        //03%	00107
@@ -141,13 +141,15 @@ public class Reorganization : AnnouceDocument
         TradeCompany.IsRequire = true;
         var Rules = new List<TableSearchTitleRule>();
         Rules.Add(TradeCompany);
-        //注意：由于表格检索的问题，这里只将第一个表格的内容作为依据
-        //交易对方是释义表的一个项目，这里被错误识别为表头
         var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, true);
         if (result.Count == 0) return rtn;
         //首页表格提取出交易者列表
         var tableid = result[0][0].TableId;
-        var trades = result.Where(z => z[0].TableId == tableid).Select(x => x[0].RawData).Where(y => !y.Contains("不超过")).ToList();
+        //注意：由于表格检索的问题，这里只将第一个表格的内容作为依据
+        //交易对方是释义表的一个项目，这里被错误识别为表头
+        var trades = result.Where(z => !ReplaceTableId.Contains(z[0].TableId))
+                           .Select(x => x[0].RawData)
+                           .Where(y => !y.Contains("不超过")).ToList();
         foreach (var item in ReplacementDict)
         {
             var keys = item.Key.Split(Utility.SplitChar);

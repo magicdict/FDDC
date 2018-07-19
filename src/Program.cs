@@ -41,6 +41,17 @@ namespace FDDC
         /// </summary>
         private static void QuickTestArea()
         {
+            /*    
+            var x1= "17.35%";
+            var x2 = "12.3%";
+            var x3 = "123.2% - 145.3%";
+            var x4 = "123.2 - 145.3%";
+
+            var prices1 = RegularTool.GetRegular(x1, RegularTool.MoneyExpress);
+            var prices2 = RegularTool.GetRegular(x2, RegularTool.MoneyExpress);
+            var prices3 = RegularTool.GetRegular(x3, RegularTool.MoneyExpress);
+            var prices4 = RegularTool.GetRegular(x4, RegularTool.MoneyExpress);
+            */
             var t = new Reorganization();
             t.Init(ReorganizationPath_TRAIN + "\\html\\153178.html");
             t.Extract();
@@ -60,7 +71,7 @@ namespace FDDC
             //全局编码    
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            //QuickTestArea(); return;
+            QuickTestArea(); return;
 
             //PDFToTXT.GetPdf2TxtBatchFile();
 

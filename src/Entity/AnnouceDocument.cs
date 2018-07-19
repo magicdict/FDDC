@@ -217,9 +217,13 @@ public abstract class AnnouceDocument
         }
         return paragragh;
     }
+    /// <summary>
+    /// 释义表编号
+    /// </summary>
+    public List<int> ReplaceTableId = new List<int>();
 
     /// <summary>
-    /// 指代表的字典
+    /// 释义表的字典
     /// </summary>
     /// <typeparam name="String"></typeparam>
     /// <typeparam name="String"></typeparam>
@@ -243,6 +247,7 @@ public abstract class AnnouceDocument
                     var key = htmltable.CellValue(RowNo, 1);
                     var value = htmltable.CellValue(RowNo, 3);
                     if (!ReplacementDict.ContainsKey(key)) ReplacementDict.Add(key, value);
+                    if (!ReplaceTableId.Contains(table.Key)) ReplaceTableId.Add(table.Key);
                 }
             }
         }
@@ -261,7 +266,7 @@ public abstract class AnnouceDocument
             {
                 if (key.Length >= 3 && key.Length <= 6)
                 {
-                    //一般来说简称是3，4个字的
+                    //一般来说简称是3-6个字的
                     if (item.Value.EndsWith("公司") || item.Value.EndsWith("有限合伙"))
                     {
                         companynamelist.Add(new struCompanyName()

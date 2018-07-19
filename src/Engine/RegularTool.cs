@@ -74,6 +74,11 @@ public static class RegularTool
     public const string PercentExpress = @"\d*[.]?\d*%";
 
     /// <summary>
+    /// 数字（带小树）
+    /// </summary>
+    public const string MoneyExpress = @"\d*[.]?\d*";
+
+    /// <summary>
     /// 正则表达式结果
     /// </summary>
     public struct RegularExResult
@@ -97,12 +102,15 @@ public static class RegularTool
         Match m = r.Match(value);
         while (m.Success)
         {
-            result.Add(new RegularExResult()
+            if (!String.IsNullOrEmpty(m.Value))
             {
-                Index = m.Index,
-                Length = m.Length,
-                RawData = m.Value
-            });
+                result.Add(new RegularExResult()
+                {
+                    Index = m.Index,
+                    Length = m.Length,
+                    RawData = m.Value
+                });
+            }
             m = m.NextMatch();
         }
         return result;

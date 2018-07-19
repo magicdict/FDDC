@@ -119,9 +119,18 @@ public class StockChange : AnnouceDocument
         ChangePriceRule.IsTitleEq = false;
         ChangePriceRule.Normalize = (x, y) =>
         {
-            if (x.Contains("元"))
+            var prices = RegularTool.GetRegular(x, RegularTool.MoneyExpress);
+            if (prices.Count == 0)
             {
-                return Utility.GetStringBefore(x, "元");
+                if (x.Contains("元"))
+                {
+                    return Utility.GetStringBefore(x, "元");
+                }
+                else
+                {
+                    //增减持，区间的情况，取最高价,假设最后一个数字是最大的
+                    return prices.Last().RawData;
+                }
             }
             return x;
         };
@@ -592,6 +601,6 @@ public class StockChange : AnnouceDocument
                 return AnnouceDate.ToString(format);
             }
         }
-        return DateUtility.GetRangeDateEndDate(orgString,this.AnnouceDate,format);
+        return DateUtility.GetRangeDateEndDate(orgString, this.AnnouceDate, format);
     }
 }
