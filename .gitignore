@@ -11,4 +11,5 @@ Result.zip
 *.bat
 *.sh
 *.zip
+!dict.txt
 !ns.dict
