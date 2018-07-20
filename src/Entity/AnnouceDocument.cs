@@ -166,6 +166,30 @@ public abstract class AnnouceDocument
 
         companynamelist = CompanyNameLogic.GetCompanyNameByCutWord(root);
 
+        var newname = new List<struCompanyName>();
+        foreach (var cn in companynamelist)
+        {
+            if (!string.IsNullOrEmpty(cn.secFullName) && string.IsNullOrEmpty(cn.secShortName))
+            {
+                //是否存在引号里面的词语正好是公司全称
+                foreach (var item in quotationList)
+                {
+                    if (cn.secFullName.StartsWith(item.Value))
+                    {
+                        var newComp = new struCompanyName()
+                        {
+                            secFullName = cn.secFullName,
+                            secShortName = item.Value
+                        };
+                        newname.Add(newComp);
+                        break;
+                    }
+                }
+            }
+        }
+
+        companynamelist.AddRange(newname);
+
         foreach (var cn in companynamelist)
         {
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("公司名称：" + cn.secFullName);
@@ -185,7 +209,7 @@ public abstract class AnnouceDocument
 
         if (root.TableList == null) return;
         //表格的处理(表分页)
-        HTMLTable.FixSpiltTable(this, new string[] { "集中竞价交易", "竞价交易", "大宗交易", "约定式购回" });
+        HTMLTable.FixSpiltTable(this);
         //NULL的对应
         HTMLTable.FixNullValue(this);
         //指代表

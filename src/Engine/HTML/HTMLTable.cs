@@ -251,62 +251,13 @@ public partial class HTMLTable
     /// /// 分页表格的修复
     /// </summary>
     /// <param name="root"></param>
-    public static void FixSpiltTable(AnnouceDocument doc, string[] RowHeaderExclude = null)
+    public static void FixSpiltTable(AnnouceDocument doc)
     {
+        //首行NULL的合并
+        FirstRowNullFix(doc);
 
-        for (int NextTableId = 2; NextTableId <= doc.root.TableList.Count; NextTableId++)
-        {
-            foreach (var item in doc.root.TableList[NextTableId])
-            {
-                var FirstTablePos = -1;
-                var SecondTablePos = -1;
-                foreach (var p in doc.root.Children)
-                {
-                    foreach (var s in p.Children)
-                    {
-                        if (s.TableId == NextTableId - 1) FirstTablePos = s.PositionId;
-                        if (s.TableId == NextTableId) SecondTablePos = s.PositionId;
-                    }
-                }
+        OneRowFix(doc);
 
-                if (SecondTablePos - FirstTablePos > 200) continue;
-
-                var tablerec = item.Split("|");
-                var pos = tablerec[0].Split(",");
-                var value = tablerec[1];
-                var row = int.Parse(pos[1]);
-                //第二张表，第一行存在NULL
-                if (row == 1 && value == strNullValue)
-                {
-                    var table = new HTMLTable(doc.root.TableList[NextTableId - 1]);
-                    var nexttable = new HTMLTable(doc.root.TableList[NextTableId]);
-                    if (table.ColumnCount != nexttable.ColumnCount) continue;
-                    //合并表
-                    var offset = table.RowCount;
-                    //修改第二张表格的数据
-                    foreach (var Nextitem in doc.root.TableList[NextTableId])
-                    {
-                        tablerec = Nextitem.Split("|");
-                        pos = tablerec[0].Split(",");
-                        value = tablerec[1];
-                        var newtablerec = (NextTableId - 1) + "," + (offset + int.Parse(pos[1])) + "," + pos[2] + "|" + value;
-                        doc.root.TableList[NextTableId - 1].Add(newtablerec);
-                    }
-                    doc.root.TableList[NextTableId].Clear();
-                    for (int i = 0; i < doc.root.Children.Count; i++)
-                    {
-                        for (int j = 0; j < doc.root.Children[i].Children.Count; j++)
-                        {
-                            var node = doc.root.Children[i].Children[j];
-                            if (node.TableId == NextTableId) node.TableId = -1;
-                        }
-                    }
-                    break;
-                }
-            }
-        }
-
-        //1.是否存在连续表格 NextBrother
         for (int i = 0; i < doc.root.Children.Count; i++)
         {
             for (int j = 0; j < doc.root.Children[i].Children.Count; j++)
@@ -318,6 +269,7 @@ public partial class HTMLTable
                     {
                         if (node.NextBrother.TableId != -1)
                         {
+                            //1.是否存在连续表格 NextBrother
                             var nextnode = node.NextBrother;
                             var table = new HTMLTable(doc.root.TableList[node.TableId]);
                             var nexttable = new HTMLTable(doc.root.TableList[nextnode.TableId]);
@@ -391,37 +343,104 @@ public partial class HTMLTable
                                     }
                                 }
                             }
-
-                            //表头中不可能出现的词语的检查
-                            bool specaillogic = false;
-                            for (int spCell = 1; spCell <= table.ColumnCount; spCell++)
+                            if (hasnull || ComboCompanyNameColumnNo != -1)
                             {
-                                if (RowHeaderExclude.Contains(nexttable.CellValue(1, spCell)))
-                                {
-                                    specaillogic = true;
-                                    break;
-                                }
-                            }
-
-                            if (hasnull || ComboCompanyNameColumnNo != -1 || specaillogic)
-                            {
-                                var offset = table.RowCount;
-                                //修改第二张表格的数据
-                                foreach (var item in doc.root.TableList[nextnode.TableId])
-                                {
-                                    var tablerec = item.Split("|");
-                                    var pos = tablerec[0].Split(",");
-                                    var value = tablerec[1];
-                                    var newtablerec = node.TableId + "," + (offset + int.Parse(pos[1])) + "," + pos[2] + "|" + value;
-                                    doc.root.TableList[node.TableId].Add(newtablerec);
-                                }
-                                doc.root.TableList[nextnode.TableId].Clear();
-                                nextnode.TableId = -1;
-                                //Console.WriteLine("Found Split Tables!!");
+                                MergeTable(doc, nextnode.TableId);
                             }
                         }
                     }
                 }
+            }
+        }
+    }
+
+
+    /// <summary>
+    /// 单行合并
+    /// </summary>
+    /// <param name="doc"></param>
+    private static void OneRowFix(AnnouceDocument doc)
+    {
+        for (int NextTableId = 2; NextTableId <= doc.root.TableList.Count; NextTableId++)
+        {
+            var table = new HTMLTable(doc.root.TableList[NextTableId - 1]);
+            var nexttable = new HTMLTable(doc.root.TableList[NextTableId]);
+            if (table.RowCount == 1 && table.ColumnCount == nexttable.ColumnCount)
+            {
+                MergeTable(doc, NextTableId);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 首行NULL的合并
+    /// </summary>
+    /// <param name="doc"></param>
+    private static void FirstRowNullFix(AnnouceDocument doc)
+    {
+        for (int NextTableId = 2; NextTableId <= doc.root.TableList.Count; NextTableId++)
+        {
+            foreach (var item in doc.root.TableList[NextTableId])
+            {
+                var FirstTablePos = -1;
+                var SecondTablePos = -1;
+                foreach (var p in doc.root.Children)
+                {
+                    foreach (var s in p.Children)
+                    {
+                        if (s.TableId == NextTableId - 1) FirstTablePos = s.PositionId;
+                        if (s.TableId == NextTableId) SecondTablePos = s.PositionId;
+                    }
+                }
+
+                if (SecondTablePos - FirstTablePos > 200) continue;
+
+                var tablerec = item.Split("|");
+                var pos = tablerec[0].Split(",");
+                var value = tablerec[1];
+                var row = int.Parse(pos[1]);
+                //第二张表，第一行存在NULL
+                if (row == 1 && value == strNullValue)
+                {
+                    var table = new HTMLTable(doc.root.TableList[NextTableId - 1]);
+                    var nexttable = new HTMLTable(doc.root.TableList[NextTableId]);
+                    if (table.ColumnCount != nexttable.ColumnCount) continue;
+                    MergeTable(doc, NextTableId);
+                    Console.WriteLine("FirstRowNullFix");
+                    break;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 合并表
+    /// </summary>
+    /// <param name="doc"></param>
+    /// <param name="NextTableId"></param>
+    public static void MergeTable(AnnouceDocument doc, int NextTableId)
+    {
+        var table = new HTMLTable(doc.root.TableList[NextTableId - 1]);
+        string[] pos;
+        string[] tablerec;
+        string value;
+        var offset = table.RowCount;
+        //修改第二张表格的数据
+        foreach (var Nextitem in doc.root.TableList[NextTableId])
+        {
+            tablerec = Nextitem.Split("|");
+            pos = tablerec[0].Split(",");
+            value = tablerec[1];
+            var newtablerec = (NextTableId - 1) + "," + (offset + int.Parse(pos[1])) + "," + pos[2] + "|" + value;
+            doc.root.TableList[NextTableId - 1].Add(newtablerec);
+        }
+        doc.root.TableList[NextTableId].Clear();
+        for (int i = 0; i < doc.root.Children.Count; i++)
+        {
+            for (int j = 0; j < doc.root.Children[i].Children.Count; j++)
+            {
+                var node = doc.root.Children[i].Children[j];
+                if (node.TableId == NextTableId) node.TableId = -1;
             }
         }
     }

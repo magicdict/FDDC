@@ -7,51 +7,60 @@ from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.pdfpage import PDFPage
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
+from time import sleep
 
-#将一个pdf转换成txt
-def pdfTotxtfile(filepath,outpath):
-    try:
-        fp = open(filepath, 'rb')
-        outfp=open(outpath,'w')
-        #创建一个PDF资源管理器对象来存储共享资源
-        #caching = False不缓存
-        rsrcmgr = PDFResourceManager(caching = False)
-        # 创建一个PDF设备对象
-        laparams = LAParams()
-        device = TextConverter(rsrcmgr, outfp, codec='utf-8', laparams=laparams,imagewriter=None)
-        #创建一个PDF解析器对象
-        interpreter = PDFPageInterpreter(rsrcmgr, device)
-        for page in PDFPage.get_pages(fp, pagenos = set(),maxpages=0,
-                                      password='',caching=False, check_extractable=True):
-            page.rotate = page.rotate % 360
-            interpreter.process_page(page)
-        #关闭输入流
-        fp.close()
-        #关闭输出流
-        device.close()
-        outfp.flush()
-        outfp.close()
-    except Exception as e:
-         print ("Exception:",e)
+
+def Reformat(filepath):
+    lines = list()
+
+    # input path
+    with open(filepath, 'r', encoding='utf-8') as f:
+        for line in f:
+            lines.append(line.strip('\n'))
+    f.close()
+
+    # save path
+    f = open(filepath, 'w', encoding='utf-8')
+    tmp = str()
+    for item in lines:
+        if item == '':
+            continue
+        if item[-1] == ' ':
+            tmp += item
+            f.write(tmp + '\n')
+            tmp = str()
+        else:
+            tmp += item
+    f.close()
+
 
 #一个文件夹下的所有pdf文档转换成txt
 def pdfTotxt(fileDir):
-    files=os.listdir(fileDir + 'pdf\\')
-    tarDir=fileDir + 'txt\\'
+    files = os.listdir(fileDir + 'pdf/')
+    tarDir = fileDir + 'txt/'
     if not os.path.exists(tarDir):
         os.mkdir(tarDir)
-    replace=re.compile(r'\.pdf',re.I)
-    for file in files:
-        filePath=fileDir + 'pdf\\' +file
-        outPath=tarDir + re.sub(replace,'',file) + '.txt'
-        try:
-            #pdfTotxtfile(filePath,outPath)
-            if not os.path.exists(outPath):
-                os.system("pdf2txt.py " + filePath + " > " + outPath)
-                print ("Saved "+outPath)
-        except Exception as e:
-             print ("Exception:",e)
+    nerDir = fileDir + 'ner/'
+    if not os.path.exists(nerDir):
+        os.mkdir(nerDir)
+    replace = re.compile(r'\.pdf', re.I)
 
-pdfTotxt(u'E:\\WorkSpace2018\\FDDC2018\\FDDC_announcements_round1_test_a_20180605\\重大合同\\')
-os.chdir("E:\\WorkSpace2018\\FDDC2018\\FDDC_SRC")
+    for file in files:
+        filePath = fileDir + 'pdf/' + file
+        outPath = tarDir + re.sub(replace, '', file) + '.txt'
+        outNerPath = nerDir + re.sub(replace, '', file) + '.xml'
+        try:
+            if not os.path.exists(outPath):
+                print(filePath, outPath)
+                os.chdir("/home/118_4/")
+                os.system("python pdf2txt.py " + filePath + " > " + outPath)
+                Reformat(outPath)
+                os.chdir("/home/118_4/ltp-3.4.0/bin")
+                os.system(" ./ltp_test --last-stage ner --input " + outPath +
+                          " > " + outNerPath)
+        except Exception as e:
+            print("Exception:", e)
+
+pdfTotxt(u'/home/118_4/Contract/')
+os.chdir("/home/118_4/FDDC_SRC")
 os.system("dotnet run")

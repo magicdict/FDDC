@@ -31,6 +31,7 @@ public class StockChange : AnnouceDocument
 
     public override List<RecordBase> Extract()
     {
+        SpecialFixTable();
         var DateRange = LocateDateRange(root);
         var list = new List<RecordBase>();
         var Name = GetHolderName();
@@ -77,18 +78,78 @@ public class StockChange : AnnouceDocument
         return list;
     }
 
-    List<StockChangeRec> ExtractFromTableByContent()
+    /// <summary>
+    /// 本业务逻辑专用修补表
+    /// </summary>
+    void SpecialFixTable()
     {
-        var stockchangelist = new List<StockChangeRec>();
-        var rule = new TableSearchContentRule();
-        rule.Content = new string[] { "集中竞价交易", "竞价交易", "大宗交易", "约定式购回" }.ToList();
-        rule.IsContentEq = true;
-        var result = HTMLTable.GetMultiRowsByContentRule(root, rule);
-        foreach (var item in result)
+        //如果表里面含有这些关键字，同时表格的列数都一致的话，进行合并
+        var KeyWord = new string[] { "集中竞价交易", "竞价交易", "大宗交易", "约定式购回" };
+        for (int TableNo = 1; TableNo <= root.TableList.Count - 1; TableNo++)
         {
-            //TODO:具体逻辑代码
+            var Table = new HTMLTable(root.TableList[TableNo]);
+            var Col = Table.ColumnCount;
+            var Nexttable = new HTMLTable(root.TableList[TableNo + 1]);
+            var NextCol = Nexttable.ColumnCount;
+            var Contains = false;
+            var NextContains = false;
+            foreach (var item in root.TableList[TableNo])
+            {
+                foreach (var key in KeyWord)
+                {
+                    if (item.Contains(key))
+                    {
+                        Contains = true;
+                        break;
+                    }
+                }
+                if (Contains) break;
+            }
+
+            foreach (var item in root.TableList[TableNo + 1])
+            {
+                foreach (var key in KeyWord)
+                {
+                    if (item.Contains(key))
+                    {
+                        NextContains = true;
+                        break;
+                    }
+                }
+                if (NextContains) break;
+            }
+
+            var ThirdCol = -1;
+            var ThirdContais = false;
+            if (root.TableList.ContainsKey(TableNo + 2))
+            {
+                var ThirdTable = new HTMLTable(root.TableList[TableNo + 2]);
+                ThirdCol = ThirdTable.ColumnCount;
+                foreach (var item in root.TableList[TableNo + 2])
+                {
+                    foreach (var key in KeyWord)
+                    {
+                        if (item.Contains(key))
+                        {
+                            ThirdContais = true;
+                            break;
+                        }
+                    }
+                    if (ThirdContais) break;
+                }
+            }
+
+            if (ThirdCol == NextCol && ThirdContais && NextContains)
+            {
+                HTMLTable.MergeTable(this, TableNo + 2);
+            }
+
+            if (Col == NextCol && Contains && NextContains)
+            {
+                HTMLTable.MergeTable(this, TableNo + 1);
+            }
+
         }
-        return stockchangelist;
     }
 
     /// <summary>
@@ -101,14 +162,14 @@ public class StockChange : AnnouceDocument
     {
         var StockHolderRule = new TableSearchTitleRule();
         StockHolderRule.Name = "股东全称";
-        StockHolderRule.Title = new string[] { "股东名称", "名称", "增持主体", "增持人", "减持主体", "减持人" }.ToList();
+        StockHolderRule.Title = new string[] { "股东名称", "名称", "增持主体", "增持人", "减持主体", "减持人", "姓名" }.ToList();
         StockHolderRule.IsTitleEq = true;
         StockHolderRule.IsRequire = true;
 
         var ChangeDateRule = new TableSearchTitleRule();
         ChangeDateRule.Name = "变动截止日期";
         ChangeDateRule.Title = new string[] { "买卖时间","日期","减持期间", "增持期间", "减持股份期间", "增持股份期间",
-                                             "减持时间", "增持时间", "减持股份时间", "增持股份时间" }.ToList();
+                                             "减持时间", "增持时间", "减持股份时间", "增持股份时间","买入时间","卖出时间" }.ToList();
         ChangeDateRule.IsTitleEq = false;
         ChangeDateRule.Normalize = NormailizeEndChangeDate;
 
@@ -119,6 +180,7 @@ public class StockChange : AnnouceDocument
         ChangePriceRule.IsTitleEq = false;
         ChangePriceRule.Normalize = (x, y) =>
         {
+
             var prices = RegularTool.GetRegular(x, RegularTool.MoneyExpress);
             if (prices.Count == 0)
             {
@@ -126,18 +188,18 @@ public class StockChange : AnnouceDocument
                 {
                     return Utility.GetStringBefore(x, "元");
                 }
-                else
-                {
-                    //增减持，区间的情况，取最高价,假设最后一个数字是最大的
-                    return prices.Last().RawData;
-                }
+            }
+            else
+            {
+                //增减持，区间的情况，取最高价,假设最后一个数字是最大的
+                return prices.Last().RawData;
             }
             return x;
         };
 
         var ChangeNumberRule = new TableSearchTitleRule();
         ChangeNumberRule.Name = "变动数量";
-        ChangeNumberRule.Title = new string[] { "成交数量", "减持股数", "增持股数", "减持数量", "增持数量" }.ToList();
+        ChangeNumberRule.Title = new string[] { "成交数量", "减持股数", "增持股数", "减持数量", "增持数量", "买入股份数", "卖出股份数" }.ToList();
         ChangeNumberRule.IsTitleEq = false;
         ChangeNumberRule.Normalize = NumberUtility.NormalizerStockNumber;
 
@@ -237,6 +299,7 @@ public class StockChange : AnnouceDocument
                 if (!(rec[2].RawData.Contains("-") || rec[2].RawData.Contains("~") || rec[2].RawData.Contains("至")))
                 {
                     stockchange.ChangePrice = rec[2].RawData.Replace(" ", String.Empty);
+                    stockchange.ChangePrice = stockchange.ChangePrice.Replace("*", "");
                     stockchange.ChangePrice = stockchange.ChangePrice.NormalizeNumberResult();
                 }
             }
@@ -539,6 +602,7 @@ public class StockChange : AnnouceDocument
     /// <returns></returns>
     (String FullName, String ShortName) GetHolderName()
     {
+        var ForbitWords = new string[] { "增持", "减持" };
         var Extractor = new ExtractPropertyByHTML();
         var StartArray = new string[] { "接到", "收到", "股东" };
         var EndArray = new string[] { "的", "通知", "告知函", "减持", "增持", "《" };
@@ -546,18 +610,31 @@ public class StockChange : AnnouceDocument
         Extractor.Extract(root);
         foreach (var word in Extractor.CandidateWord)
         {
+            var HasForbitWord = false;
+            foreach (var fw in ForbitWords)
+            {
+                if (word.Value.Contains(fw))
+                {
+                    HasForbitWord = true;
+                    break;
+                }
+            }
+            if (HasForbitWord) continue;
+            var HolderName = "";
+            //实际控制人
+            if (word.Value.Contains("实际控制人"))
+            {
+                HolderName = Utility.GetStringAfter(word.Value, "实际控制人");
+                if (HolderName.Contains("先生")) HolderName = Utility.GetStringAfter(HolderName,"先生");
+                if (HolderName.Contains("女士")) HolderName = Utility.GetStringAfter(HolderName,"女士");
+                return (HolderName,string.Empty);
+            }
+
+
             var FullName = CompanyNameLogic.AfterProcessFullName(word.Value);
             if (FullName.Score == 80) return (FullName.secFullName, FullName.secShortName);
             var name = CompanyNameLogic.NormalizeCompanyName(this, FullName.secFullName);
             if (!String.IsNullOrEmpty(name.FullName) && !String.IsNullOrEmpty(name.ShortName))
-            {
-                return name;
-            }
-        }
-        foreach (var word in Extractor.CandidateWord)
-        {
-            var name = CompanyNameLogic.NormalizeCompanyName(this, word.Value);
-            if (!String.IsNullOrEmpty(name.FullName))
             {
                 return name;
             }

@@ -41,19 +41,8 @@ namespace FDDC
         /// </summary>
         private static void QuickTestArea()
         {
-            /*    
-            var x1= "17.35%";
-            var x2 = "12.3%";
-            var x3 = "123.2% - 145.3%";
-            var x4 = "123.2 - 145.3%";
-
-            var prices1 = RegularTool.GetRegular(x1, RegularTool.MoneyExpress);
-            var prices2 = RegularTool.GetRegular(x2, RegularTool.MoneyExpress);
-            var prices3 = RegularTool.GetRegular(x3, RegularTool.MoneyExpress);
-            var prices4 = RegularTool.GetRegular(x4, RegularTool.MoneyExpress);
-            */
-            var t = new Reorganization();
-            t.Init(ReorganizationPath_TRAIN + "\\html\\153178.html");
+            var t = new StockChange();
+            t.Init(StockChangePath_TRAIN + "\\html\\19283321.html");
             t.Extract();
         }
 
@@ -71,7 +60,9 @@ namespace FDDC
             //全局编码    
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            QuickTestArea(); return;
+            CIRecord = new StreamWriter("CI.log");
+
+            //QuickTestArea(); return;
 
             //PDFToTXT.GetPdf2TxtBatchFile();
 
@@ -81,7 +72,6 @@ namespace FDDC
             StockChange.ImportPublishTime();
             //结巴分词的地名修正词典
             PosNS.ImportNS("Resources" + Path.DirectorySeparatorChar + "ns.dict");
-            CIRecord = new StreamWriter("CI.log");
             //预处理
             Traning();
             Evaluator = new StreamWriter("Evaluator.log");
@@ -121,20 +111,20 @@ namespace FDDC
         }
 
         //重大合同
-        public static bool IsRunContract = true;
-        public static bool IsRunContract_TEST = true;
+        public static bool IsRunContract = false;
+        public static bool IsRunContract_TEST = false;
         public static string ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
         public static string ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
 
         //增减持
-        public static bool IsRunStockChange = true;
-        public static bool IsRunStockChange_TEST = true;
+        public static bool IsRunStockChange = false;
+        public static bool IsRunStockChange_TEST = false;
         public static string StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
         public static string StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "增减持";
 
         //资产重组
         public static bool IsRunReorganization = true;
-        public static bool IsRunReorganization_TEST = true;
+        public static bool IsRunReorganization_TEST = false;
         public static string ReorganizationPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型训练数据-20180712" + Path.DirectorySeparatorChar + "资产重组";
         public static string ReorganizationPath_TEST = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型测试数据-20180712" + Path.DirectorySeparatorChar + "资产重组";
 
@@ -157,6 +147,23 @@ namespace FDDC
                 Console.WriteLine("Complete Extract Info Contract");
             }
 
+            //增减持
+            if (IsRunStockChange)
+            {
+                Console.WriteLine("Start To Extract Info StockChange TRAIN");
+                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "zengjianchi_train.txt", false, utf8WithoutBom);
+                var StockChange_Result = Run<StockChange>(StockChangePath_TRAIN, ResultCSV);
+                Evaluate.EvaluateStockChange(StockChange_Result.Select((x) => (StockChangeRec)x).ToList());
+                Console.WriteLine("Complete Extract Info StockChange");
+            }
+            if (IsRunStockChange_TEST)
+            {
+                Console.WriteLine("Start To Extract Info StockChange TEST");
+                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "zengjianchi.txt", false, utf8WithoutBom);
+                var StockChange_Result = Run<StockChange>(StockChangePath_TEST, ResultCSV);
+                Console.WriteLine("Complete Extract Info StockChange");
+            }
+
             //资产重组
             if (IsRunReorganization)
             {
@@ -174,22 +181,6 @@ namespace FDDC
                 Console.WriteLine("Complete Extract Info Reorganization");
             }
 
-            //增减持
-            if (IsRunStockChange)
-            {
-                Console.WriteLine("Start To Extract Info StockChange TRAIN");
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "zengjianchi_train.txt", false, utf8WithoutBom);
-                var StockChange_Result = Run<StockChange>(StockChangePath_TRAIN, ResultCSV);
-                Evaluate.EvaluateStockChange(StockChange_Result.Select((x) => (StockChangeRec)x).ToList());
-                Console.WriteLine("Complete Extract Info StockChange");
-            }
-            if (IsRunStockChange_TEST)
-            {
-                Console.WriteLine("Start To Extract Info StockChange TEST");
-                StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "zengjianchi.txt", false, utf8WithoutBom);
-                var StockChange_Result = Run<StockChange>(StockChangePath_TEST, ResultCSV);
-                Console.WriteLine("Complete Extract Info StockChange");
-            }
         }
 
         /// <summary>

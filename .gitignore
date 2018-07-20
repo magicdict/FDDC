@@ -5,7 +5,6 @@ obj/*
 *.train
 *.csv
 .DS_Store
-Resources/*
 Result/*
 Result.zip
 !score.txt
