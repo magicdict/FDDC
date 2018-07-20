@@ -24,7 +24,9 @@ namespace FDDC
         /// <summary>
         /// Windows
         /// </summary>
-        public static String DocBase = @"E:\WorkSpace2018\FDDC2018";
+        //public static String DocBase = @"E:" + Path.DirectorySeparatorChar + "WorkSpace2018" + Path.DirectorySeparatorChar + "FDDC2018";
+
+        public static String DocBase =  @"/home/118_4";
 
         /// <summary>
         /// 这个模式下，有问题的数据会输出，正式比赛的时候设置为False，降低召回率！
@@ -50,7 +52,7 @@ namespace FDDC
         {
             if (Environment.OSVersion.Platform == System.PlatformID.Unix)
             {
-                DocBase =  @"/home/118_4";
+                //静态变量已经定下来了，这里改不来了！
                 Console.WriteLine("Switch Doc Path To:" + DocBase);
             }
             //日志
@@ -112,7 +114,7 @@ namespace FDDC
 
         //重大合同
         public static bool IsRunContract = false;
-        public static bool IsRunContract_TEST = false;
+        public static bool IsRunContract_TEST = true;
         public static string ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
         public static string ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
 
@@ -123,7 +125,7 @@ namespace FDDC
         public static string StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "增减持";
 
         //资产重组
-        public static bool IsRunReorganization = true;
+        public static bool IsRunReorganization = false;
         public static bool IsRunReorganization_TEST = false;
         public static string ReorganizationPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型训练数据-20180712" + Path.DirectorySeparatorChar + "资产重组";
         public static string ReorganizationPath_TEST = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型测试数据-20180712" + Path.DirectorySeparatorChar + "资产重组";

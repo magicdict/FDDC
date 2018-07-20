@@ -6,11 +6,11 @@ using FDDC;
 
 public static class TraningDataset
 {
-    static string ContractPath_TRAIN = Program.DocBase + @"\FDDC_SRC\Result\Train\hetong.train";
-    static string StockChangePath_TRAIN = Program.DocBase + @"\FDDC_SRC\Result\Train\zengjianchi.train";
-    static string IncreaseStockPath_TRAIN = Program.DocBase + @"\FDDC_SRC\Result\Train\dingzeng.train";
+    static string ContractPath_TRAIN = Program.DocBase +  Path.DirectorySeparatorChar + "FDDC_SRC" + Path.DirectorySeparatorChar + "Result" + Path.DirectorySeparatorChar + "Train" + Path.DirectorySeparatorChar + "hetong.train";
+    static string StockChangePath_TRAIN = Program.DocBase  + Path.DirectorySeparatorChar + "FDDC_SRC" + Path.DirectorySeparatorChar + "Result" + Path.DirectorySeparatorChar + "Train" + Path.DirectorySeparatorChar + "zengjianchi.train";
+    static string IncreaseStockPath_TRAIN = Program.DocBase  + Path.DirectorySeparatorChar + "FDDC_SRC" + Path.DirectorySeparatorChar + "Result" + Path.DirectorySeparatorChar + "Train" + Path.DirectorySeparatorChar + "dingzeng.train";
 
-    static string ReorganizationPath_TRAIN = Program.DocBase + @"\FDDC_SRC\Result\Train\chongzu.train";
+    static string ReorganizationPath_TRAIN = Program.DocBase  + Path.DirectorySeparatorChar + "FDDC_SRC" + Path.DirectorySeparatorChar + "Result" + Path.DirectorySeparatorChar + "Train" + Path.DirectorySeparatorChar + "chongzu.train";
 
     public static List<ContractRec> ContractList = new List<ContractRec>();
 

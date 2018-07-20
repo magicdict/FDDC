@@ -96,7 +96,7 @@ public abstract class AnnouceDocument
             XMLFileName += ".xml";
         }
         var XMLPath = fi.DirectoryName.Replace("html", "ner");
-        Nerlist = LTPTrainingNER.AnlayzeNER(XMLPath + "\\" + XMLFileName);
+        Nerlist = LTPTrainingNER.AnlayzeNER(XMLPath + Path.DirectorySeparatorChar + "" + XMLFileName);
         foreach (var ner in Nerlist)
         {
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("识别实体：" + ner);
@@ -126,9 +126,9 @@ public abstract class AnnouceDocument
         }
 
         XMLPath = fi.DirectoryName.Replace("html", "dp");
-        Dplist = LTPTrainingDP.AnlayzeDP(XMLPath + "\\" + XMLFileName);
+        Dplist = LTPTrainingDP.AnlayzeDP(XMLPath +  Path.DirectorySeparatorChar + "" + XMLFileName);
         XMLPath = fi.DirectoryName.Replace("html", "srl");
-        Srllist = LTPTrainingSRL.AnlayzeSRL(XMLPath + "\\" + XMLFileName);
+        Srllist = LTPTrainingSRL.AnlayzeSRL(XMLPath + Path.DirectorySeparatorChar + "" + XMLFileName);
 
         datelist = LocateProperty.LocateDate(root);
         foreach (var m in datelist)
