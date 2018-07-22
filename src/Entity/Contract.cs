@@ -19,12 +19,43 @@ public partial class Contract : AnnouceDocument
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("工程名：" + m);
         }
         var ContractList = new List<RecordBase>();
-        //主合同的抽取
+
+        //主合同的抽取：
+        //#151135 ： 若干项重大合同
+        //#153045：  若干项重大合同
+        //#153271：若干项重大合同
+        //#175840： 若干项重大合同
+        foreach (var p in root.Children)
+        {
+            foreach (var s in p.Children)
+            {
+                if (s.Content.Contains("若干项重大合同"))
+                {
+                    return ExtractMulti();
+                }
+            }
+        }
+
+
         ContractList.Add(ExtractSingle(root, Id));
         return ContractList;
     }
 
     public string contractType = String.Empty;
+
+    /// <summary>
+    /// 多条记录的抽取
+    /// </summary>
+    /// <param name="root"></param>
+    /// <param name="Id"></param>
+    /// <returns></returns>
+    List<RecordBase> ExtractMulti()
+    {
+        var Records = new List<RecordBase>();
+        //如果该项目含有金额，工程名，合同名，则加入
+
+        return Records;
+    }
 
     ContractRec ExtractSingle(MyRootHtmlNode root, String Id)
     {
@@ -60,11 +91,14 @@ public partial class Contract : AnnouceDocument
         contract.JiaFang = CompanyNameLogic.AfterProcessFullName(contract.JiaFang).secFullName;
         contract.JiaFang = contract.JiaFang.NormalizeTextResult();
         //机构列表
-        var NiList = Nerlist.Where((n) => n.Type == LTPTrainingNER.enmNerType.Ni).Select((m) => m.RawData);
-        if (!NiList.Contains(contract.JiaFang))
+        if (Nerlist != null)
         {
-            //作为特殊单位，国家电网公司一般都是甲方
-            if (NiList.Contains("国家电网公司")) contract.JiaFang = "国家电网公司";
+            var NiList = Nerlist.Where((n) => n.Type == LTPTrainingNER.enmNerType.Ni).Select((m) => m.RawData);
+            if (!NiList.Contains(contract.JiaFang))
+            {
+                //作为特殊单位，国家电网公司一般都是甲方
+                if (NiList.Contains("国家电网公司")) contract.JiaFang = "国家电网公司";
+            }
         }
         //乙方
         contract.YiFang = GetYiFang();
@@ -90,28 +124,22 @@ public partial class Contract : AnnouceDocument
         }
         contract.ProjectName = contract.ProjectName.NormalizeTextResult();
 
-        //合同
-        if (contractType == "中标")
+        //合同名
+        contract.ContractName = GetContractName();
+        if (contract.ContractName.StartsWith("“") && contract.ContractName.EndsWith("”"))
         {
-            //按照数据分析来看，应该工程名 在中标的时候填写，合同名在合同的时候填写
-            contract.ContractName = String.Empty;
+            contract.ContractName = contract.ContractName.TrimStart("“".ToCharArray()).TrimEnd("”".ToCharArray());
         }
-        else
+        //去掉书名号
+        contract.ContractName = contract.ContractName.Replace("《", String.Empty).Replace("》", String.Empty);
+        if (contract.ContractName.Contains("（以下简称"))
         {
-            contract.ContractName = GetContractName();
-            if (contract.ContractName.StartsWith("“") && contract.ContractName.EndsWith("”"))
-            {
-                contract.ContractName = contract.ContractName.TrimStart("“".ToCharArray()).TrimEnd("”".ToCharArray());
-            }
-            //去掉书名号
-            contract.ContractName = contract.ContractName.Replace("《", String.Empty).Replace("》", String.Empty);
-            if (contract.ContractName.Contains("（以下简称"))
-            {
-                contract.ContractName = Utility.GetStringAfter(contract.ContractName, "（以下简称");
-            }
-            contract.ContractName = contract.ContractName.NormalizeTextResult();
+            contract.ContractName = Utility.GetStringAfter(contract.ContractName, "（以下简称");
         }
+        contract.ContractName = contract.ContractName.NormalizeTextResult();
 
+        //如果是采购协议，则工程名清空
+        if (contract.ContractName.Contains("采购")) contract.ProjectName = string.Empty;
 
         //金额
         var money = GetMoney();
@@ -150,11 +178,6 @@ public partial class Contract : AnnouceDocument
         e.PropertyType = EntityProperty.enmType.NER;
         e.MaxLength = ContractTraning.ContractES.MaxLength;
         e.MinLength = ContractTraning.ContractES.MinLength;
-        /* 训练模式下 
-        e.LeadingColonKeyWordList = ContractTraning.ContractNameLeadingDict
-                                    .Where((x) => { return x.Value >= 40; })    //阈值40%以上
-                                    .Select((x) => { return x.Key + "："; }).ToArray();
-        */
         e.LeadingColonKeyWordList = new string[] { "合同名称：" };
         e.QuotationTrailingWordList = new string[] { "协议书", "合同书", "确认书", "合同", "协议" };
         e.QuotationTrailingWordList_IsSkipBracket = true;   //暂时只能选True
@@ -198,22 +221,9 @@ public partial class Contract : AnnouceDocument
         };
         e.ExcludeContainsWordList = new string[] { "日常经营重大合同" };
         //下面这个列表的根据不足
-        e.ExcludeEqualsWordList = new string[] { "合同", "重大合同", "项目合同", "终止协议", "经营合同", "特别重大合同", "相关项目合同" };
+        e.ExcludeEqualsWordList = new string[] { "若干项重大合同", "合同", "重大合同", "项目合同", "终止协议", "经营合同", "特别重大合同", "相关项目合同" };
         e.Extract(this);
-
-        //是否所有的候选词里面包括（测试集无法使用）
-        var contractlist = TraningDataset.ContractList.Where((x) => { return x.Id == this.Id; });
-        if (contractlist.Count() > 0)
-        {
-            var contract = contractlist.First();
-            var contractname = contract.ContractName;
-            if (!String.IsNullOrEmpty(contractname))
-            {
-                e.CheckIsCandidateContainsTarget(contractname);
-            }
-        }
-        //置信度
-        e.Confidence = ContractTraning.ContractES.GetStardardCI();
+        //冒号优先
         return e.EvaluateCI();
     }
 
@@ -362,26 +372,24 @@ public partial class Contract : AnnouceDocument
             return ProjectName;
         }
 
+        //"XXXXX标段"，"XXXXX标"，“工程”，“项目”，“招标活动”
+        var ProjectTrailing = new string[] { "工程", "标段", "标", "招标活动", "项目" };
+
         foreach (var bracket in quotationList)
         {
-            if (bracket.Value.EndsWith("工程") ||
-                bracket.Value.EndsWith("标段"))
+            foreach (var pt in ProjectTrailing)
             {
-                return bracket.Value;
+                if (bracket.Value.EndsWith(pt)) return bracket.Value;
             }
         }
 
         var MarkFeature = new ExtractPropertyByHTML.struMarkFeature();
         MarkFeature.MarkStartWith = "“";
         MarkFeature.MarkEndWith = "”";
-        MarkFeature.InnerEndWith = "标段";
+        MarkFeature.InnerEndWith = ProjectTrailing.ToList();
 
-        var MarkFeatureConfirm = new ExtractPropertyByHTML.struMarkFeature();
-        MarkFeatureConfirm.MarkStartWith = "“";
-        MarkFeatureConfirm.MarkEndWith = "”";
-        MarkFeatureConfirm.InnerEndWith = "标";
 
-        Extractor.MarkFeature = new ExtractPropertyByHTML.struMarkFeature[] { MarkFeature, MarkFeatureConfirm };
+        Extractor.MarkFeature = new ExtractPropertyByHTML.struMarkFeature[] { MarkFeature };
         Extractor.Extract(root);
         foreach (var item in Extractor.CandidateWord)
         {

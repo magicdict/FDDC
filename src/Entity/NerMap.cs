@@ -16,23 +16,30 @@ public class NerMap
 
     public void Anlayze(AnnouceDocument doc)
     {
-        if (doc.Nerlist == null) return;
         var nerlist = new List<LocAndValue<String>>();
-        var nh = doc.Nerlist.Where(x => x.Type == enmNerType.Nh).Select(y => y.RawData).Distinct();
-        nerlist.AddRange(LocateCustomerWord(doc.root, nh.ToList(), "人名"));
+        if (doc.Nerlist != null)
+        {
+            var nh = doc.Nerlist.Where(x => x.Type == enmNerType.Nh).Select(y => y.RawData).Distinct();
+            nerlist.AddRange(LocateCustomerWord(doc.root, nh.ToList(), "人名"));
 
-        var ni = doc.Nerlist.Where(x => x.Type == enmNerType.Ni).Select(y => y.RawData).Distinct();
-        nerlist.AddRange(LocateCustomerWord(doc.root, ni.ToList(), "机构"));
+            var ni = doc.Nerlist.Where(x => x.Type == enmNerType.Ni).Select(y => y.RawData).Distinct();
+            nerlist.AddRange(LocateCustomerWord(doc.root, ni.ToList(), "机构"));
 
-        var ns = doc.Nerlist.Where(x => x.Type == enmNerType.Ns).Select(y => y.RawData).Distinct();
-        nerlist.AddRange(LocateCustomerWord(doc.root, ns.ToList(), "地名"));
+            var ns = doc.Nerlist.Where(x => x.Type == enmNerType.Ns).Select(y => y.RawData).Distinct();
+            nerlist.AddRange(LocateCustomerWord(doc.root, ns.ToList(), "地名"));
+
+        }
+
+        if (doc is Contract){
+            
+        }
 
         foreach (var paragragh in doc.root.Children)
         {
             foreach (var s in paragragh.Children)
             {
                 var p = LocateParagraphInfo(doc, s.PositionId, nerlist);
-                ParagraghlocateDict.Add(s.PositionId, p);
+                if (p.NerList.Count + p.moneylist.Count + p.datelist.Count != 0) ParagraghlocateDict.Add(s.PositionId, p);
             }
         }
     }

@@ -187,7 +187,15 @@ public class ExtractPropertyByHTML : ExtractProperyBase
                     }
                     if (word.InnerEndWith != null)
                     {
-                        if (!strContent.EndsWith(word.InnerEndWith)) continue;
+                        var isEndWith = false;
+                        foreach (var item in word.InnerEndWith)
+                        {
+                            if (strContent.EndsWith(item)) {
+                                isEndWith = true;
+                                break;
+                            }
+                        }
+                        if (!isEndWith) continue;
                     }
                     strlist.Add(strContent);
                 }

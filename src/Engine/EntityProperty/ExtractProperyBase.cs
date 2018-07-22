@@ -77,7 +77,7 @@ public class ExtractProperyBase
         public String InnerStartWith;
 
         //内部2次鉴证用结束字符
-        public String InnerEndWith;
+        public List<String> InnerEndWith;
     }
     /// <summary>
     /// 符号包裹特征列表

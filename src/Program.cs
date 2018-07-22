@@ -49,8 +49,8 @@ namespace FDDC
         /// </summary>
         private static void QuickTestArea()
         {
-            var t = new Reorganization();
-            t.Init(ReorganizationPath_TEST + "/html/18283582.html");
+            var t = new Contract();
+            t.Init(ContractPath_TRAIN + "/html/151135.html");
             t.Extract();
         }
 
@@ -217,12 +217,6 @@ namespace FDDC
                     }
                 });
                 Announce_Result = Bag.ToList();
-                Announce_Result.Sort((x, y) => { return x.Id.CompareTo(y.Id); });
-                ResultCSV.WriteLine(Announce_Result.First().CSVTitle());
-                foreach (var item in Announce_Result)
-                {
-                    ResultCSV.WriteLine(item.ConvertToString());
-                }
             }
             else
             {
@@ -232,14 +226,15 @@ namespace FDDC
                     contract.Init(filename);
                     foreach (var item in contract.Extract())
                     {
-                        if (Announce_Result.Count == 0)
-                        {
-                            ResultCSV.WriteLine(item.CSVTitle());
-                        }
                         Announce_Result.Add(item);
-                        ResultCSV.WriteLine(item.ConvertToString());
                     }
                 }
+            }
+            Announce_Result.Sort((x, y) => { return x.GetKey().CompareTo(y.GetKey()); });
+            ResultCSV.WriteLine(Announce_Result.First().CSVTitle());
+            foreach (var item in Announce_Result)
+            {
+                ResultCSV.WriteLine(item.ConvertToString());
             }
             ResultCSV.Close();
             return Announce_Result;

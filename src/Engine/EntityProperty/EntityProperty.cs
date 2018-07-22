@@ -395,6 +395,15 @@ public class EntityProperty
                 }
             }
         }
+        else
+        {
+            if (LeadingColonKeyWordCandidate != null && LeadingColonKeyWordCandidate.Count > 0) return LeadingColonKeyWordCandidate.First();
+            if (QuotationTrailingCandidate != null && QuotationTrailingCandidate.Count > 0) return QuotationTrailingCandidate.First();
+            if (DpKeyWordCandidate != null && DpKeyWordCandidate.Count > 0) return DpKeyWordCandidate.First();
+            if (ExternalStartEndStringFeatureCandidate != null && ExternalStartEndStringFeatureCandidate.Count > 0)
+                return ExternalStartEndStringFeatureCandidate.First();
+
+        }
         return Result;
     }
 
