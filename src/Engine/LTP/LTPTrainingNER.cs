@@ -45,14 +45,35 @@ public class LTPTrainingNER
         }
     }
 
+    public enum enmNerType
+    {
+        /// <summary>
+        /// 人名
+        /// </summary>
+        Nh,
+        /// <summary>
+        /// 机构名
+        /// </summary>
+        Ni,
+        /// <summary>
+        /// 地名
+        /// </summary>
+        Ns
+    }
 
-    public static List<String> AnlayzeNER(string xmlfilename)
+    public struct struNerInfo
+    {
+        public string RawData;
+
+        public enmNerType Type;
+    }
+
+    public static List<struNerInfo> AnlayzeNER(string xmlfilename)
     {
         //由于结果是多个XML构成的
         //1.掉所有的<?xml version="1.0" encoding="utf-8" ?>
         //2.加入<sentence></sentence> root节点    
-        var NerList = new List<String>();
-
+        var NerList = new List<struNerInfo>();
         if (!File.Exists(xmlfilename)) return NerList;
 
         var sr = new StreamReader(xmlfilename);
@@ -82,7 +103,39 @@ public class LTPTrainingNER
                         break;
                     case "E-Ni":
                         ner += word.cont;
-                        NerList.Add(ner);
+                        NerList.Add(new struNerInfo() { RawData = ner, Type = enmNerType.Ni });
+                        break;
+
+                    case "B-Ns":
+                        ner = word.cont;
+                        break;
+                    case "I-Ns":
+                        ner += word.cont;
+                        break;
+                    case "E-Ns":
+                        ner += word.cont;
+                        NerList.Add(new struNerInfo() { RawData = ner, Type = enmNerType.Ns });
+                        break;
+
+                    case "B-Nh":
+                        ner = word.cont;
+                        break;
+                    case "I-Nh":
+                        ner += word.cont;
+                        break;
+                    case "E-Nh":
+                        ner += word.cont;
+                        NerList.Add(new struNerInfo() { RawData = ner, Type = enmNerType.Nh });
+                        break;
+
+                    case "S-Nh":
+                        NerList.Add(new struNerInfo() { RawData = word.cont, Type = enmNerType.Nh });
+                        break;
+                    case "S-Ni":
+                        NerList.Add(new struNerInfo() { RawData = word.cont, Type = enmNerType.Ni });
+                        break;
+                    case "S-Ns":
+                        NerList.Add(new struNerInfo() { RawData = word.cont, Type = enmNerType.Ns });
                         break;
                 }
             }

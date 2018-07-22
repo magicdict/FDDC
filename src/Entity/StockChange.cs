@@ -14,6 +14,7 @@ public class StockChange : AnnouceDocument
     public static Dictionary<String, String> PublishTime = new Dictionary<String, String>();
     public static void ImportPublishTime()
     {
+        if (!System.IO.Directory.Exists(Program.DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_public_time_20180629")) return;
         foreach (var csvfilename in System.IO.Directory.GetFiles(Program.DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_public_time_20180629"))
         {
             if (csvfilename.EndsWith(".csv"))
@@ -602,10 +603,13 @@ public class StockChange : AnnouceDocument
     /// <returns></returns>
     (String FullName, String ShortName) GetHolderName()
     {
+        //接到 XXXXXX 的增持通知   XXXX应该在NER列表里面的人名
+        //公司的简称或者全称
+        //最后要求结果不应该包含 增持，减持等字样
         var ForbitWords = new string[] { "增持", "减持" };
         var Extractor = new ExtractPropertyByHTML();
-        var StartArray = new string[] { "接到", "收到", "股东" };
-        var EndArray = new string[] { "的", "通知", "告知函", "减持", "增持", "《" };
+        var StartArray = new string[] { "接到", "收到"};
+        var EndArray = new string[] { "通知", "告知函", "减持", "增持" };
         Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
         Extractor.Extract(root);
         foreach (var word in Extractor.CandidateWord)
@@ -625,12 +629,10 @@ public class StockChange : AnnouceDocument
             if (word.Value.Contains("实际控制人"))
             {
                 HolderName = Utility.GetStringAfter(word.Value, "实际控制人");
-                if (HolderName.Contains("先生")) HolderName = Utility.GetStringAfter(HolderName,"先生");
-                if (HolderName.Contains("女士")) HolderName = Utility.GetStringAfter(HolderName,"女士");
-                return (HolderName,string.Empty);
+                if (HolderName.Contains("先生")) HolderName = Utility.GetStringAfter(HolderName, "先生");
+                if (HolderName.Contains("女士")) HolderName = Utility.GetStringAfter(HolderName, "女士");
+                return (HolderName, string.Empty);
             }
-
-
             var FullName = CompanyNameLogic.AfterProcessFullName(word.Value);
             if (FullName.Score == 80) return (FullName.secFullName, FullName.secShortName);
             var name = CompanyNameLogic.NormalizeCompanyName(this, FullName.secFullName);

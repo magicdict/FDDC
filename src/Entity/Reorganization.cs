@@ -35,7 +35,7 @@ public class Reorganization : AnnouceDocument
     }
 
     /// <summary>
-    /// 从指代表格中抽取
+    /// 从释义表格中抽取
     /// </summary>
     /// <returns></returns>
     List<(string Target, string Comany)> getTargetListFromReplaceTable()
@@ -147,9 +147,22 @@ public class Reorganization : AnnouceDocument
         var tableid = result[0][0].TableId;
         //注意：由于表格检索的问题，这里只将第一个表格的内容作为依据
         //交易对方是释义表的一个项目，这里被错误识别为表头
-        var trades = result.Where(z => !ReplaceTableId.Contains(z[0].TableId))
+        //TODO:这里交易对方应该只选取文章前部的表格！！
+        var TableTrades = result.Where(z => !ReplaceTableId.Contains(z[0].TableId))
                            .Select(x => x[0].RawData)
                            .Where(y => !y.Contains("不超过")).ToList();
+
+        var TragetCompany = new TableSearchTitleRule();                           
+        TragetCompany.Name = "标的公司";
+        TragetCompany.Title = new string[] { "标的公司" }.ToList();
+        TragetCompany.IsTitleEq = true;
+        TragetCompany.IsRequire = true;
+        Rules.Add(TragetCompany);
+        result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, true);
+
+
+        //释义表
+        var ReplaceTrades = new List<String>();
         foreach (var item in ReplacementDict)
         {
             var keys = item.Key.Split(Utility.SplitChar);
@@ -175,11 +188,26 @@ public class Reorganization : AnnouceDocument
                     foreach (var value in values)
                     {
                         var trade = value.Replace("自然人", "");
-                        if (!trades.Contains(trade)) trades.Append(trade);
+                        if (!ReplaceTrades.Contains(trade))
+                        {
+                            ReplaceTrades.Add(trade);
+                        }
                     }
                 }
             }
         }
+
+        if (targets.Count == 1 && ReplaceTrades.Count > 0)
+        {
+            //单标有交易对手的情况
+            rtn.Add((targets[0].TargetCompany, string.Join(Utility.SplitChar, ReplaceTrades)));
+            Console.WriteLine("TOP标的：" + targets[0].TargetCompany);
+            Console.WriteLine("TOP对手：" + string.Join(Utility.SplitChar, ReplaceTrades));
+            return rtn;
+        }
+
+        var trades = TableTrades;
+        trades.AddRange(ReplaceTrades);
 
         //在全文中寻找交易对象出现的地方
         var traderLoc = LocateProperty.LocateCustomerWord(root, trades);
@@ -204,6 +232,8 @@ public class Reorganization : AnnouceDocument
             TargetLocMap[trloc.Loc].Add(trloc);
         }
 
+        var ctradesPlace = String.Join(Utility.SplitChar, ReplaceTrades);
+
         foreach (var t in targets)
         {
             var targetcompany = t.TargetCompany;
@@ -218,20 +248,37 @@ public class Reorganization : AnnouceDocument
                         //单标的，多人物的
                         var comp = String.Join(Utility.SplitChar, TargetLocMap[loc].Select(x => x.Value));
                         if (!comp.Equals(targetcompany)) continue;
-                        var ctrades = String.Join(Utility.SplitChar, TradeLocMap[loc].Select(x => x.Value));
+                        var ctrades = String.Join(Utility.SplitChar, TradeLocMap[loc].Select(x => x.Value).Distinct());
                         if (rankdict.ContainsKey(ctrades))
                         {
-                            rankdict[ctrades]++;
+                            //如果是释义表中的，则+10
+                            if (ctradesPlace.Equals(ctrades))
+                            {
+                                rankdict[ctrades] += 10;
+                            }
+                            else
+                            {
+                                rankdict[ctrades]++;
+                            }
                         }
                         else
                         {
-                            rankdict.Add(ctrades, 1);
+                            if (ctradesPlace.Equals(ctrades))
+                            {
+                                rankdict.Add(ctrades, 10);
+                            }
+                            else
+                            {
+                                rankdict.Add(ctrades, 1);
+                            }
+
                         }
                         Console.WriteLine("标的：" + targetcompany);
                         Console.WriteLine("对手：" + ctrades);
                     }
                 }
             }
+
             if (rankdict.Count > 1)
             {
                 var top = Utility.FindTop<string>(1, rankdict).First().Value;
@@ -320,7 +367,7 @@ public class Reorganization : AnnouceDocument
         {
             if (EvaluteLocMap.ContainsKey(targetloc.Key))
             {
-                //寻找标的之后的金额：
+                //寻找标的之后的评估法：
                 var targets = targetloc.Value;
                 var evs = EvaluteLocMap[targetloc.Key];
                 if (targets.Count == 1)

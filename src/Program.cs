@@ -25,8 +25,14 @@ namespace FDDC
         /// Windows
         /// </summary>
         //public static String DocBase = @"E:" + Path.DirectorySeparatorChar + "WorkSpace2018" + Path.DirectorySeparatorChar + "FDDC2018";
-
-        public static String DocBase =  @"/home/118_4";
+        /// <summary>
+        /// CentOS
+        /// </summary>
+        //public static String DocBase =  @"/home/118_4";
+        /// <summary>
+        /// MAC
+        /// </summary>
+        public static String DocBase = @"/Users/hu/Desktop/FDDC2018";
 
         /// <summary>
         /// 这个模式下，有问题的数据会输出，正式比赛的时候设置为False，降低召回率！
@@ -43,8 +49,8 @@ namespace FDDC
         /// </summary>
         private static void QuickTestArea()
         {
-            var t = new StockChange();
-            t.Init(StockChangePath_TRAIN + "\\html\\19283321.html");
+            var t = new Reorganization();
+            t.Init(ReorganizationPath_TEST + "/html/18283582.html");
             t.Extract();
         }
 
@@ -64,14 +70,12 @@ namespace FDDC
 
             CIRecord = new StreamWriter("CI.log");
 
-            //QuickTestArea(); return;
+            QuickTestArea(); return;
 
             //PDFToTXT.GetPdf2TxtBatchFile();
 
             //公司全称简称曾用名字典   
             CompanyNameLogic.LoadCompanyName("Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
-            //增减持公告日期的读入
-            StockChange.ImportPublishTime();
             //结巴分词的地名修正词典
             PosNS.ImportNS("Resources" + Path.DirectorySeparatorChar + "ns.dict");
             //预处理
@@ -113,8 +117,8 @@ namespace FDDC
         }
 
         //重大合同
-        public static bool IsRunContract = false;
-        public static bool IsRunContract_TEST = true;
+        public static bool IsRunContract = true;
+        public static bool IsRunContract_TEST = false;
         public static string ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
         public static string ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
 
@@ -147,6 +151,12 @@ namespace FDDC
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong.txt", false, utf8WithoutBom);
                 var Contract_Result = Run<Contract>(ContractPath_TEST, ResultCSV);
                 Console.WriteLine("Complete Extract Info Contract");
+            }
+
+            if (IsRunStockChange || IsRunStockChange_TEST)
+            {
+                //增减持公告日期的读入
+                StockChange.ImportPublishTime();
             }
 
             //增减持

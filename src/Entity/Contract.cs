@@ -59,12 +59,13 @@ public partial class Contract : AnnouceDocument
         contract.JiaFang = GetJiaFang();
         contract.JiaFang = CompanyNameLogic.AfterProcessFullName(contract.JiaFang).secFullName;
         contract.JiaFang = contract.JiaFang.NormalizeTextResult();
-        if (!Nerlist.Contains(contract.JiaFang))
+        //机构列表
+        var NiList = Nerlist.Where((n) => n.Type == LTPTrainingNER.enmNerType.Ni).Select((m) => m.RawData);
+        if (!NiList.Contains(contract.JiaFang))
         {
             //作为特殊单位，国家电网公司一般都是甲方
-            if (Nerlist.Contains("国家电网公司")) contract.JiaFang = "国家电网公司";
+            if (NiList.Contains("国家电网公司")) contract.JiaFang = "国家电网公司";
         }
-
         //乙方
         contract.YiFang = GetYiFang();
         contract.YiFang = CompanyNameLogic.AfterProcessFullName(contract.YiFang).secFullName;

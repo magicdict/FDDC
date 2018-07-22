@@ -43,9 +43,16 @@ public abstract class AnnouceDocument
     public List<LocAndValue<String>> quotationList;
 
     /// <summary>
-    /// NER列表
+    /// NER列表(机构)
     /// </summary>
-    public List<String> Nerlist;
+    public List<struNerInfo> Nerlist;
+
+    /// <summary>
+    /// NER列表（人名）
+    /// </summary>
+    public List<String> PersonNamelist;
+
+    public NerMap nermap;
 
     /// <summary>
     /// DP列表
@@ -96,14 +103,17 @@ public abstract class AnnouceDocument
             XMLFileName += ".xml";
         }
         var XMLPath = fi.DirectoryName.Replace("html", "ner");
-        Nerlist = LTPTrainingNER.AnlayzeNER(XMLPath + Path.DirectorySeparatorChar + "" + XMLFileName);
+        var Nerlist = LTPTrainingNER.AnlayzeNER(XMLPath + Path.DirectorySeparatorChar + "" + XMLFileName);
         foreach (var ner in Nerlist)
         {
-            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("识别实体：" + ner);
+            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("识别实体：" + ner.RawData + ":" + ner.Type);
         }
         if (Nerlist.Count != 0)
         {
-            AnnouceCompanyName = Nerlist.Last();
+            //最后一个机构名
+            AnnouceCompanyName = Nerlist.
+                                Where((n) => n.Type == enmNerType.Ni)
+                                .Select((m) => m.RawData).Last();
             Nerlist = Nerlist.Distinct().ToList();
         }
         else
@@ -126,7 +136,7 @@ public abstract class AnnouceDocument
         }
 
         XMLPath = fi.DirectoryName.Replace("html", "dp");
-        Dplist = LTPTrainingDP.AnlayzeDP(XMLPath +  Path.DirectorySeparatorChar + "" + XMLFileName);
+        Dplist = LTPTrainingDP.AnlayzeDP(XMLPath + Path.DirectorySeparatorChar + "" + XMLFileName);
         XMLPath = fi.DirectoryName.Replace("html", "srl");
         Srllist = LTPTrainingSRL.AnlayzeSRL(XMLPath + Path.DirectorySeparatorChar + "" + XMLFileName);
 
@@ -196,17 +206,6 @@ public abstract class AnnouceDocument
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("公司简称：" + cn.secShortName);
         }
 
-        var ParagraghlocateValue = new List<ParagraghLoc>();
-        foreach (var paragragh in root.Children)
-        {
-            foreach (var s in paragragh.Children)
-            {
-                var p = SentenceLocate(s.PositionId);
-                if (p.bracketlist.Count + p.datelist.Count + p.moneylist.Count == 0) continue;
-                ParagraghlocateValue.Add(p);
-            }
-        }
-
         if (root.TableList == null) return;
         //表格的处理(表分页)
         HTMLTable.FixSpiltTable(this);
@@ -214,33 +213,15 @@ public abstract class AnnouceDocument
         HTMLTable.FixNullValue(this);
         //指代表
         GetReplaceTable();
+
+        //实体地图
+        nermap = new NerMap();
+        nermap.Anlayze(this);
+
     }
 
     public abstract List<RecordBase> Extract();
 
-    /// <summary>
-    /// 每句句子中，各种实体的聚合
-    /// </summary>
-    /// <param name="PosId"></param>
-    /// <returns></returns>
-    ParagraghLoc SentenceLocate(int PosId)
-    {
-        var paragragh = new ParagraghLoc();
-        paragragh.Init();
-        foreach (var item in datelist)
-        {
-            if (item.Loc == PosId) paragragh.datelist.Add(item);
-        }
-        foreach (var item in moneylist)
-        {
-            if (item.Loc == PosId) paragragh.moneylist.Add(item);
-        }
-        foreach (var item in quotationList)
-        {
-            if (item.Loc == PosId) paragragh.bracketlist.Add(item);
-        }
-        return paragragh;
-    }
     /// <summary>
     /// 释义表编号
     /// </summary>
@@ -254,30 +235,48 @@ public abstract class AnnouceDocument
     /// <returns></returns>
     public Dictionary<String, String> ReplacementDict = new Dictionary<String, String>();
     /// <summary>
-    /// 公告中特殊的指代表
+    /// 公告中特殊的释义表
     /// </summary>
     /// <returns></returns>
     public void GetReplaceTable()
     {
-        //指代表的抽取
+        //释义表的抽取
         foreach (var table in root.TableList)
         {
             var htmltable = new HTMLTable(table.Value);
-            if (htmltable.ColumnCount != 3) continue;
-            for (int RowNo = 1; RowNo <= htmltable.RowCount; RowNo++)
-            {
-                if (htmltable.CellValue(RowNo, 2) == "指")
+
+            if (htmltable.ColumnCount == 2){
+                for (int RowNo = 1; RowNo <= htmltable.RowCount; RowNo++)
                 {
-                    var key = htmltable.CellValue(RowNo, 1);
-                    var value = htmltable.CellValue(RowNo, 3);
-                    if (!ReplacementDict.ContainsKey(key)) ReplacementDict.Add(key, value);
-                    if (!ReplaceTableId.Contains(table.Key)) ReplaceTableId.Add(table.Key);
+                    if (htmltable.CellValue(RowNo, 2).StartsWith("指"))
+                    {
+                        var key = htmltable.CellValue(RowNo, 1);
+                        var value = htmltable.CellValue(RowNo, 2).Substring(1);
+                        if (!ReplacementDict.ContainsKey(key)) ReplacementDict.Add(key, value);
+                        if (!ReplaceTableId.Contains(table.Key)) ReplaceTableId.Add(table.Key);
+                    }
+                }
+            }
+
+            if (htmltable.ColumnCount == 3)
+            {
+                for (int RowNo = 1; RowNo <= htmltable.RowCount; RowNo++)
+                {
+                    if (htmltable.CellValue(RowNo, 2) == "指")
+                    {
+                        var key = htmltable.CellValue(RowNo, 1);
+                        var value = htmltable.CellValue(RowNo, 3);
+                        if (!ReplacementDict.ContainsKey(key)) ReplacementDict.Add(key, value);
+                        if (!ReplaceTableId.Contains(table.Key)) ReplaceTableId.Add(table.Key);
+                    }
                 }
             }
         }
 
-        //寻找指代表中表示公司简称和公司全称的项目，加入到Companylist中
-        //注意，左边的主键需要根据分隔符好切分
+        if(ReplacementDict.Count == 0) return;
+
+        //寻找指释义表中表示公司简称和公司全称的项目，加入到Companylist中
+        //注意，左边的主键，右边的值，都可能需要根据分隔符好切分
         foreach (var item in ReplacementDict)
         {
             var keys = item.Key.Split(Utility.SplitChar);
@@ -290,15 +289,24 @@ public abstract class AnnouceDocument
             {
                 if (key.Length >= 3 && key.Length <= 6)
                 {
-                    //一般来说简称是3-6个字的
-                    if (item.Value.EndsWith("公司") || item.Value.EndsWith("有限合伙"))
+                    var values = item.Value.Split(Utility.SplitChar);
+                    var values2 = item.Value.Split("；");
+                    if (values.Length == 1 && values2.Length > 1)
                     {
-                        companynamelist.Add(new struCompanyName()
+                        values = values2;
+                    }
+                    //一般来说简称是3-6个字的
+                    foreach (var value in values)
+                    {
+                        if (value.EndsWith("公司") || value.EndsWith("有限合伙") || value.EndsWith("Co.,Ltd."))
                         {
-                            secFullName = item.Value,
-                            secShortName = key,
-                            positionId = -1 //表示从释义表格来的
-                        });
+                            companynamelist.Add(new struCompanyName()
+                            {
+                                secFullName = value,
+                                secShortName = key,
+                                positionId = -1 //表示从释义表格来的
+                            });
+                        }
                     }
                 }
             }

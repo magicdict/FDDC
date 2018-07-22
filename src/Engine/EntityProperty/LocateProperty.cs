@@ -22,9 +22,9 @@ public static class LocateProperty
         /// </summary>
         public T Value;
         /// <summary>
-        /// 类型
+        /// 描述
         /// </summary>
-        public string Type;
+        public string Description;
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ public static class LocateProperty
                     list.Add(new LocAndValue<String>()
                     {
                         Loc = sentence.PositionId,
-                        Type = "字符",
+                        Description = "书名号",
                         Value = item.Value.Substring(1, item.Value.Length - 2)
                     });
                 }
@@ -78,7 +78,7 @@ public static class LocateProperty
                     list.Add(new LocAndValue<String>()
                     {
                         Loc = sentence.PositionId,
-                        Type = "字符",
+                        Description = "引号",
                         Value = item.Value.Substring(1, item.Value.Length - 2)
                     });
                 }
@@ -128,7 +128,7 @@ public static class LocateProperty
                         list.Add(new LocAndValue<(DateTime StartDate, DateTime EndDate)>()
                         {
                             Loc = sentence.PositionId,
-                            Type = "日期范围",
+                            Description = "日期范围",
                             Value = (ST, ED)
                         });
                     }
@@ -151,7 +151,7 @@ public static class LocateProperty
                         list.Add(new LocAndValue<(DateTime StartDate, DateTime EndDate)>()
                         {
                             Loc = sentence.PositionId,
-                            Type = "日期范围",
+                            Description = "日期范围",
                             Value = (ST, ED)
                         });
                     }
@@ -173,7 +173,7 @@ public static class LocateProperty
                         list.Add(new LocAndValue<(DateTime StartDate, DateTime EndDate)>()
                         {
                             Loc = sentence.PositionId,
-                            Type = "日期范围",
+                            Description = "日期范围",
                             Value = (ST, ED)
                         });
                     }
@@ -210,7 +210,7 @@ public static class LocateProperty
                         list.Add(new LocAndValue<DateTime>()
                         {
                             Loc = sentence.PositionId,
-                            Type = "日期",
+                            Description = "日期",
                             Value = DateUtility.GetWorkDay(year, month, day)
                         });
                     }
@@ -240,7 +240,7 @@ public static class LocateProperty
                     list.Add(new LocAndValue<(String MoneyAmount, String MoneyCurrency)>
                     {
                         Loc = sentence.PositionId,
-                        Type = "金额",
+                        Description = "金额",
                         Value = money,
                         StartIdx = OrgString.IndexOf(money.MoneyAmount)
                     });
@@ -256,7 +256,8 @@ public static class LocateProperty
     /// <param name="root"></param>
     /// <param name="CustomerWord"></param>
     /// <returns></returns>
-    public static List<LocAndValue<String>> LocateCustomerWord(HTMLEngine.MyRootHtmlNode root, List<String> CustomerWord)
+    public static List<LocAndValue<String>> LocateCustomerWord(HTMLEngine.MyRootHtmlNode root, 
+                                        List<String> CustomerWord,string description = "字符")
     {
         var list = new List<LocAndValue<String>>();
         foreach (var paragrah in root.Children)
@@ -271,7 +272,7 @@ public static class LocateProperty
                         list.Add(new LocAndValue<String>()
                         {
                             Loc = sentence.PositionId,
-                            Type = "字符",
+                            Description = description,
                             Value = word,
                             StartIdx = OrgString.IndexOf(word)
                         });
@@ -280,32 +281,5 @@ public static class LocateProperty
             }
         }
         return list;
-    }
-
-    /// <summary>
-    /// 段落实体获取器
-    /// </summary>
-    public struct ParagraghLoc
-    {
-        /// <summary>
-        /// 日期
-        /// </summary>
-        public List<LocAndValue<DateTime>> datelist;
-        /// <summary>
-        /// 金额
-        /// </summary>
-        /// <param name="MoneyAmount"></param>
-        /// <param name="MoneyCurrency"></param>
-        public List<LocAndValue<(String MoneyAmount, String MoneyCurrency)>> moneylist;
-        /// <summary>
-        /// 括号
-        /// </summary>
-        public List<LocAndValue<String>> bracketlist;
-        public void Init()
-        {
-            datelist = new List<LocAndValue<DateTime>>();
-            moneylist = new List<LocAndValue<(String MoneyAmount, String MoneyCurrency)>>();
-            bracketlist = new List<LocAndValue<String>>();
-        }
     }
 }
