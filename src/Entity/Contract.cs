@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using FDDC;
 using static CompanyNameLogic;
 using static HTMLEngine;
+using static HTMLTable;
 using static LocateProperty;
 
 public partial class Contract : AnnouceDocument
@@ -18,25 +19,8 @@ public partial class Contract : AnnouceDocument
         {
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("工程名：" + m);
         }
-        var ContractList = new List<RecordBase>();
-
-        //主合同的抽取：
-        //#151135 ： 若干项重大合同
-        //#153045：  若干项重大合同
-        //#153271：若干项重大合同
-        //#175840： 若干项重大合同
-        foreach (var p in root.Children)
-        {
-            foreach (var s in p.Children)
-            {
-                if (s.Content.Contains("若干项重大合同"))
-                {
-                    return ExtractMulti();
-                }
-            }
-        }
-
-
+        var ContractList = ExtractMulti();
+        if (ContractList.Count != 0) return ContractList;
         ContractList.Add(ExtractSingle(root, Id));
         return ContractList;
     }
@@ -51,8 +35,156 @@ public partial class Contract : AnnouceDocument
     /// <returns></returns>
     List<RecordBase> ExtractMulti()
     {
+
         var Records = new List<RecordBase>();
-        //如果该项目含有金额，工程名，合同名，则加入
+        var JiaFang = new TableSearchTitleRule();
+        JiaFang.Name = "甲方";
+        JiaFang.Title = new string[] { "采购人" }.ToList();
+        JiaFang.IsTitleEq = false;
+        JiaFang.IsRequire = true;
+
+        var YiFang = new TableSearchTitleRule();
+        YiFang.Name = "乙方";
+        //"投资者名称","股东名称"
+        YiFang.Title = new string[] { "中标人" }.ToList();
+        YiFang.IsTitleEq = false;
+        YiFang.IsRequire = true;
+
+        var ProjectName = new TableSearchTitleRule();
+        ProjectName.Name = "项目名称";
+        ProjectName.Title = new string[] { "项目名称" }.ToList();
+        ProjectName.IsTitleEq = false;
+        ProjectName.IsRequire = false;
+
+        var Money = new TableSearchTitleRule();
+        Money.Name = "中标金额";
+        Money.Title = new string[] { "中标金额" }.ToList();
+        Money.IsTitleEq = false;
+        Money.IsRequire = false;
+
+        var Rules = new List<TableSearchTitleRule>();
+        Rules.Add(JiaFang);
+        Rules.Add(YiFang);
+        Rules.Add(ProjectName);
+        Rules.Add(Money);
+
+        var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, false);
+
+        if (result.Count > 0)
+        {
+            Console.WriteLine("Table ExtractMulti ID:" + Id);
+            foreach (var item in result)
+            {
+                var ContractRec = new ContractRec();
+                ContractRec.Id = Id;
+                ContractRec.JiaFang = item[0].RawData;
+                ContractRec.JiaFang = ContractRec.JiaFang.NormalizeTextResult();
+                ContractRec.YiFang = item[1].RawData;
+                ContractRec.YiFang = ContractRec.YiFang.NormalizeTextResult();
+                foreach (var cn in companynamelist)
+                {
+                    if (cn.secShortName.Equals(ContractRec.YiFang))
+                    {
+                        if (!string.IsNullOrEmpty(cn.secFullName))
+                        {
+                            ContractRec.YiFang = cn.secFullName;
+                            break;
+                        }
+                    }
+                }
+                ContractRec.ProjectName = item[2].RawData;
+                ContractRec.ProjectName = ContractRec.ProjectName.NormalizeTextResult();
+                ContractRec.ContractMoneyUpLimit = MoneyUtility.Format(item[3].RawData, item[3].Title);
+                ContractRec.ContractMoneyDownLimit = ContractRec.ContractMoneyUpLimit;
+                Records.Add(ContractRec);
+            }
+            return Records;
+        }
+
+        //主合同的抽取：
+        //#151135 ： 若干项重大合同
+        //#153045：  若干项重大合同
+        //#153271：若干项重大合同
+        //#175840： 若干项重大合同
+        var isMulti = false;
+        foreach (var p in root.Children)
+        {
+            foreach (var s in p.Children)
+            {
+                if (s.Content.Contains("若干项重大合同"))
+                {
+                    isMulti = true;
+                    Console.WriteLine("若干项重大合同 ID:" + Id);
+                }
+                if (s.Content.StartsWith("<") && isMulti)
+                {
+                    var ContractRec = new ContractRec();
+                    ContractRec.Id = Id;
+                    //5 、本公司全资子公司中国北车集团大连机车车辆有限公司与大同地方铁路公司签订了约 3.26 亿元人民币的电力机车销售合同。
+
+                    var i0 = s.Content.IndexOf("与");
+                    var i1 = s.Content.IndexOf("签订");
+
+                    if (i0 != -1 && i1 != -1 && i0 < i1)
+                    {
+                        ContractRec.JiaFang = s.Content.Substring(i0 + 1, i1 - i0 - 1);
+
+                    }
+                    foreach (var cn in companynamelist)
+                    {
+                        if (cn.isSubCompany && cn.positionId == s.PositionId)
+                        {
+                            ContractRec.YiFang = cn.secFullName;
+                        }
+                    }
+                    var ml = moneylist.Where((x) => x.Loc == s.PositionId).ToList();
+                    var SpecailContractNames = new string[]{
+                        "地铁车辆出口合同",
+                        "地铁车辆牵引系统销售合同",
+                        "地铁车辆销售合同",
+                        "地铁销售合同",
+                        "电动客车销售合同",
+                        "电力机车销售合同",
+                        "动车组检修合同",
+                        "动车组销售合同",
+                        "风力发电机组销售合同",
+                        "货车出口合同",
+                        "货车检修合同",
+                        "货车销售合同",
+                        "货车修理合同",
+                        "机车出口合同",
+                        "机车大修及加改合同",
+                        "客车检修合同",
+                        "客车销售合同",
+                        "客车修理合同",
+                        "煤炭漏斗车销售合同",
+                        "内燃电传动机车销售合同",
+                        "内燃动车组销售合同",
+                        "内燃机车订单",
+                        "铁路客车修理合同",
+                        "有轨电车销售合同"
+                    }.ToList();
+
+                    foreach (var scn in SpecailContractNames)
+                    {
+                        if (s.Content.Contains(scn))
+                        {
+                            ContractRec.ContractName = scn;
+                            break;
+                        }
+                    }
+                    if (ml.Count == 1)
+                    {
+                        if (!String.IsNullOrEmpty(ContractRec.JiaFang) && !String.IsNullOrEmpty(ContractRec.YiFang))
+                        {
+                            ContractRec.ContractMoneyUpLimit = MoneyUtility.Format(ml.First().Value.MoneyAmount, String.Empty);
+                            Records.Add(ContractRec);
+                        }
+                    }
+
+                }
+            }
+        }
 
         return Records;
     }
@@ -96,7 +228,6 @@ public partial class Contract : AnnouceDocument
             var NiList = Nerlist.Where((n) => n.Type == LTPTrainingNER.enmNerType.Ni).Select((m) => m.RawData);
             if (!NiList.Contains(contract.JiaFang))
             {
-                //作为特殊单位，国家电网公司一般都是甲方
                 if (NiList.Contains("国家电网公司")) contract.JiaFang = "国家电网公司";
             }
         }
@@ -139,7 +270,17 @@ public partial class Contract : AnnouceDocument
         contract.ContractName = contract.ContractName.NormalizeTextResult();
 
         //如果是采购协议，则工程名清空
-        if (contract.ContractName.Contains("采购")) contract.ProjectName = string.Empty;
+        if (contract.ContractName.Contains("采购"))
+        {
+            if (contract.ProjectName.Contains("标段"))
+            {
+                //TODO:
+            }
+            else
+            {
+                contract.ProjectName = string.Empty;
+            }
+        }
 
         //金额
         var money = GetMoney();
@@ -167,65 +308,6 @@ public partial class Contract : AnnouceDocument
         return OrgString;
     }
 
-    /// <summary>
-    /// 获得合同名
-    /// </summary>
-    /// <returns></returns>
-    string GetContractName()
-    {
-        var e = new EntityProperty();
-        e.PropertyName = "合同名称";
-        e.PropertyType = EntityProperty.enmType.NER;
-        e.MaxLength = ContractTraning.ContractES.MaxLength;
-        e.MinLength = ContractTraning.ContractES.MinLength;
-        e.LeadingColonKeyWordList = new string[] { "合同名称：" };
-        e.QuotationTrailingWordList = new string[] { "协议书", "合同书", "确认书", "合同", "协议" };
-        e.QuotationTrailingWordList_IsSkipBracket = true;   //暂时只能选True
-        var KeyList = new List<ExtractPropertyByDP.DPKeyWord>();
-        KeyList.Add(new ExtractPropertyByDP.DPKeyWord()
-        {
-            StartWord = new string[] { "签署", "签订" },    //通过SRL训练获得
-            StartDPValue = new string[] { LTPTrainingDP.核心关系, LTPTrainingDP.定中关系, LTPTrainingDP.并列关系 },
-            EndWord = new string[] { "补充协议", "合同书", "合同", "协议书", "协议", },
-            EndDPValue = new string[] { LTPTrainingDP.核心关系, LTPTrainingDP.定中关系, LTPTrainingDP.并列关系, LTPTrainingDP.动宾关系, LTPTrainingDP.主谓关系 }
-        });
-        e.DpKeyWordList = KeyList;
-
-        var StartArray = new string[] { "签署了", "签订了" };   //通过语境训练获得
-        var EndArray = new string[] { "合同" };
-        e.ExternalStartEndStringFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
-        e.ExternalStartEndStringFeatureCandidatePreprocess = (x) => { return x + "合同"; };
-        e.MaxLengthCheckPreprocess = str =>
-        {
-            return Utility.TrimEnglish(str);
-        };
-        //最高级别的置信度，特殊处理器
-        e.LeadingColonKeyWordCandidatePreprocess = str =>
-        {
-            var c = Normalizer.ClearTrailing(TrimEndJianCheng(str));
-            return c;
-        };
-
-        e.CandidatePreprocess = str =>
-        {
-            var c = Normalizer.ClearTrailing(TrimEndJianCheng(str));
-            var RightQMarkIdx = c.IndexOf("”");
-            if (!(RightQMarkIdx != -1 && RightQMarkIdx != c.Length - 1))
-            {
-                //对于"XXX"合同，有右边引号，但不是最后的时候，不用做
-                c = c.TrimStart("“".ToCharArray());
-            }
-            c = c.TrimStart("《".ToCharArray());
-            c = c.TrimEnd("》".ToCharArray()).TrimEnd("”".ToCharArray());
-            return c;
-        };
-        e.ExcludeContainsWordList = new string[] { "日常经营重大合同" };
-        //下面这个列表的根据不足
-        e.ExcludeEqualsWordList = new string[] { "若干项重大合同", "合同", "重大合同", "项目合同", "终止协议", "经营合同", "特别重大合同", "相关项目合同" };
-        e.Extract(this);
-        //冒号优先
-        return e.EvaluateCI();
-    }
 
     /// <summary>
     /// 获得甲方
@@ -346,87 +428,132 @@ public partial class Contract : AnnouceDocument
     /// <returns></returns>
     string GetProjectName()
     {
-        var ExtractorText = new ExtractPropertyByText();
-        //这些关键字后面(最优先)
-        ExtractorText.LeadingColonKeyWordList = new string[] { "项目名称：", "工程名称：", "中标项目：", "合同标的：", "工程内容：" };
-        ExtractorText.ExtractFromTextFile(TextFileName);
-        foreach (var item in ExtractorText.CandidateWord)
-        {
-            var ProjectName = item.Value.Trim();
-            if (Utility.TrimEnglish(ProjectName).Length > ContractTraning.ProjectNameES.MaxLength) continue;
-            if (TrimEndJianCheng(ProjectName) == String.Empty) continue;
-            ProjectName = TrimEndJianCheng(ProjectName);
-            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("项目名称候补词(关键字)：[" + ProjectName + "]");
-            return ProjectName;
-        }
 
-        var Extractor = new ExtractPropertyByHTML();
-        Extractor.LeadingColonKeyWordList = ExtractorText.LeadingColonKeyWordList;
-        foreach (var item in Extractor.CandidateWord)
+        var e = new EntityProperty();
+        e.PropertyName = "工程名称";
+        e.LeadingColonKeyWordList = new string[] { "项目名称：", "工程名称：", "中标项目：", "合同标的：", "工程内容：" };
+        e.LeadingColonKeyWordCandidatePreprocess = TrimEndJianCheng;
+        e.QuotationTrailingWordList = new string[] { "工程", "标段", "标", "招标活动", "项目", "采购" };
+        var StartArray = new string[] { "公司为", "参与了", "确定为" };
+        var EndArray = new string[] { "的中标单位", "的公开招投标", "的中标人", "候选人" };
+        e.ExternalStartEndStringFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
+        e.Extract(this);
+        var prj = e.EvaluateCI();
+        if (!String.IsNullOrEmpty(prj)) return prj;
+        foreach (var item in quotationList)
         {
-            var ProjectName = item.Value.Trim();
-            if (Utility.TrimEnglish(ProjectName).Length > ContractTraning.ProjectNameES.MaxLength) continue;
-            if (TrimEndJianCheng(ProjectName) == String.Empty) continue;
-            ProjectName = TrimEndJianCheng(ProjectName);
-            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("项目名称候补词(关键字)：[" + ProjectName + "]");
-            return ProjectName;
-        }
-
-        //"XXXXX标段"，"XXXXX标"，“工程”，“项目”，“招标活动”
-        var ProjectTrailing = new string[] { "工程", "标段", "标", "招标活动", "项目" };
-
-        foreach (var bracket in quotationList)
-        {
-            foreach (var pt in ProjectTrailing)
+            if (item.Value.Contains("推荐的中标候选人公示"))
             {
-                if (bracket.Value.EndsWith(pt)) return bracket.Value;
+                return Utility.GetStringBefore(item.Value, "推荐的中标候选人公示");
             }
         }
+        return string.Empty;
+    }
 
-        var MarkFeature = new ExtractPropertyByHTML.struMarkFeature();
-        MarkFeature.MarkStartWith = "“";
-        MarkFeature.MarkEndWith = "”";
-        MarkFeature.InnerEndWith = ProjectTrailing.ToList();
-
-
-        Extractor.MarkFeature = new ExtractPropertyByHTML.struMarkFeature[] { MarkFeature };
-        Extractor.Extract(root);
-        foreach (var item in Extractor.CandidateWord)
-        {
-            var ProjectName = item.Value.Trim();
-            if (Utility.TrimEnglish(ProjectName).Length > ContractTraning.ProjectNameES.MaxLength) continue;
-            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("工程名称候补词（《XXX》）：[" + item + "]");
-            return ProjectName;
-        }
-
-        var ExtractDP = new ExtractPropertyByDP();
+    /// <summary>
+    /// 获得合同名
+    /// </summary>
+    /// <returns></returns>
+    string GetContractName()
+    {
+        var e = new EntityProperty();
+        e.PropertyName = "合同名称";
+        e.PropertyType = EntityProperty.enmType.NER;
+        e.MaxLength = ContractTraning.ContractES.MaxLength;
+        e.MinLength = ContractTraning.ContractES.MinLength;
+        e.LeadingColonKeyWordList = new string[] { "合同名称：" };
+        e.QuotationTrailingWordList = new string[] { "协议书", "合同书", "确认书", "合同", "协议" };
+        e.QuotationTrailingWordList_IsSkipBracket = true;   //暂时只能选True
         var KeyList = new List<ExtractPropertyByDP.DPKeyWord>();
         KeyList.Add(new ExtractPropertyByDP.DPKeyWord()
         {
-            StartWord = new string[] { "确定为", "确定", "中标", "参与", "发布", "为" },
+            StartWord = new string[] { "签署", "签订" },    //通过SRL训练获得
             StartDPValue = new string[] { LTPTrainingDP.核心关系, LTPTrainingDP.定中关系, LTPTrainingDP.并列关系 },
-            EndWord = new string[] { "采购", "项目", "工程", "标段" },
-            EndDPValue = new string[] { }
+            EndWord = new string[] { "补充协议", "合同书", "合同", "协议书", "协议", },
+            EndDPValue = new string[] { LTPTrainingDP.核心关系, LTPTrainingDP.定中关系, LTPTrainingDP.并列关系, LTPTrainingDP.动宾关系, LTPTrainingDP.主谓关系 }
         });
-        ExtractDP.StartWithKey(KeyList, Dplist);
-        foreach (var item in ExtractDP.CandidateWord)
-        {
-            var ProjectName = item.Value.Trim();
-            if (Utility.TrimEnglish(ProjectName).Length > ContractTraning.ProjectNameES.MaxLength) continue;
-            if (ProjectName.Length <= 4) continue;
-            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("工程候补词：[" + ProjectName + "]");
-            return ProjectName;
-        }
+        e.DpKeyWordList = KeyList;
 
-        return String.Empty;
+        var StartArray = new string[] { "签署了", "签订了" };   //通过语境训练获得
+        var EndArray = new string[] { "合同" };
+        e.ExternalStartEndStringFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
+        e.ExternalStartEndStringFeatureCandidatePreprocess = (x) => { return x + "合同"; };
+        e.MaxLengthCheckPreprocess = str =>
+        {
+            return Utility.TrimEnglish(str);
+        };
+        //最高级别的置信度，特殊处理器
+        e.LeadingColonKeyWordCandidatePreprocess = str =>
+        {
+            var c = Normalizer.ClearTrailing(TrimEndJianCheng(str));
+            return c;
+        };
+
+        e.CandidatePreprocess = str =>
+        {
+            var c = Normalizer.ClearTrailing(TrimEndJianCheng(str));
+            var RightQMarkIdx = c.IndexOf("”");
+            if (!(RightQMarkIdx != -1 && RightQMarkIdx != c.Length - 1))
+            {
+                //对于"XXX"合同，有右边引号，但不是最后的时候，不用做
+                c = c.TrimStart("“".ToCharArray());
+            }
+            c = c.TrimStart("《".ToCharArray());
+            c = c.TrimEnd("》".ToCharArray()).TrimEnd("”".ToCharArray());
+            return c;
+        };
+        e.ExcludeContainsWordList = new string[] { "日常经营重大合同" };
+        //下面这个列表的根据不足,正确做法是【尚未签署】
+        e.ExcludeEqualsWordList = new string[] { "若干项重大合同", "中标合同", "正式合同", "合同", "重大合同", "项目合同", "终止协议", "经营合同", "特别重大合同", "相关项目合同" };
+        e.Extract(this);
+        //冒号优先
+        return e.EvaluateCI();
     }
+
     /// <summary>
     /// 获得金额
     /// </summary>
     /// <returns></returns>
     (String MoneyAmount, String MoneyCurrency) GetMoney()
     {
+
         var Extractor = new ExtractPropertyByHTML();
+        Extractor.LeadingColonKeyWordList = new string[] {
+            "订单总金额：","订单金额：","订单总价：","订单额：",
+            "合同总投资：", "合同总价：","合同金额：", "合同额：","合同总额：","合同总金额：","合同价：","合同价格：",
+            "中标业务总额","中标总金额", "中标金额", "中标价","中标总价",
+            "项目总价：","项目总投资：","项目估算总投资：", "项目投资额：","项目投资估算：","项目预计总投资：",
+            "工程总价：","工程总投资：","工程估算总投资：", "工程投资额：","工程投资估算：","工程预计总投资：",
+            "投标价格：","投标金额：","投标额：","投标总金额：","投标报价：","预算金额："
+        };
+        Extractor.Extract(root);
+        var AllMoneyList = new List<(String MoneyAmount, String MoneyCurrency)>();
+        foreach (var item in Extractor.CandidateWord)
+        {
+            var moneylist = MoneyUtility.SeekMoney(item.Value);
+            AllMoneyList.AddRange(moneylist);
+        }
+        if (AllMoneyList.Count > 0)
+        {
+            foreach (var money in AllMoneyList)
+            {
+                if (money.MoneyCurrency == "人民币" ||
+                    money.MoneyCurrency == "元")
+                {
+                    var amount = MoneyUtility.Format(money.MoneyAmount, String.Empty);
+                    var m = 0.0;
+                    if (double.TryParse(amount, out m))
+                    {
+                        if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("金额候补词：[" + money.MoneyAmount + ":" + money.MoneyCurrency + "]");
+                        return money;
+                    }
+                }
+            }
+            //没有找到人民币，但是，其他货币存在的情况
+            return AllMoneyList[0];
+        }
+
+
         //这些关键字后面（暂时无法自动抽取）
         Extractor.LeadingColonKeyWordList = new string[] {
             "订单总金额","订单金额","订单总价","订单额",
@@ -434,10 +561,9 @@ public partial class Contract : AnnouceDocument
             "中标业务总额","中标总金额", "中标金额", "中标价","中标总价",
             "项目总价","项目总投资","项目估算总投资", "项目投资额","项目投资估算","项目预计总投资",
             "工程总价","工程总投资","工程估算总投资", "工程投资额","工程投资估算","工程预计总投资",
-            "投标价格","投标金额","投标额","投标总金额","投标报价","预算金额"
-        };
+            "投标价格","投标金额","投标额","投标总金额","投标报价","预算金额" };
         Extractor.Extract(root);
-        var AllMoneyList = new List<(String MoneyAmount, String MoneyCurrency)>();
+        AllMoneyList = new List<(String MoneyAmount, String MoneyCurrency)>();
         foreach (var item in Extractor.CandidateWord)
         {
             var moneylist = MoneyUtility.SeekMoney(item.Value);

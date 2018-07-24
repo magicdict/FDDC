@@ -61,6 +61,7 @@ public class HTMLEngine
         OrgString = OrgString.Replace("ft", "山");
         OrgString = OrgString.Replace("惩", "亿");
         OrgString = OrgString.Replace("○", "０");
+        OrgString = OrgString.Replace("惄主","业主");
         return OrgString;
     }
 

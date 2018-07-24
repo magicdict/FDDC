@@ -12,7 +12,7 @@ public class NerMap
     /// <typeparam name="int">HTML段落号</typeparam>
     /// <typeparam name="ParagraghLoc">实体</typeparam>
     /// <returns></returns>
-    Dictionary<int, ParagraghLoc> ParagraghlocateDict = new Dictionary<int, ParagraghLoc>();
+    public Dictionary<int, ParagraghLoc> ParagraghlocateDict = new Dictionary<int, ParagraghLoc>();
 
     public void Anlayze(AnnouceDocument doc)
     {
@@ -30,8 +30,9 @@ public class NerMap
 
         }
 
-        if (doc is Contract){
-            
+        if (doc is Contract)
+        {
+            //TODO:加入工程和公司的位置信息
         }
 
         foreach (var paragragh in doc.root.Children)
@@ -39,7 +40,10 @@ public class NerMap
             foreach (var s in paragragh.Children)
             {
                 var p = LocateParagraphInfo(doc, s.PositionId, nerlist);
-                if (p.NerList.Count + p.moneylist.Count + p.datelist.Count != 0) ParagraghlocateDict.Add(s.PositionId, p);
+                if (p.NerList.Count + p.moneylist.Count + p.datelist.Count != 0)
+                {
+                    if (!ParagraghlocateDict.ContainsKey(s.PositionId)) ParagraghlocateDict.Add(s.PositionId, p);
+                }
             }
         }
     }

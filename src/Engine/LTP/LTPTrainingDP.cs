@@ -48,7 +48,7 @@ public class LTPTrainingDP
             var x = RegularTool.GetMultiValueBetweenMark(element, "\"", "\"");
             if (x.Count != 5)
             {
-                Console.WriteLine(element);
+                //Console.WriteLine(element);
                 id = int.Parse(x[0]);
                 cont = "\"";    //&quot;
                 pos = x[1];

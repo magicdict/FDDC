@@ -80,6 +80,8 @@ public class EntityProperty
     /// </summary>
     public bool QuotationTrailingWordList_IsSkipBracket = true;
 
+    public Func<String,string> QuotationTrailingPreprocess;
+
     /// <summary>
     /// 书名号和引号候选词
     /// </summary>
@@ -180,11 +182,15 @@ public class EntityProperty
             //接下来《》，“” 优先
             foreach (var bracket in doc.quotationList)
             {
-                foreach (var word in QuotationTrailingWordList)
+                foreach (var trailingword in QuotationTrailingWordList)
                 {
-                    if (bracket.Value.EndsWith(word))
+                    var EvaluateWord = bracket.Value;
+                    if (QuotationTrailingPreprocess != null) {
+                        EvaluateWord = QuotationTrailingPreprocess(EvaluateWord);
+                    }
+                    if (EvaluateWord.EndsWith(trailingword))
                     {
-                        var PropertyValue = CheckCandidate(bracket.Value);
+                        var PropertyValue = CheckCandidate(EvaluateWord);
                         if (String.IsNullOrEmpty(PropertyValue)) continue;
                         if (!Program.IsMultiThreadMode) Logger.WriteLine(this.PropertyName + "：[" + PropertyValue + "]");
                         QuotationTrailingCandidate.Add(PropertyValue);

@@ -33,7 +33,7 @@ public class LTPTrainingSRL
             var x = RegularTool.GetMultiValueBetweenMark(element, "\"", "\"");
             if (x.Count != 6)
             {
-                Console.WriteLine(element);
+                //Console.WriteLine(element);
                 id = int.Parse(x[0]);
                 cont = String.Empty;    //&quot;
                 pos = x[1];

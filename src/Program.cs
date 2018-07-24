@@ -24,7 +24,7 @@ namespace FDDC
         /// <summary>
         /// Windows
         /// </summary>
-        //public static String DocBase = @"E:" + Path.DirectorySeparatorChar + "WorkSpace2018" + Path.DirectorySeparatorChar + "FDDC2018";
+        public static String DocBase = @"E:" + Path.DirectorySeparatorChar + "WorkSpace2018" + Path.DirectorySeparatorChar + "FDDC2018";
         /// <summary>
         /// CentOS
         /// </summary>
@@ -32,7 +32,7 @@ namespace FDDC
         /// <summary>
         /// MAC
         /// </summary>
-        public static String DocBase = @"/Users/hu/Desktop/FDDC2018";
+        //public static String DocBase = @"/Users/hu/Desktop/FDDC2018";
 
         /// <summary>
         /// 这个模式下，有问题的数据会输出，正式比赛的时候设置为False，降低召回率！
@@ -50,7 +50,7 @@ namespace FDDC
         private static void QuickTestArea()
         {
             var t = new Contract();
-            t.Init(ContractPath_TRAIN + "/html/151135.html");
+            t.Init(ContractPath_TRAIN + "/html/1044441.html");
             t.Extract();
         }
 
@@ -70,7 +70,7 @@ namespace FDDC
 
             CIRecord = new StreamWriter("CI.log");
 
-            QuickTestArea(); return;
+            //QuickTestArea(); return;
 
             //PDFToTXT.GetPdf2TxtBatchFile();
 
@@ -230,7 +230,7 @@ namespace FDDC
                     }
                 }
             }
-            Announce_Result.Sort((x, y) => { return x.GetKey().CompareTo(y.GetKey()); });
+            Announce_Result.Sort((x, y) => { return int.Parse(x.Id).CompareTo(int.Parse(y.Id)); });
             ResultCSV.WriteLine(Announce_Result.First().CSVTitle());
             foreach (var item in Announce_Result)
             {

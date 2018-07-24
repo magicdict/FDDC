@@ -103,7 +103,7 @@ public abstract class AnnouceDocument
             XMLFileName += ".xml";
         }
         var XMLPath = fi.DirectoryName.Replace("html", "ner");
-        var Nerlist = LTPTrainingNER.AnlayzeNER(XMLPath + Path.DirectorySeparatorChar + "" + XMLFileName);
+        Nerlist = LTPTrainingNER.AnlayzeNER(XMLPath + Path.DirectorySeparatorChar + "" + XMLFileName);
         foreach (var ner in Nerlist)
         {
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("识别实体：" + ner.RawData + ":" + ner.Type);
@@ -176,6 +176,32 @@ public abstract class AnnouceDocument
 
         companynamelist = CompanyNameLogic.GetCompanyNameByCutWord(root);
 
+        var Clone = new List<struCompanyName>();
+        foreach (var item in companynamelist)
+        {
+            Clone.Add(item);
+        }
+        foreach (var ner in Nerlist)
+        {
+            if (ner.Type == enmNerType.Ni)
+            {
+                //对于公司名称的修补：
+                foreach (var cn in Clone)
+                {
+                    if (!ner.RawData.Equals(cn.secFullName) && ner.RawData.Contains(cn.secFullName))
+                    {
+                        companynamelist.Add(new struCompanyName()
+                        {
+                            secFullName = ner.RawData,
+                            secShortName = cn.secShortName
+                        });
+                        companynamelist.Remove(cn);
+                        continue;
+                    }
+                }
+            }
+        }
+
         var newname = new List<struCompanyName>();
         foreach (var cn in companynamelist)
         {
@@ -245,7 +271,8 @@ public abstract class AnnouceDocument
         {
             var htmltable = new HTMLTable(table.Value);
 
-            if (htmltable.ColumnCount == 2){
+            if (htmltable.ColumnCount == 2)
+            {
                 for (int RowNo = 1; RowNo <= htmltable.RowCount; RowNo++)
                 {
                     if (htmltable.CellValue(RowNo, 2).StartsWith("指"))
@@ -273,7 +300,7 @@ public abstract class AnnouceDocument
             }
         }
 
-        if(ReplacementDict.Count == 0) return;
+        if (ReplacementDict.Count == 0) return;
 
         //寻找指释义表中表示公司简称和公司全称的项目，加入到Companylist中
         //注意，左边的主键，右边的值，都可能需要根据分隔符好切分
