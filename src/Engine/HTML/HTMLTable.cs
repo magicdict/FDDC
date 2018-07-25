@@ -406,7 +406,7 @@ public partial class HTMLTable
                     var nexttable = new HTMLTable(doc.root.TableList[NextTableId]);
                     if (table.ColumnCount != nexttable.ColumnCount) continue;
                     MergeTable(doc, NextTableId);
-                    Console.WriteLine("FirstRowNullFix");
+                    //Console.WriteLine("FirstRowNullFix");
                     break;
                 }
             }

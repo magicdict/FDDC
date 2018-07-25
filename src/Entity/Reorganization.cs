@@ -9,6 +9,7 @@ public class Reorganization : AnnouceDocument
 {
     public override List<RecordBase> Extract()
     {
+        InitTableRules();
         var list = new List<RecordBase>();
         var targets = getTargetListFromReplaceTable();
         if (targets.Count == 0) return list;
@@ -45,9 +46,8 @@ public class Reorganization : AnnouceDocument
                 {
                     if (key.Contains("标的")) continue;
                     if (key.Contains("目标")) continue;
-                    if (key.Contains("上市公司")) continue;
-                    if (key.Contains("公司")) continue;
-                    if (key.Contains("本公司")) continue;
+                    if (key.Equals("上市公司")) continue;
+                    if (key.Equals("本公司")) continue;
                     if (dict.Key.Equals(reorgRec.TargetCompany) || dict.Value.Equals(reorgRec.TargetCompany))
                     {
                         reorgRec.TargetCompany = key + "|" + dict.Value;
@@ -62,6 +62,27 @@ public class Reorganization : AnnouceDocument
         }
         return list;
     }
+
+
+    TableSearchTitleRule TragetCompany = new TableSearchTitleRule();
+    TableSearchTitleRule EvaluateMethod = new TableSearchTitleRule();
+    TableSearchTitleRule TradeCompany = new TableSearchTitleRule();
+
+
+    void InitTableRules()
+    {
+        TragetCompany.Name = "标的公司";
+        TragetCompany.Title = new string[] { "标的公司" }.ToList();
+        TragetCompany.IsTitleEq = true;
+        TragetCompany.IsRequire = true;
+
+        TradeCompany.Name = "交易对方";
+        TradeCompany.Title = new string[] { "交易对方" }.ToList();
+        TradeCompany.IsTitleEq = true;
+        TradeCompany.IsRequire = true;
+
+    }
+
 
     /// <summary>
     /// 从释义表格中抽取
@@ -123,6 +144,7 @@ public class Reorganization : AnnouceDocument
                 {
                     values = values2;
                 }
+                keys = keys.Select(x => x.Trim()).ToArray();
                 if (keys.Contains(Rplkey))
                 {
                     foreach (var value in values)
@@ -160,7 +182,7 @@ public class Reorganization : AnnouceDocument
         };
 
 
-        var OtherTargets = new string[] { "资产及负债" };
+        var OtherTargets = new string[] { "资产及负债", "直属资产" };
 
         var TargetAndCompanyList = new List<(string Target, string Comany)>();
         foreach (var Rplkey in ReplacementKeys)
@@ -183,79 +205,82 @@ public class Reorganization : AnnouceDocument
 
                 //keys里面可能包括【拟】字需要去除
                 var SearchKey = keys.Select((x) => { return x.StartsWith("拟") ? x.Substring(1) : x; });
-
+                SearchKey = SearchKey.Select(x => x.Trim()).ToArray();
                 if (SearchKey.Contains(Rplkey))
                 {
-                    foreach (var value in values)
+                    foreach (var targetRecordItem in values)
                     {
-                        var targetAndcompany = value.Trim().Replace(" ", "");
-                        //将公司名称和交易标的划分开来
-                        var ExpResult = ExtractPropertyByHTML.RegularExFinder(0, targetAndcompany, targetRegular, "|");
-                        if (ExpResult.Count == 0)
+                        foreach (var SingleItem in Utility.CutByPOSConection(targetRecordItem))
                         {
-                            //其他类型的标的
-                            foreach (var rc in ReplaceCompany)
+                            var targetAndcompany = SingleItem.Trim().Replace(" ", "");
+                            //将公司名称和交易标的划分开来
+                            var ExpResult = ExtractPropertyByHTML.RegularExFinder(0, targetAndcompany, targetRegular, "|");
+                            if (ExpResult.Count == 0)
                             {
-                                var IsFullNameHit = false;
-                                if (!String.IsNullOrEmpty(rc.secFullName) && targetAndcompany.Contains(rc.secFullName))
+                                //其他类型的标的
+                                foreach (var rc in ReplaceCompany)
                                 {
-                                    foreach (var ot in OtherTargets)
-                                    {
-                                        if (targetAndcompany.Contains(ot))
-                                        {
-                                            IsFullNameHit = true;
-                                            TargetAndCompanyList.Add((rc.secFullName, ot));
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                if (!IsFullNameHit)
-                                {
-                                    if (!String.IsNullOrEmpty(rc.secShortName) && targetAndcompany.Contains(rc.secShortName))
+                                    var IsFullNameHit = false;
+                                    if (!String.IsNullOrEmpty(rc.secFullName) && targetAndcompany.Contains(rc.secFullName))
                                     {
                                         foreach (var ot in OtherTargets)
                                         {
                                             if (targetAndcompany.Contains(ot))
                                             {
                                                 IsFullNameHit = true;
-                                                TargetAndCompanyList.Add((rc.secShortName, ot));
+                                                TargetAndCompanyList.Add((rc.secFullName, ot));
                                                 break;
                                             }
                                         }
                                     }
-                                }
 
-                                if (TargetAndCompanyList.Count == 0 && !String.IsNullOrEmpty(rc.secFullName) && targetAndcompany.StartsWith(rc.secFullName))
-                                {
-                                    var extra = (value.Substring(rc.secFullName.Length), rc.secFullName);
-                                    if (!TargetAndCompanyList.Contains(extra))
+                                    if (!IsFullNameHit)
                                     {
-                                        TargetAndCompanyList.Add(extra);
+                                        if (!String.IsNullOrEmpty(rc.secShortName) && targetAndcompany.Contains(rc.secShortName))
+                                        {
+                                            foreach (var ot in OtherTargets)
+                                            {
+                                                if (targetAndcompany.Contains(ot))
+                                                {
+                                                    IsFullNameHit = true;
+                                                    TargetAndCompanyList.Add((rc.secShortName, ot));
+                                                    break;
+                                                }
+                                            }
+                                        }
                                     }
-                                    break;
-                                }
-                                if (TargetAndCompanyList.Count == 0 && !String.IsNullOrEmpty(rc.secShortName) && targetAndcompany.StartsWith(rc.secShortName))
-                                {
-                                    var extra = (value.Substring(rc.secShortName.Length), rc.secShortName);
-                                    if (!TargetAndCompanyList.Contains(extra))
-                                    {
-                                        TargetAndCompanyList.Add(extra);
-                                    }
-                                    break;
-                                }
 
+                                    if (TargetAndCompanyList.Count == 0 && !String.IsNullOrEmpty(rc.secFullName) && targetAndcompany.StartsWith(rc.secFullName))
+                                    {
+                                        var extra = (SingleItem.Substring(rc.secFullName.Length), rc.secFullName);
+                                        if (!TargetAndCompanyList.Contains(extra))
+                                        {
+                                            TargetAndCompanyList.Add(extra);
+                                        }
+                                        break;
+                                    }
+                                    if (TargetAndCompanyList.Count == 0 && !String.IsNullOrEmpty(rc.secShortName) && targetAndcompany.StartsWith(rc.secShortName))
+                                    {
+                                        var extra = (SingleItem.Substring(rc.secShortName.Length), rc.secShortName);
+                                        if (!TargetAndCompanyList.Contains(extra))
+                                        {
+                                            TargetAndCompanyList.Add(extra);
+                                        }
+                                        break;
+                                    }
+
+                                }
                             }
-                        }
-                        else
-                        {
-                            foreach (var r in ExpResult)
+                            else
                             {
-                                var arr = r.Value.Split("|");
-                                var extra = (arr[1] + arr[2], arr[0]);
-                                if (!TargetAndCompanyList.Contains(extra))
+                                foreach (var r in ExpResult)
                                 {
-                                    TargetAndCompanyList.Add(extra);
+                                    var arr = r.Value.Split("|");
+                                    var extra = (arr[1] + arr[2], arr[0]);
+                                    if (!TargetAndCompanyList.Contains(extra))
+                                    {
+                                        TargetAndCompanyList.Add(extra);
+                                    }
                                 }
                             }
                         }
@@ -274,10 +299,6 @@ public class Reorganization : AnnouceDocument
     public List<(string TargetCompany, string TradeCompany)> getTradeCompany(List<(string Target, string TargetCompany)> targets)
     {
         var rtn = new List<(string TargetCompany, string TradeCompany)>();
-        var TradeCompany = new TableSearchTitleRule();
-        TradeCompany.Name = "交易对方";
-        TradeCompany.Title = new string[] { "交易对方" }.ToList();
-        TradeCompany.IsTitleEq = true;
         TradeCompany.IsRequire = true;
         var Rules = new List<TableSearchTitleRule>();
         Rules.Add(TradeCompany);
@@ -292,10 +313,6 @@ public class Reorganization : AnnouceDocument
                            .Select(x => x[0].RawData)
                            .Where(y => !y.Contains("不超过")).ToList();
 
-        var TragetCompany = new TableSearchTitleRule();
-        TragetCompany.Name = "标的公司";
-        TragetCompany.Title = new string[] { "标的公司" }.ToList();
-        TragetCompany.IsTitleEq = true;
         TragetCompany.IsRequire = true;
         Rules.Add(TragetCompany);
         result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, true);
@@ -341,8 +358,8 @@ public class Reorganization : AnnouceDocument
         {
             //单标有交易对手的情况
             rtn.Add((targets[0].TargetCompany, string.Join(Utility.SplitChar, ReplaceTrades)));
-            Console.WriteLine("TOP标的：" + targets[0].TargetCompany);
-            Console.WriteLine("TOP对手：" + string.Join(Utility.SplitChar, ReplaceTrades));
+            //Console.WriteLine("TOP标的：" + targets[0].TargetCompany);
+            //Console.WriteLine("TOP对手：" + string.Join(Utility.SplitChar, ReplaceTrades));
             return rtn;
         }
 
@@ -413,8 +430,8 @@ public class Reorganization : AnnouceDocument
                             }
 
                         }
-                        Console.WriteLine("标的：" + targetcompany);
-                        Console.WriteLine("对手：" + ctrades);
+                        //Console.WriteLine("标的：" + targetcompany);
+                        //Console.WriteLine("对手：" + ctrades);
                     }
                 }
             }
@@ -422,8 +439,8 @@ public class Reorganization : AnnouceDocument
             if (rankdict.Count > 1)
             {
                 var top = Utility.FindTop<string>(1, rankdict).First().Value;
-                Console.WriteLine("TOP标的：" + targetcompany);
-                Console.WriteLine("TOP对手：" + top);
+                //Console.WriteLine("TOP标的：" + targetcompany);
+                //Console.WriteLine("TOP对手：" + top);
                 rtn.Add((targetcompany, top));
             }
         }
@@ -467,7 +484,7 @@ public class Reorganization : AnnouceDocument
                 var moneys = MoneyLocMap[targetloc.Key];
                 if (targets.Count == 1 && moneys.Count == 1)
                 {
-                    Console.WriteLine(targets.First().Value + ":" + moneys.First().Value.MoneyAmount);
+                    //Console.WriteLine(targets.First().Value + ":" + moneys.First().Value.MoneyAmount);
                     return moneys.First().Value;
                 }
             }
@@ -481,6 +498,12 @@ public class Reorganization : AnnouceDocument
     /// <returns></returns>
     string getEvaluateMethod(ReorganizationRec rec)
     {
+        //表格法优先
+        var tableEvaluateMethod = getEvaluateMethodByTable(rec);
+        if (!String.IsNullOrEmpty(tableEvaluateMethod))
+        {
+            return tableEvaluateMethod;
+        }
         var evaluateLoc = LocateProperty.LocateCustomerWord(root, ReOrganizationTraning.EvaluateMethodList);
         if (evaluateLoc.Count == 0) return string.Empty;
         var targetLoc = LocateProperty.LocateCustomerWord(root, new string[] { rec.TargetCompany + rec.Target }.ToList());
@@ -513,11 +536,59 @@ public class Reorganization : AnnouceDocument
                 if (targets.Count == 1)
                 {
                     var ev = string.Join(Utility.SplitChar, evs.Select(x => x.Value));
-                    Console.WriteLine(targets.First().Value + ":" + ev);
+                    //Console.WriteLine(targets.First().Value + ":" + ev);
                     return evs.First().Value;
                 }
             }
         }
         return string.Empty;
     }
+
+    string getEvaluateMethodByTable(ReorganizationRec rec)
+    {
+        TragetCompany.Name = "标的公司";
+        TragetCompany.Title = new string[] { "标的公司", "标的资产","被投资单位名称","企业名称" ,
+        "拟购买资产","拟出售标的资产","序号","评估目的","预估标的","评估事由","交易标的"}.ToList();
+        TragetCompany.IsTitleEq = false;
+        TragetCompany.IsRequire = true;
+
+        EvaluateMethod.Name = "评估方法";
+        EvaluateMethod.Title = new string[] { "评估方法" }.ToList();
+        EvaluateMethod.IsTitleEq = false;
+        EvaluateMethod.IsRequire = true;
+
+        var FinallyEvaluateMethod = new TableSearchTitleRule();
+        FinallyEvaluateMethod.Name = "评估方法";
+        FinallyEvaluateMethod.Title = new string[] { "作为评估结论", "最终选取的评估方式", "最终评估结果使用方法" }.ToList();
+        FinallyEvaluateMethod.IsTitleEq = false;
+        FinallyEvaluateMethod.IsRequire = true;
+
+        var Rules = new List<TableSearchTitleRule>();
+        Rules.Add(TragetCompany);
+        Rules.Add(FinallyEvaluateMethod);
+        var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, false);
+        foreach (var item in result)
+        {
+            if (item[0].RawData.Contains(rec.TargetCompany))
+            {
+                Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
+                return item[1].RawData;
+            }
+        }
+
+        Rules.Clear();
+        Rules.Add(TragetCompany);
+        Rules.Add(EvaluateMethod);
+        result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, false);
+        foreach (var item in result)
+        {
+            if (item[0].RawData.Contains(rec.TargetCompany))
+            {
+                Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
+                return item[1].RawData;
+            }
+        }
+        return string.Empty;
+    }
+
 }

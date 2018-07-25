@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Linq;
 using static ExtractProperyBase;
+using JiebaNet.Segmenter.PosSeg;
 
 public static class Utility
 {
@@ -181,4 +182,39 @@ public static class Utility
         }
         return MainWordSentence;
     }
+
+    /// <summary>
+    /// 将一个项目根据连词分割为两项
+    /// </summary>
+    /// <param name="OrgString"></param>
+    /// <returns></returns>
+    public static List<String> CutByPOSConection(string OrgString)
+    {
+        var pos = new PosSegmenter();
+        var words = pos.Cut(OrgString);
+        var rtn = new List<String>();
+        var currentword = "";
+        foreach (var item in words)
+        {
+            if (item.Flag == LTPTrainingNER.连词)
+            {
+                if (!String.IsNullOrEmpty(currentword))
+                {
+                    rtn.Add(currentword);
+                    currentword = "";
+                }
+            }
+            else
+            {
+                currentword += item.Word;
+            }
+        }
+        if (!String.IsNullOrEmpty(currentword))
+        {
+            rtn.Add(currentword);
+            currentword = "";
+        }
+        return rtn;
+    }
+
 }

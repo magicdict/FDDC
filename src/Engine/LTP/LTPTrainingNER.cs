@@ -13,6 +13,10 @@ public class LTPTrainingNER
     public const string 词性标点 = "x";
     public const string 动词 = "v";
     public const string 数词 = "m";
+    /// <summary>
+    /// 连词
+    /// </summary>
+    public const string 连词 = "c";
 
     public struct struWordNER
     {

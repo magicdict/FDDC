@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using FDDC;
 
 public class ReOrganizationTraning
@@ -8,7 +9,7 @@ public class ReOrganizationTraning
     {
         Console.WriteLine("开始分析 资产重组");
         GetEvaluateMethodEnum();
-        //GetEvaluateMethodTitle(500);
+        GetEvaluateMethodTitle();
         //GetTradeCompanyTitle();
         //GetTradeCompanyFromReplaceTable();
         Console.WriteLine("结束分析 资产重组");
@@ -46,6 +47,12 @@ public class ReOrganizationTraning
         {
             Program.Training.WriteLine(rec.ToString());
         }
+
+        foreach (var item in TargetTool.WholeHeaderRow)
+        {
+            Program.Training.WriteLine(item);
+        }
+        Program.Training.Flush();
     }
 
 
@@ -59,7 +66,7 @@ public class ReOrganizationTraning
         {
             if (!PreviewId.Equals(ReOrg.Id))
             {
-                var htmlfile = Program.ReorganizationPath_TRAIN + @"\html\" + ReOrg.Id + ".html";
+                var htmlfile = Program.ReorganizationPath_TRAIN + Path.DirectorySeparatorChar + @"html" + Path.DirectorySeparatorChar + ReOrg.Id + ".html";
                 if (!System.IO.File.Exists(htmlfile)) continue;
                 PreviewRoot = new HTMLEngine().Anlayze(htmlfile, "");
                 PreviewId = ReOrg.Id;
@@ -67,16 +74,23 @@ public class ReOrganizationTraning
             }
             if (!String.IsNullOrEmpty(ReOrg.EvaluateMethod))
             {
-                TargetTool.PutTitleTrainingItem(PreviewRoot, ReOrg.EvaluateMethod);
+                TargetTool.PutTitleTrainingItemWithCodition(PreviewRoot, ReOrg.EvaluateMethod, ReOrg.TargetCompany);
             }
         }
 
         var rank = Utility.FindTop(10, TargetTool.TrainingTitleResult);
-        Program.Training.WriteLine("交易对象");
+        Program.Training.WriteLine("评估方法");
         foreach (var rec in rank)
         {
             Program.Training.WriteLine(rec.ToString());
         }
+        Program.Training.WriteLine("标的");
+        rank = Utility.FindTop(10, TargetTool.TrainingTitleCondition);
+        foreach (var rec in rank)
+        {
+            Program.Training.WriteLine(rec.ToString());
+        }
+        Program.Training.Flush();
     }
 
     public static void GetTradeCompanyFromReplaceTable(int TraningCnt = int.MaxValue)
