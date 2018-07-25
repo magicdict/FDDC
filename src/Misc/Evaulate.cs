@@ -149,8 +149,16 @@ public static class Evaluate
             var key = reorg.GetKey();
             foreach (var reorg_Result in resultDataset)
             {
-                var key_Result = reorg_Result.GetKey();
-                var IsKeyMatch = key.Equals(key_Result);
+                var keys_Result = reorg_Result.GetKey().Split("|");
+                var IsKeyMatch = false;
+                if (keys_Result.Length == 1)
+                {
+                    IsKeyMatch = key.Equals(keys_Result[0]);
+                }
+                else
+                {
+                    IsKeyMatch = key.Equals(keys_Result[0]) || key.Equals(keys_Result[1]);
+                }
                 if (IsKeyMatch)
                 {
                     //COR:主键匹配 且 提交字段值=正确字段值 且 均不为空
@@ -186,7 +194,7 @@ public static class Evaluate
         }
 
         var score = (F1_ID.F1 + F1_Target.F1 + F1_TargetCompany.F1 + F1_TradeCompany.F1 +
-                     F1_Price.F1 +  F1_EvaluateMethod.F1) / 6;
+                     F1_Price.F1 + F1_EvaluateMethod.F1) / 6;
         Program.Score.WriteLine("资产重组分数：" + score);
         Program.Score.Flush();
 

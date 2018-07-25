@@ -21,7 +21,7 @@ public partial class Contract : AnnouceDocument
         }
         var ContractList = ExtractMulti();
         if (ContractList.Count != 0) return ContractList;
-        ContractList.Add(ExtractSingle(root, Id));
+        ContractList.Add(ExtractSingle());
         return ContractList;
     }
 
@@ -40,24 +40,59 @@ public partial class Contract : AnnouceDocument
         if (Records.Count != 0) return Records;
         Records = ExtractMultiFromNorthVehicle();
         if (Records.Count != 0) return Records;
+        Records = ExtractMultiCommon();
+        Records.Clear(); //无法判断是否需要这些数据
+        return Records;
+    }
+
+    List<RecordBase> ExtractMultiCommon()
+    {
+        var MainRec = ExtractSingle();
         //三项订单
         //中标通知书6份
         //中标通知书四份
         //履行进展情况
-
+        var Records = new List<RecordBase>();
+        var isMulti = false;
         foreach (var p in root.Children)
         {
             foreach (var s in p.Children)
             {
-                var scan = NumberUtility.ConvertUpperToLower(s.Content).Replace(" ", "");
-                var cnt = RegularTool.GetRegular(scan, "中标通知书\\d份");
-                if (cnt.Count == 1)
+
+                if (isMulti)
                 {
-                    Console.WriteLine(Id + ":" + cnt[0].RawData + "[" + scan + "]");
+                    if (nermap.ParagraghlocateDict.ContainsKey(s.PositionId))
+                    {
+                        var nerlist = nermap.ParagraghlocateDict[s.PositionId];
+                        if (nerlist.moneylist.Count == 1)
+                        {
+                            var ContractRec = new ContractRec();
+                            ContractRec.Id = Id;
+                            ContractRec.JiaFang = MainRec.JiaFang;
+                            ContractRec.YiFang = MainRec.YiFang;
+                            ContractRec.ContractMoneyUpLimit = MoneyUtility.Format(nerlist.moneylist.First().Value.MoneyAmount, String.Empty);
+                            ContractRec.ContractMoneyDownLimit = ContractRec.ContractMoneyUpLimit;
+                            Records.Add(ContractRec);
+                        }
+                    }
+                }
+                else
+                {
+                    var scan = NumberUtility.ConvertUpperToLower(s.Content).Replace(" ", "");
+                    var cnt = RegularTool.GetRegular(scan, "中标通知书\\d份");
+                    if (cnt.Count == 1)
+                    {
+                        Console.WriteLine(Id + ":" + cnt[0].RawData + "[" + scan + "]");
+                        isMulti = true;
+                    }
+                    if (s.Content.Contains("履行进展情况"))
+                    {
+                        Console.WriteLine(Id + ":履行进展情况");
+                        isMulti = true;
+                    }
                 }
             }
         }
-
         return Records;
     }
 
@@ -209,6 +244,7 @@ public partial class Contract : AnnouceDocument
                         if (!String.IsNullOrEmpty(ContractRec.JiaFang) && !String.IsNullOrEmpty(ContractRec.YiFang))
                         {
                             ContractRec.ContractMoneyUpLimit = MoneyUtility.Format(ml.First().Value.MoneyAmount, String.Empty);
+                            ContractRec.ContractMoneyDownLimit = ContractRec.ContractMoneyUpLimit;
                             Records.Add(ContractRec);
                         }
                     }
@@ -218,7 +254,7 @@ public partial class Contract : AnnouceDocument
         return Records;
     }
 
-    ContractRec ExtractSingle(MyRootHtmlNode root, String Id)
+    ContractRec ExtractSingle()
     {
         contractType = String.Empty;
         foreach (var paragrah in root.Children)
@@ -325,7 +361,7 @@ public partial class Contract : AnnouceDocument
         contract.UnionMember = RegularTool.TrimBrackets(contract.UnionMember);
         return contract;
     }
-    
+
     /// <summary>
     /// 去除尾部的简称
     /// </summary>

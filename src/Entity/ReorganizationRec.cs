@@ -23,7 +23,16 @@ public class ReorganizationRec : RecordBase
 
     public override string GetKey()
     {
-        return Id + ":" + Target.NormalizeKey() + ":" + TargetCompany.NormalizeKey();
+        var TargetCompanys = TargetCompany.NormalizeKey().Split("|");
+        if (TargetCompanys.Length == 1)
+        {
+            return Id + ":" + Target.NormalizeKey() + ":" + TargetCompany.NormalizeKey();
+        }
+        else
+        {
+            return Id + ":" + Target.NormalizeKey() + ":" + TargetCompanys[0].NormalizeKey() + "|" +
+                   Id + ":" + Target.NormalizeKey() + ":" + TargetCompanys[1].NormalizeKey();
+        }
     }
 
     public static ReorganizationRec ConvertFromString(string str)

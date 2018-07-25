@@ -8,6 +8,7 @@ public class ReOrganizationTraning
     {
         Console.WriteLine("开始分析 资产重组");
         GetEvaluateMethodEnum();
+        //GetEvaluateMethodTitle(500);
         //GetTradeCompanyTitle();
         //GetTradeCompanyFromReplaceTable();
         Console.WriteLine("结束分析 资产重组");
@@ -64,9 +65,9 @@ public class ReOrganizationTraning
                 PreviewId = ReOrg.Id;
                 Cnt++; if (Cnt == TraningCnt) break;
             }
-            foreach (var item in ReOrg.TradeCompany.Split(Utility.SplitChar))
+            if (!String.IsNullOrEmpty(ReOrg.EvaluateMethod))
             {
-                TargetTool.PutTitleTrainingItem(PreviewRoot, item);
+                TargetTool.PutTitleTrainingItem(PreviewRoot, ReOrg.EvaluateMethod);
             }
         }
 

@@ -34,10 +34,28 @@ public class Reorganization : AnnouceDocument
             //最后才能进行 多选配置！！！
             foreach (var dict in ReplacementDict)
             {
-                if (dict.Key.Equals(reorgRec.TargetCompany) || dict.Value.Equals(reorgRec.TargetCompany))
+                var keys = dict.Key.Split(Utility.SplitChar);
+                var keys2 = dict.Key.Split("/");
+                var isHit = false;
+                if (keys.Length == 1 && keys2.Length > 1)
                 {
-                    reorgRec.TargetCompany = dict.Key + "|" + dict.Value;
+                    keys = keys2;
                 }
+                foreach (var key in keys)
+                {
+                    if (key.Contains("标的")) continue;
+                    if (key.Contains("目标")) continue;
+                    if (key.Contains("上市公司")) continue;
+                    if (key.Contains("公司")) continue;
+                    if (key.Contains("本公司")) continue;
+                    if (dict.Key.Equals(reorgRec.TargetCompany) || dict.Value.Equals(reorgRec.TargetCompany))
+                    {
+                        reorgRec.TargetCompany = key + "|" + dict.Value;
+                        isHit = true;
+                        break;
+                    }
+                }
+                if (isHit) break;
             }
 
             list.Add(reorgRec);
