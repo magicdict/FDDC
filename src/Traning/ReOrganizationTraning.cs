@@ -48,6 +48,36 @@ public class ReOrganizationTraning
     }
 
 
+    public static void GetEvaluateMethodTitle(int TraningCnt = int.MaxValue)
+    {
+        var TargetTool = new TableAnlayzeTool();
+        var PreviewId = String.Empty;
+        var PreviewRoot = new HTMLEngine.MyRootHtmlNode();
+        int Cnt = 0;
+        foreach (var ReOrg in TraningDataset.ReorganizationList)
+        {
+            if (!PreviewId.Equals(ReOrg.Id))
+            {
+                var htmlfile = Program.ReorganizationPath_TRAIN + @"\html\" + ReOrg.Id + ".html";
+                if (!System.IO.File.Exists(htmlfile)) continue;
+                PreviewRoot = new HTMLEngine().Anlayze(htmlfile, "");
+                PreviewId = ReOrg.Id;
+                Cnt++; if (Cnt == TraningCnt) break;
+            }
+            foreach (var item in ReOrg.TradeCompany.Split(Utility.SplitChar))
+            {
+                TargetTool.PutTitleTrainingItem(PreviewRoot, item);
+            }
+        }
+
+        var rank = Utility.FindTop(10, TargetTool.TrainingTitleResult);
+        Program.Training.WriteLine("交易对象");
+        foreach (var rec in rank)
+        {
+            Program.Training.WriteLine(rec.ToString());
+        }
+    }
+
     public static void GetTradeCompanyFromReplaceTable(int TraningCnt = int.MaxValue)
     {
         var TargetDict = new Dictionary<string, int>();

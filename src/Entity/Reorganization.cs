@@ -30,6 +30,16 @@ public class Reorganization : AnnouceDocument
             var Price = GetPrice(reorgRec);
             reorgRec.Price = MoneyUtility.Format(Price.MoneyAmount, String.Empty);
             reorgRec.EvaluateMethod = getEvaluateMethod(reorgRec);
+
+            //最后才能进行 多选配置！！！
+            foreach (var dict in ReplacementDict)
+            {
+                if (dict.Key.Equals(reorgRec.TargetCompany) || dict.Value.Equals(reorgRec.TargetCompany))
+                {
+                    reorgRec.TargetCompany = dict.Key + "|" + dict.Value;
+                }
+            }
+
             list.Add(reorgRec);
         }
         return list;

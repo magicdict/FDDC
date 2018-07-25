@@ -12,6 +12,10 @@ public class EvaluateItem
     /// 列表形式
     /// </summary>
     public bool IsList;
+    /// <summary>
+    /// 是否多选一
+    /// </summary>
+    public bool IsOptional;
 
     public int POS = 0;
     public int ACT = 0;
@@ -27,6 +31,11 @@ public class EvaluateItem
         ItemName = name;
     }
 
+    /// <summary>
+    /// F1用COR数据
+    /// </summary>
+    /// <param name="StardardValue"></param>
+    /// <param name="EvaluateValue"></param>
     public void PutCORData(string StardardValue, string EvaluateValue)
     {
         if (!String.IsNullOrEmpty(StardardValue))
@@ -35,10 +44,27 @@ public class EvaluateItem
             if (!String.IsNullOrEmpty(EvaluateValue))
             {
                 //存在标准值 存在测评值
-                if (StardardValue.Equals(EvaluateValue))
+                if (IsOptional)
                 {
-                    //COR:主键匹配 且 提交字段值=正确字段值 且 均不为空
-                    COR++;
+                    //多个可选项用 | 分开，只要一个正确即可
+                    var EvaluateValueList = EvaluateValue.Split("|");
+                    foreach (var ev in EvaluateValueList)
+                    {
+                        if (StardardValue.Equals(ev))
+                        {
+                            //COR:主键匹配 且 提交字段值=正确字段值 且 均不为空
+                            COR++;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    if (StardardValue.Equals(EvaluateValue))
+                    {
+                        //COR:主键匹配 且 提交字段值=正确字段值 且 均不为空
+                        COR++;
+                    }
                 }
             }
         }

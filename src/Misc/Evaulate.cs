@@ -115,6 +115,7 @@ public static class Evaluate
         var F1_ID = new EvaluateItem("公告ID");
         var F1_Target = new EvaluateItem("交易标的");
         var F1_TargetCompany = new EvaluateItem("标的公司");
+        F1_TargetCompany.IsOptional = true;
         var F1_TradeCompany = new EvaluateItem("交易对方");
         F1_TradeCompany.IsList = true;
         var F1_Price = new EvaluateItem("交易标的作价");
