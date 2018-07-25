@@ -35,7 +35,34 @@ public partial class Contract : AnnouceDocument
     /// <returns></returns>
     List<RecordBase> ExtractMulti()
     {
+        var Records = new List<RecordBase>();
+        Records = ExtractMultiFromTable();
+        if (Records.Count != 0) return Records;
+        Records = ExtractMultiFromNorthVehicle();
+        if (Records.Count != 0) return Records;
+        //三项订单
+        //中标通知书6份
+        //中标通知书四份
+        //履行进展情况
 
+        foreach (var p in root.Children)
+        {
+            foreach (var s in p.Children)
+            {
+                var scan = NumberUtility.ConvertUpperToLower(s.Content).Replace(" ", "");
+                var cnt = RegularTool.GetRegular(scan, "中标通知书\\d份");
+                if (cnt.Count == 1)
+                {
+                    Console.WriteLine(Id + ":" + cnt[0].RawData + "[" + scan + "]");
+                }
+            }
+        }
+
+        return Records;
+    }
+
+    List<RecordBase> ExtractMultiFromTable()
+    {
         var Records = new List<RecordBase>();
         var JiaFang = new TableSearchTitleRule();
         JiaFang.Name = "甲方";
@@ -98,14 +125,18 @@ public partial class Contract : AnnouceDocument
                 ContractRec.ContractMoneyDownLimit = ContractRec.ContractMoneyUpLimit;
                 Records.Add(ContractRec);
             }
-            return Records;
         }
+        return Records;
+    }
 
-        //主合同的抽取：
-        //#151135 ： 若干项重大合同
-        //#153045：  若干项重大合同
-        //#153271：若干项重大合同
+    List<RecordBase> ExtractMultiFromNorthVehicle()
+    {
+        //主合同的抽取：（北车专用）
+        //#151135： 若干项重大合同
+        //#153045： 若干项重大合同
+        //#153271： 若干项重大合同
         //#175840： 若干项重大合同
+        var Records = new List<RecordBase>();
         var isMulti = false;
         foreach (var p in root.Children)
         {
@@ -181,11 +212,9 @@ public partial class Contract : AnnouceDocument
                             Records.Add(ContractRec);
                         }
                     }
-
                 }
             }
         }
-
         return Records;
     }
 
@@ -220,6 +249,7 @@ public partial class Contract : AnnouceDocument
         contract.Id = Id;
         //甲方
         contract.JiaFang = GetJiaFang();
+        if (contract.JiaFang.Contains("本公司")) contract.JiaFang = string.Empty;
         contract.JiaFang = CompanyNameLogic.AfterProcessFullName(contract.JiaFang).secFullName;
         contract.JiaFang = contract.JiaFang.NormalizeTextResult();
         //机构列表
@@ -233,6 +263,7 @@ public partial class Contract : AnnouceDocument
         }
         //乙方
         contract.YiFang = GetYiFang();
+        if (contract.YiFang.Contains("本公司")) contract.YiFang = string.Empty;
         contract.YiFang = CompanyNameLogic.AfterProcessFullName(contract.YiFang).secFullName;
         contract.YiFang = contract.YiFang.NormalizeTextResult();
         //按照规定除去括号
@@ -294,6 +325,7 @@ public partial class Contract : AnnouceDocument
         contract.UnionMember = RegularTool.TrimBrackets(contract.UnionMember);
         return contract;
     }
+    
     /// <summary>
     /// 去除尾部的简称
     /// </summary>

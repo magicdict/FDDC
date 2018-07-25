@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FDDC;
+using static CompanyNameLogic;
 using static HTMLTable;
 
 public class Reorganization : AnnouceDocument
@@ -41,24 +42,16 @@ public class Reorganization : AnnouceDocument
     List<(string Target, string Comany)> getTargetListFromReplaceTable()
     {
 
-        var ReplaceCompany = new List<String>();
+        var ReplaceCompany = new List<struCompanyName>();
         foreach (var c in companynamelist)
         {
             if (c.positionId == -1)
             {
                 //释义表
-                if (!String.IsNullOrEmpty(c.secShortName)) ReplaceCompany.Add(c.secShortName);
+                ReplaceCompany.Add(c);
             }
         }
-
-        var TargetAndCompanyList = new List<(string Target, string Comany)>();
-        //股份的抽取
-        var targetRegular = new ExtractProperyBase.struRegularExpressFeature()
-        {
-            LeadingWordList = ReplaceCompany,
-            RegularExpress = RegularTool.PercentExpress,
-            TrailingWordList = new string[] { "的股权", "股权", "的权益", "权益" }.ToList()
-        };
+        ReplaceCompany = ReplaceCompany.Distinct().ToList();
         var ReplacementKeys = new string[]
         {
             "交易标的",        //09%	00303
@@ -73,9 +66,21 @@ public class Reorganization : AnnouceDocument
             "目标资产"         //02%	00067
         };
 
+        var ReplaceInKeys = new string[]{
+            "置入资产",
+            "置入股权",
+        };
+
+        var ReplaceOutKeys = new string[]{
+            "置出资产",
+            "置出股权",
+        };
+
+        var HasReplaceIn = false;
+        var HasReplaceOut = false;
+
         foreach (var Rplkey in ReplacementKeys)
         {
-            //可能性最大的排在最前
             foreach (var item in ReplacementDict)
             {
                 var keys = item.Key.Split(Utility.SplitChar);
@@ -94,20 +99,124 @@ public class Reorganization : AnnouceDocument
                 {
                     foreach (var value in values)
                     {
-                        var targetAndcompany = value.Trim();
+                        if (value.Contains("置出")) { HasReplaceOut = true; };
+                        if (value.Contains("置入")) { HasReplaceIn = true; };
+                    }
+                }
+            }
+        }
+        var ReplaceIn = ExtractFromExplainTable(ReplaceCompany, ReplaceInKeys);
+        var ReplaceOut = ExtractFromExplainTable(ReplaceCompany, ReplaceOutKeys);
+        var Target = ExtractFromExplainTable(ReplaceCompany, ReplacementKeys);
+        if (HasReplaceIn) Target.AddRange(ReplaceIn);
+        if (HasReplaceOut) Target.AddRange(ReplaceOut);
+        return Target.Distinct().ToList();
+    }
+
+    private List<(string Target, string Comany)> ExtractFromExplainTable(List<struCompanyName> ReplaceCompany, string[] ReplacementKeys)
+    {
+        var AllCompanyName = new List<String>();
+
+        foreach (var item in ReplaceCompany)
+        {
+            if (!String.IsNullOrEmpty(item.secShortName)) AllCompanyName.Add(item.secShortName);
+            if (!String.IsNullOrEmpty(item.secFullName)) AllCompanyName.Add(item.secFullName);
+        }
+
+        //股份的抽取
+        var targetRegular = new ExtractProperyBase.struRegularExpressFeature()
+        {
+            LeadingWordList = AllCompanyName,
+            RegularExpress = RegularTool.PercentExpress,
+            TrailingWordList = new string[] { "的股权", "股权", "的权益", "权益" }.ToList()
+        };
+
+
+        var OtherTargets = new string[] { "资产及负债" };
+
+        var TargetAndCompanyList = new List<(string Target, string Comany)>();
+        foreach (var Rplkey in ReplacementKeys)
+        {
+            //可能性最大的排在最前
+            foreach (var item in ReplacementDict)
+            {
+                var keys = item.Key.Split(Utility.SplitChar);
+                var keys2 = item.Key.Split("/");
+                if (keys.Length == 1 && keys2.Length > 1)
+                {
+                    keys = keys2;
+                }
+                var values = item.Value.Split(Utility.SplitChar);
+                var values2 = item.Value.Split("；");
+                if (values.Length == 1 && values2.Length > 1)
+                {
+                    values = values2;
+                }
+
+                //keys里面可能包括【拟】字需要去除
+                var SearchKey = keys.Select((x) => { return x.StartsWith("拟") ? x.Substring(1) : x; });
+
+                if (SearchKey.Contains(Rplkey))
+                {
+                    foreach (var value in values)
+                    {
+                        var targetAndcompany = value.Trim().Replace(" ", "");
                         //将公司名称和交易标的划分开来
-                        var ExpResult = ExtractPropertyByHTML.RegularExFinder(0, value, targetRegular, "|");
+                        var ExpResult = ExtractPropertyByHTML.RegularExFinder(0, targetAndcompany, targetRegular, "|");
                         if (ExpResult.Count == 0)
                         {
                             //其他类型的标的
                             foreach (var rc in ReplaceCompany)
                             {
-                                if (targetAndcompany.StartsWith(rc))
+                                var IsFullNameHit = false;
+                                if (!String.IsNullOrEmpty(rc.secFullName) && targetAndcompany.Contains(rc.secFullName))
                                 {
-                                    var extra = (value.Substring(rc.Length), rc);
-                                    if (!TargetAndCompanyList.Contains(extra)) TargetAndCompanyList.Add(extra);
+                                    foreach (var ot in OtherTargets)
+                                    {
+                                        if (targetAndcompany.Contains(ot))
+                                        {
+                                            IsFullNameHit = true;
+                                            TargetAndCompanyList.Add((rc.secFullName, ot));
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (!IsFullNameHit)
+                                {
+                                    if (!String.IsNullOrEmpty(rc.secShortName) && targetAndcompany.Contains(rc.secShortName))
+                                    {
+                                        foreach (var ot in OtherTargets)
+                                        {
+                                            if (targetAndcompany.Contains(ot))
+                                            {
+                                                IsFullNameHit = true;
+                                                TargetAndCompanyList.Add((rc.secShortName, ot));
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (TargetAndCompanyList.Count == 0 && !String.IsNullOrEmpty(rc.secFullName) && targetAndcompany.StartsWith(rc.secFullName))
+                                {
+                                    var extra = (value.Substring(rc.secFullName.Length), rc.secFullName);
+                                    if (!TargetAndCompanyList.Contains(extra))
+                                    {
+                                        TargetAndCompanyList.Add(extra);
+                                    }
                                     break;
                                 }
+                                if (TargetAndCompanyList.Count == 0 && !String.IsNullOrEmpty(rc.secShortName) && targetAndcompany.StartsWith(rc.secShortName))
+                                {
+                                    var extra = (value.Substring(rc.secShortName.Length), rc.secShortName);
+                                    if (!TargetAndCompanyList.Contains(extra))
+                                    {
+                                        TargetAndCompanyList.Add(extra);
+                                    }
+                                    break;
+                                }
+
                             }
                         }
                         else
@@ -116,7 +225,10 @@ public class Reorganization : AnnouceDocument
                             {
                                 var arr = r.Value.Split("|");
                                 var extra = (arr[1] + arr[2], arr[0]);
-                                if (!TargetAndCompanyList.Contains(extra)) TargetAndCompanyList.Add(extra);
+                                if (!TargetAndCompanyList.Contains(extra))
+                                {
+                                    TargetAndCompanyList.Add(extra);
+                                }
                             }
                         }
                     }
@@ -152,7 +264,7 @@ public class Reorganization : AnnouceDocument
                            .Select(x => x[0].RawData)
                            .Where(y => !y.Contains("不超过")).ToList();
 
-        var TragetCompany = new TableSearchTitleRule();                           
+        var TragetCompany = new TableSearchTitleRule();
         TragetCompany.Name = "标的公司";
         TragetCompany.Title = new string[] { "标的公司" }.ToList();
         TragetCompany.IsTitleEq = true;

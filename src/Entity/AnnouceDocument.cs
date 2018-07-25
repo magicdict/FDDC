@@ -298,6 +298,21 @@ public abstract class AnnouceDocument
                     }
                 }
             }
+
+            if (htmltable.ColumnCount == 4)
+            {
+                for (int RowNo = 1; RowNo <= htmltable.RowCount; RowNo++)
+                {
+                    if (htmltable.CellValue(RowNo, 3) == "指")
+                    {
+                        var key = htmltable.CellValue(RowNo, 2);
+                        var value = htmltable.CellValue(RowNo, 4);
+                        if (!ReplacementDict.ContainsKey(key)) ReplacementDict.Add(key, value);
+                        if (!ReplaceTableId.Contains(table.Key)) ReplaceTableId.Add(table.Key);
+                    }
+                }
+            }
+
         }
 
         if (ReplacementDict.Count == 0) return;
@@ -325,7 +340,10 @@ public abstract class AnnouceDocument
                     //一般来说简称是3-6个字的
                     foreach (var value in values)
                     {
-                        if (value.EndsWith("公司") || value.EndsWith("有限合伙") || value.EndsWith("Co.,Ltd."))
+                        var chineseName = Utility.TrimEnglish(value);
+                        chineseName = chineseName.Replace("（", "").Replace("）", "").Replace("(", "").Replace(")", "").Replace(" ", "");
+                        if (chineseName.EndsWith("公司") || chineseName.EndsWith("有限合伙") || chineseName.EndsWith("有限责任公司") ||
+                            value.EndsWith("Co.,Ltd.") || chineseName.EndsWith("厂") || chineseName.EndsWith("研究所"))
                         {
                             companynamelist.Add(new struCompanyName()
                             {

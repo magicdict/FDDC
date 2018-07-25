@@ -233,7 +233,7 @@ public static class LocateProperty
             foreach (var sentence in paragrah.Children)
             {
                 var OrgString = sentence.Content;
-                OrgString = MoneyUtility.ConvertUpperToLower(OrgString).Replace(" ", String.Empty);
+                OrgString = NumberUtility.ConvertUpperToLower(OrgString).Replace(" ", String.Empty);
                 var Money = MoneyUtility.SeekMoney(OrgString);
                 foreach (var money in Money)
                 {

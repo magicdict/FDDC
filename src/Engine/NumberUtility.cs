@@ -3,7 +3,47 @@ using System;
 public class NumberUtility
 {
 
-    //股数的处理
+    /// <summary>
+    /// 将大写数字转小写
+    /// </summary>
+    /// <param name="OrgString"></param>
+    /// <returns></returns>
+    public static string ConvertUpperToLower(string OrgString)
+    {
+        if (String.IsNullOrEmpty(OrgString)) return String.Empty;
+        OrgString = OrgString.Replace("〇", "0");
+        OrgString = OrgString.Replace("○", "0");    //本次HTML的特殊处理
+        OrgString = OrgString.Replace("一", "1");
+        OrgString = OrgString.Replace("二", "2");
+        OrgString = OrgString.Replace("三", "3");
+        OrgString = OrgString.Replace("四", "4");
+        OrgString = OrgString.Replace("五", "5");
+        OrgString = OrgString.Replace("六", "6");
+        OrgString = OrgString.Replace("七", "7");
+        OrgString = OrgString.Replace("八", "8");
+        OrgString = OrgString.Replace("九", "9");
+        OrgString = OrgString.Replace("十", "10");
+
+        OrgString = OrgString.Replace("０", "0");    //本次HTML的特殊处理
+        OrgString = OrgString.Replace("１", "1");
+        OrgString = OrgString.Replace("２", "2");
+        OrgString = OrgString.Replace("３", "3");
+        OrgString = OrgString.Replace("４", "4");
+        OrgString = OrgString.Replace("５", "5");
+        OrgString = OrgString.Replace("６", "6");
+        OrgString = OrgString.Replace("７", "7");
+        OrgString = OrgString.Replace("８", "8");
+        OrgString = OrgString.Replace("９", "9");
+
+        return OrgString;
+    }
+
+    /// <summary>
+    /// 股数的处理
+    /// </summary>
+    /// <param name="orgString"></param>
+    /// <param name="TitleWord"></param>
+    /// <returns></returns>
     public static string NormalizerStockNumber(string orgString, string TitleWord)
     {
         if (!String.IsNullOrEmpty(orgString))
