@@ -210,7 +210,16 @@ public class Reorganization : AnnouceDocument
                 {
                     foreach (var targetRecordItem in values)
                     {
-                        foreach (var SingleItem in Utility.CutByPOSConection(targetRecordItem))
+                        //DEBUG:
+                        var SingleItemList = Utility.CutByPOSConection(targetRecordItem);
+                        if (SingleItemList.Count == 2)
+                        {
+                            Console.WriteLine(Id + " 分割：");
+                            Console.WriteLine(Id + " 原词：" + targetRecordItem);
+                            Console.WriteLine(Id + " 分量1：" + SingleItemList[0]);
+                            Console.WriteLine(Id + " 分量2：" + SingleItemList[1]);
+                        }
+                        foreach (var SingleItem in SingleItemList)
                         {
                             var targetAndcompany = SingleItem.Trim().Replace(" ", "");
                             //将公司名称和交易标的划分开来
@@ -548,19 +557,29 @@ public class Reorganization : AnnouceDocument
     {
         TragetCompany.Name = "标的公司";
         TragetCompany.Title = new string[] { "标的公司", "标的资产","被投资单位名称","企业名称" ,
-        "拟购买资产","拟出售标的资产","序号","评估目的","预估标的","评估事由","交易标的"}.ToList();
+        "拟购买资产","拟出售标的资产","序号","评估目的","预估标的","评估事由","交易标的","被评估企业","股权名称","公司名称"}.ToList();
         TragetCompany.IsTitleEq = false;
         TragetCompany.IsRequire = true;
 
         EvaluateMethod.Name = "评估方法";
-        EvaluateMethod.Title = new string[] { "评估方法" }.ToList();
-        EvaluateMethod.IsTitleEq = false;
+        EvaluateMethod.Title = new string[] {
+            "预估方法","预估方式",
+            "评估方法","评估方式",
+            "定价方法","定价方式",
+            "预估结论方法","预估结论方式",
+            "预估值采用评估方法","预估值采用评估方式" }.ToList();
+        EvaluateMethod.IsTitleEq = false;   
         EvaluateMethod.IsRequire = true;
 
         var FinallyEvaluateMethod = new TableSearchTitleRule();
         FinallyEvaluateMethod.Name = "评估方法";
-        FinallyEvaluateMethod.Title = new string[] { "作为评估结论", "最终选取的评估方式", "最终评估结果使用方法" }.ToList();
-        FinallyEvaluateMethod.IsTitleEq = false;
+        FinallyEvaluateMethod.Title = new string[] {
+             "作为评估结论",
+             "选定评估方法","选定评估方式",
+             "最终选取的评估方法", "最终选取的评估方式",   //方式，方法
+             "最终使用的评估方法",  "最终使用的评估方式",
+             "最终评估结果使用方法", "最终评估结果使用方式" }.ToList();
+        FinallyEvaluateMethod.IsTitleEq = false;    
         FinallyEvaluateMethod.IsRequire = true;
 
         var Rules = new List<TableSearchTitleRule>();
