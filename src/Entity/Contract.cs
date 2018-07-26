@@ -21,7 +21,11 @@ public partial class Contract : AnnouceDocument
         }
         var ContractList = ExtractMulti();
         if (ContractList.Count != 0) return ContractList;
-        ContractList.Add(ExtractSingle());
+        var SingleItem = ExtractSingle();
+        if (!String.IsNullOrEmpty(SingleItem.JiaFang) || !String.IsNullOrEmpty(SingleItem.YiFang))
+        {
+            ContractList.Add(SingleItem);
+        }
         return ContractList;
     }
 
@@ -164,6 +168,10 @@ public partial class Contract : AnnouceDocument
         return Records;
     }
 
+    /// <summary>
+    /// 北车
+    /// </summary>
+    /// <returns></returns>
     List<RecordBase> ExtractMultiFromNorthVehicle()
     {
         //主合同的抽取：（北车专用）

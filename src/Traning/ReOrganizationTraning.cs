@@ -110,7 +110,7 @@ public class ReOrganizationTraning
                 PreviewId = ReOrg.Id;
                 Cnt++; if (Cnt == TraningCnt) break;
             }
-            foreach (var item in PreviewRoot.ReplacementDict)
+            foreach (var item in PreviewRoot.ExplainDict)
             {
                 var values = item.Value;
                 if (values.Contains(ReOrg.Target) && values.Contains(ReOrg.TargetCompany))

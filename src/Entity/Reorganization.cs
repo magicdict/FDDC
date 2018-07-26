@@ -33,7 +33,7 @@ public class Reorganization : AnnouceDocument
             reorgRec.EvaluateMethod = getEvaluateMethod(reorgRec);
 
             //最后才能进行 多选配置！！！
-            foreach (var dict in ReplacementDict)
+            foreach (var dict in ExplainDict)
             {
                 var keys = dict.Key.Split(Utility.SplitChar);
                 var keys2 = dict.Key.Split("/");
@@ -50,7 +50,13 @@ public class Reorganization : AnnouceDocument
                     if (key.Equals("本公司")) continue;
                     if (dict.Key.Equals(reorgRec.TargetCompany) || dict.Value.Equals(reorgRec.TargetCompany))
                     {
-                        reorgRec.TargetCompany = key + "|" + dict.Value;
+                        var tempKey = key;
+                        if (tempKey.Contains("，")) tempKey = Utility.GetStringBefore(tempKey, "，");
+
+                        var tempvalue = dict.Value;
+                        if (tempvalue.Contains("，")) tempvalue = Utility.GetStringBefore(tempvalue, "，");
+
+                        reorgRec.TargetCompany = tempKey + "|" + tempvalue;
                         isHit = true;
                         break;
                     }
@@ -60,12 +66,35 @@ public class Reorganization : AnnouceDocument
 
             list.Add(reorgRec);
         }
+
+        //需要在释义表中出现过的
+        if (PriceTable.Count != 0 && EvaluateTable.Count != 0 && PriceTable.Count == EvaluateTable.Count)
+        {
+            if (PriceTable.Count != list.Count)
+            {
+                Console.WriteLine(Id);
+                foreach (var item in EvaluateTable)
+                {
+                    Console.WriteLine("评估表：" + item[0].RawData.Replace(" ", "") + " Value:" + item[1].RawData);
+                }
+                foreach (var item in PriceTable)
+                {
+                    Console.WriteLine("价格表：" + item[0].RawData.Replace(" ", "") + " Value:" + item[1].RawData);
+                }
+
+                foreach (ReorganizationRec item in list)
+                {
+                    Console.WriteLine("抽出：" + item.TargetCompany + item.Target);
+                }
+
+            }
+        }
         return list;
     }
 
     public string GetAnOtherNameFromExplainTable(string CompanyName)
     {
-        foreach (var dict in ReplacementDict)
+        foreach (var dict in ExplainDict)
         {
             var keys = dict.Key.Split(Utility.SplitChar);
             var keys2 = dict.Key.Split("/");
@@ -118,17 +147,18 @@ public class Reorganization : AnnouceDocument
     List<(string Target, string Comany)> getTargetListFromReplaceTable()
     {
 
-        var ReplaceCompany = new List<struCompanyName>();
+        var CompanyAtExplainTable = new List<struCompanyName>();
         foreach (var c in companynamelist)
         {
             if (c.positionId == -1)
             {
                 //释义表
-                ReplaceCompany.Add(c);
+                CompanyAtExplainTable.Add(c);
             }
         }
-        ReplaceCompany = ReplaceCompany.Distinct().ToList();
-        var ReplacementKeys = new string[]
+        CompanyAtExplainTable = CompanyAtExplainTable.Distinct().ToList();
+
+        var ExplainKeys = new string[]
         {
             "交易标的",        //09%	00303
             "标的资产",        //15%	00464
@@ -142,12 +172,12 @@ public class Reorganization : AnnouceDocument
             "目标资产"         //02%	00067
         };
 
-        var ReplaceInKeys = new string[]{
+        var ExplainInKeys = new string[]{
             "置入资产",
             "置入股权",
         };
 
-        var ReplaceOutKeys = new string[]{
+        var ExplainOutKeys = new string[]{
             "置出资产",
             "置出股权",
         };
@@ -155,9 +185,9 @@ public class Reorganization : AnnouceDocument
         var HasReplaceIn = false;
         var HasReplaceOut = false;
 
-        foreach (var Rplkey in ReplacementKeys)
+        foreach (var Rplkey in ExplainKeys)
         {
-            foreach (var item in ReplacementDict)
+            foreach (var item in ExplainDict)
             {
                 var keys = item.Key.Split(Utility.SplitChar);
                 var keys2 = item.Key.Split("/");
@@ -182,9 +212,9 @@ public class Reorganization : AnnouceDocument
                 }
             }
         }
-        var ReplaceIn = ExtractFromExplainTable(ReplaceCompany, ReplaceInKeys);
-        var ReplaceOut = ExtractFromExplainTable(ReplaceCompany, ReplaceOutKeys);
-        var Target = ExtractFromExplainTable(ReplaceCompany, ReplacementKeys);
+        var ReplaceIn = ExtractFromExplainTable(CompanyAtExplainTable, ExplainInKeys);
+        var ReplaceOut = ExtractFromExplainTable(CompanyAtExplainTable, ExplainOutKeys);
+        var Target = ExtractFromExplainTable(CompanyAtExplainTable, ExplainKeys);
         if (HasReplaceIn) Target.AddRange(ReplaceIn);
         if (HasReplaceOut) Target.AddRange(ReplaceOut);
         return Target.Distinct().ToList();
@@ -215,7 +245,7 @@ public class Reorganization : AnnouceDocument
         foreach (var Rplkey in ReplacementKeys)
         {
             //可能性最大的排在最前
-            foreach (var item in ReplacementDict)
+            foreach (var item in ExplainDict)
             {
                 var keys = item.Key.Split(Utility.SplitChar);
                 var keys2 = item.Key.Split("/");
@@ -247,10 +277,10 @@ public class Reorganization : AnnouceDocument
                             //4.其他奇怪的问题
                             //5.资产和负债
                             //6.所拥有的，所持有的
-                            Console.WriteLine(Id + " 分割：");
-                            Console.WriteLine(Id + " 原词：" + targetRecordItem);
-                            Console.WriteLine(Id + " 分量1：" + SingleItemList[0]);
-                            Console.WriteLine(Id + " 分量2：" + SingleItemList[1]);
+                            //Console.WriteLine(Id + " 分割：");
+                            //Console.WriteLine(Id + " 原词：" + targetRecordItem);
+                            //Console.WriteLine(Id + " 分量1：" + SingleItemList[0]);
+                            //Console.WriteLine(Id + " 分量2：" + SingleItemList[1]);
                         }
                         foreach (var SingleItem in SingleItemList)
                         {
@@ -351,7 +381,7 @@ public class Reorganization : AnnouceDocument
         //注意：由于表格检索的问题，这里只将第一个表格的内容作为依据
         //交易对方是释义表的一个项目，这里被错误识别为表头
         //TODO:这里交易对方应该只选取文章前部的表格！！
-        var TableTrades = result.Where(z => !ReplaceTableId.Contains(z[0].TableId))
+        var TableTrades = result.Where(z => !ExplainTableId.Contains(z[0].TableId))
                            .Select(x => x[0].RawData)
                            .Where(y => !y.Contains("不超过")).ToList();
 
@@ -362,7 +392,7 @@ public class Reorganization : AnnouceDocument
 
         //释义表
         var ReplaceTrades = new List<String>();
-        foreach (var item in ReplacementDict)
+        foreach (var item in ExplainDict)
         {
             var keys = item.Key.Split(Utility.SplitChar);
             var keys2 = item.Key.Split("/");
@@ -501,7 +531,22 @@ public class Reorganization : AnnouceDocument
         var tablePrice = getPriceByTable(rec);
         if (!String.IsNullOrEmpty(tablePrice.MoneyAmount))
         {
-            tablePrice.MoneyAmount += "万元";
+            Double p;
+            if (Double.TryParse(tablePrice.MoneyAmount, out p))
+            {
+                if (p < 10)
+                {
+                    tablePrice.MoneyAmount += "亿元";
+                }
+                else
+                {
+                    tablePrice.MoneyAmount += "万元";
+                }
+            }
+            else
+            {
+                tablePrice.MoneyAmount += "万元";
+            }
             return tablePrice;
         }
         var targetLoc = LocateProperty.LocateCustomerWord(root, new string[] { rec.TargetCompany + rec.Target }.ToList());
@@ -541,6 +586,10 @@ public class Reorganization : AnnouceDocument
         return ("", "");
     }
 
+    List<CellInfo[]> PriceTable = new List<CellInfo[]>();
+
+    List<CellInfo[]> EvaluateTable = new List<CellInfo[]>();
+
     /// <summary>
     /// 作价
     /// </summary>
@@ -548,13 +597,14 @@ public class Reorganization : AnnouceDocument
     /// <returns></returns>
     (String MoneyAmount, String MoneyCurrency) getPriceByTable(ReorganizationRec rec)
     {
-
-
         var FinallyPrice = new TableSearchTitleRule();
         FinallyPrice.Name = "作价";
         FinallyPrice.Title = new string[] {
-             "标的资产作价","评估结果" }.ToList();
-        FinallyPrice.IsTitleEq = true;
+             "标的资产作价",
+             "评估结果",
+             "交易价格",
+             "预估值","预估作价" }.ToList();
+        FinallyPrice.IsTitleEq = false;
         FinallyPrice.IsRequire = true;
 
         var Rules = new List<TableSearchTitleRule>();
@@ -565,7 +615,8 @@ public class Reorganization : AnnouceDocument
         {
             if (item[0].RawData.Contains(rec.TargetCompany))
             {
-                Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
+                if (PriceTable.Count == 0) PriceTable = result;
+                //Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
                 return (item[1].RawData, string.Empty);
             }
             var AnOtherName = GetAnOtherNameFromExplainTable(rec.TargetCompany);
@@ -573,7 +624,8 @@ public class Reorganization : AnnouceDocument
             {
                 if (item[0].RawData.Contains(AnOtherName))
                 {
-                    Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
+                    if (PriceTable.Count == 0) PriceTable = result;
+                    //Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
                     return (item[1].RawData, string.Empty);
                 }
             }
@@ -582,8 +634,9 @@ public class Reorganization : AnnouceDocument
         var Price = new TableSearchTitleRule();
         Price.Name = "作价";
         Price.Title = new string[] {
-          "标的资产评估值" ,"标的资产初步作价"  }.ToList();
-        Price.IsTitleEq = true;
+            "标的资产评估值",
+            "标的资产初步作价" }.ToList();
+        Price.IsTitleEq = false;
         Price.IsRequire = true;
 
         Rules.Clear();
@@ -594,7 +647,8 @@ public class Reorganization : AnnouceDocument
         {
             if (item[0].RawData.Contains(rec.TargetCompany))
             {
-                Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
+                if (PriceTable.Count == 0) PriceTable = result;
+                //Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
                 return (item[1].RawData, string.Empty);
 
             }
@@ -603,7 +657,8 @@ public class Reorganization : AnnouceDocument
             {
                 if (item[0].RawData.Contains(AnOtherName))
                 {
-                    Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
+                    if (PriceTable.Count == 0) PriceTable = result;
+                    //Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
                     return (item[1].RawData, string.Empty);
                 }
             }
@@ -703,7 +758,8 @@ public class Reorganization : AnnouceDocument
         {
             if (item[0].RawData.Contains(rec.TargetCompany))
             {
-                Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
+                if (EvaluateTable.Count == 0) EvaluateTable = result;
+                //Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
                 return item[1].RawData;
             }
             var AnOtherName = GetAnOtherNameFromExplainTable(rec.TargetCompany);
@@ -711,7 +767,8 @@ public class Reorganization : AnnouceDocument
             {
                 if (item[0].RawData.Contains(AnOtherName))
                 {
-                    Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
+                    if (EvaluateTable.Count == 0) EvaluateTable = result;
+                    //Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
                     return item[1].RawData;
                 }
             }
@@ -725,7 +782,8 @@ public class Reorganization : AnnouceDocument
         {
             if (item[0].RawData.Contains(rec.TargetCompany))
             {
-                Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
+                if (EvaluateTable.Count == 0) EvaluateTable = result;
+                //Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
                 return item[1].RawData;
             }
             var AnOtherName = GetAnOtherNameFromExplainTable(rec.TargetCompany);
@@ -733,7 +791,8 @@ public class Reorganization : AnnouceDocument
             {
                 if (item[0].RawData.Contains(AnOtherName))
                 {
-                    Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
+                    if (EvaluateTable.Count == 0) EvaluateTable = result;
+                    //Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
                     return item[1].RawData;
                 }
             }

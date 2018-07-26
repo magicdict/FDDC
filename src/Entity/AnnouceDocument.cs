@@ -238,7 +238,7 @@ public abstract class AnnouceDocument
         //NULL的对应
         HTMLTable.FixNullValue(this);
         //指代表
-        GetReplaceTable();
+        GetExplainTable();
 
         //实体地图
         nermap = new NerMap();
@@ -251,7 +251,7 @@ public abstract class AnnouceDocument
     /// <summary>
     /// 释义表编号
     /// </summary>
-    public List<int> ReplaceTableId = new List<int>();
+    public List<int> ExplainTableId = new List<int>();
 
     /// <summary>
     /// 释义表的字典
@@ -259,12 +259,12 @@ public abstract class AnnouceDocument
     /// <typeparam name="String"></typeparam>
     /// <typeparam name="String"></typeparam>
     /// <returns></returns>
-    public Dictionary<String, String> ReplacementDict = new Dictionary<String, String>();
+    public Dictionary<String, String> ExplainDict = new Dictionary<String, String>();
     /// <summary>
     /// 公告中特殊的释义表
     /// </summary>
     /// <returns></returns>
-    public void GetReplaceTable()
+    public void GetExplainTable()
     {
         //释义表的抽取
         foreach (var table in root.TableList)
@@ -279,8 +279,8 @@ public abstract class AnnouceDocument
                     {
                         var key = htmltable.CellValue(RowNo, 1);
                         var value = htmltable.CellValue(RowNo, 2).Substring(1);
-                        if (!ReplacementDict.ContainsKey(key)) ReplacementDict.Add(key, value);
-                        if (!ReplaceTableId.Contains(table.Key)) ReplaceTableId.Add(table.Key);
+                        if (!ExplainDict.ContainsKey(key)) ExplainDict.Add(key, value);
+                        if (!ExplainTableId.Contains(table.Key)) ExplainTableId.Add(table.Key);
                     }
                 }
             }
@@ -293,8 +293,8 @@ public abstract class AnnouceDocument
                     {
                         var key = htmltable.CellValue(RowNo, 1);
                         var value = htmltable.CellValue(RowNo, 3);
-                        if (!ReplacementDict.ContainsKey(key)) ReplacementDict.Add(key, value);
-                        if (!ReplaceTableId.Contains(table.Key)) ReplaceTableId.Add(table.Key);
+                        if (!ExplainDict.ContainsKey(key)) ExplainDict.Add(key, value);
+                        if (!ExplainTableId.Contains(table.Key)) ExplainTableId.Add(table.Key);
                     }
                 }
             }
@@ -307,19 +307,19 @@ public abstract class AnnouceDocument
                     {
                         var key = htmltable.CellValue(RowNo, 2);
                         var value = htmltable.CellValue(RowNo, 4);
-                        if (!ReplacementDict.ContainsKey(key)) ReplacementDict.Add(key, value);
-                        if (!ReplaceTableId.Contains(table.Key)) ReplaceTableId.Add(table.Key);
+                        if (!ExplainDict.ContainsKey(key)) ExplainDict.Add(key, value);
+                        if (!ExplainTableId.Contains(table.Key)) ExplainTableId.Add(table.Key);
                     }
                 }
             }
 
         }
 
-        if (ReplacementDict.Count == 0) return;
+        if (ExplainDict.Count == 0) return;
 
         //寻找指释义表中表示公司简称和公司全称的项目，加入到Companylist中
         //注意，左边的主键，右边的值，都可能需要根据分隔符好切分
-        foreach (var item in ReplacementDict)
+        foreach (var item in ExplainDict)
         {
             var keys = item.Key.Split(Utility.SplitChar);
             var keys2 = item.Key.Split("/");
@@ -345,9 +345,12 @@ public abstract class AnnouceDocument
                         if (chineseName.EndsWith("公司") || chineseName.EndsWith("有限合伙") || chineseName.EndsWith("有限责任公司") ||
                             value.EndsWith("Co.,Ltd.") || chineseName.EndsWith("厂") || chineseName.EndsWith("研究所"))
                         {
+                            //公司的情况，需要去掉逗号之后的干扰
+                            var tempvalue = value;
+                            if (tempvalue.Contains("，")) tempvalue = Utility.GetStringBefore(tempvalue, "，");
                             companynamelist.Add(new struCompanyName()
                             {
-                                secFullName = value,
+                                secFullName = tempvalue,
                                 secShortName = key,
                                 positionId = -1 //表示从释义表格来的
                             });

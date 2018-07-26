@@ -128,6 +128,11 @@ public class CompanyNameLogic
                                 {
                                     IsSubCompany = true;
                                 }
+                                if (NRIdx > 2 && (words[NRIdx - 1].Word == "下属" || words[NRIdx - 2].Word == "下属"))
+                                {
+                                    IsSubCompany = true;
+                                }
+
                                 if (IsMarkClosed)
                                 {
                                     //皆大欢喜的局面
@@ -161,6 +166,10 @@ public class CompanyNameLogic
                             }
                             //子公司判断
                             if (FirstShortNameIdx != 0 && words[FirstShortNameIdx - 1].Word == "子公司")
+                            {
+                                IsSubCompany = true;
+                            }
+                            if (FirstShortNameIdx > 2 && (words[FirstShortNameIdx - 1].Word == "下属" || words[FirstShortNameIdx - 2].Word == "下属"))
                             {
                                 IsSubCompany = true;
                             }
