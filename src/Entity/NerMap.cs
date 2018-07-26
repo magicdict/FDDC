@@ -4,6 +4,9 @@ using System.Linq;
 using static LocateProperty;
 using static LTPTrainingNER;
 
+/// <summary>
+/// NER地图
+/// </summary>
 public class NerMap
 {
     /// <summary>
@@ -13,7 +16,10 @@ public class NerMap
     /// <typeparam name="ParagraghLoc">实体</typeparam>
     /// <returns></returns>
     public Dictionary<int, ParagraghLoc> ParagraghlocateDict = new Dictionary<int, ParagraghLoc>();
-
+    /// <summary>
+    /// 实体分析
+    /// </summary>
+    /// <param name="doc"></param>
     public void Anlayze(AnnouceDocument doc)
     {
         var nerlist = new List<LocAndValue<String>>();
@@ -28,11 +34,6 @@ public class NerMap
             var ns = doc.Nerlist.Where(x => x.Type == enmNerType.Ns).Select(y => y.RawData).Distinct();
             nerlist.AddRange(LocateCustomerWord(doc.root, ns.ToList(), "地名"));
 
-        }
-
-        if (doc is Contract)
-        {
-            //TODO:加入工程和公司的位置信息
         }
 
         foreach (var paragragh in doc.root.Children)

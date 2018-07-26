@@ -26,7 +26,7 @@ public static class Evaluate
         var F1_ContractMoneyUpLimit = new EvaluateItem("金额上限");
         var F1_ContractMoneyDownLimit = new EvaluateItem("金额下限");
         var F1_UnionMember = new EvaluateItem("联合体成员");
-
+        F1_UnionMember.IsList = true;
 
         foreach (var contract in TraningDataset.ContractList)
         {

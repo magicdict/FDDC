@@ -486,7 +486,7 @@ EntityProperty对象属性如下：
 
 ```csharp
     /// <summary>
-    /// 从指代表格中抽取
+    /// 从释义表中抽取
     /// </summary>
     /// <returns></returns>
     List<(string Target, string Comany)> getTargetListFromReplaceTable()
@@ -570,6 +570,39 @@ LocateProperty.LocateCustomerWord方法用来定位自定义的字符串列表
             }
             TargetLocMap[trloc.Loc].Add(trloc);
         }
+```
+
+NerMap是一个地图，标记这每个段落中的实体信息
+
+```csharp
+    public void Anlayze(AnnouceDocument doc)
+    {
+        var nerlist = new List<LocAndValue<String>>();
+        if (doc.Nerlist != null)
+        {
+            var nh = doc.Nerlist.Where(x => x.Type == enmNerType.Nh).Select(y => y.RawData).Distinct();
+            nerlist.AddRange(LocateCustomerWord(doc.root, nh.ToList(), "人名"));
+
+            var ni = doc.Nerlist.Where(x => x.Type == enmNerType.Ni).Select(y => y.RawData).Distinct();
+            nerlist.AddRange(LocateCustomerWord(doc.root, ni.ToList(), "机构"));
+
+            var ns = doc.Nerlist.Where(x => x.Type == enmNerType.Ns).Select(y => y.RawData).Distinct();
+            nerlist.AddRange(LocateCustomerWord(doc.root, ns.ToList(), "地名"));
+
+        }
+
+        foreach (var paragragh in doc.root.Children)
+        {
+            foreach (var s in paragragh.Children)
+            {
+                var p = LocateParagraphInfo(doc, s.PositionId, nerlist);
+                if (p.NerList.Count + p.moneylist.Count + p.datelist.Count != 0)
+                {
+                    if (!ParagraghlocateDict.ContainsKey(s.PositionId)) ParagraghlocateDict.Add(s.PositionId, p);
+                }
+            }
+        }
+    }
 ```
 
 ## 参考文献

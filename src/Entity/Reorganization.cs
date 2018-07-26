@@ -92,6 +92,11 @@ public class Reorganization : AnnouceDocument
         return list;
     }
 
+    /// <summary>
+    /// 获得别名
+    /// </summary>
+    /// <param name="CompanyName"></param>
+    /// <returns></returns>
     public string GetAnOtherNameFromExplainTable(string CompanyName)
     {
         foreach (var dict in ExplainDict)
@@ -121,7 +126,9 @@ public class Reorganization : AnnouceDocument
     TableSearchTitleRule TragetCompany = new TableSearchTitleRule();
     TableSearchTitleRule TradeCompany = new TableSearchTitleRule();
 
-
+    /// <summary>
+    /// 初始化表规则
+    /// </summary>
     void InitTableRules()
     {
         TragetCompany.Name = "标的公司";
@@ -220,11 +227,17 @@ public class Reorganization : AnnouceDocument
         return Target.Distinct().ToList();
     }
 
-    private List<(string Target, string Comany)> ExtractFromExplainTable(List<struCompanyName> ReplaceCompany, string[] ReplacementKeys)
+    /// <summary>
+    /// 从释义表抽取数据
+    /// </summary>
+    /// <param name="Target"></param>
+    /// <param name="Comany"></param>
+    /// <returns></returns>
+    private List<(string Target, string Comany)> ExtractFromExplainTable(List<struCompanyName> CompanyAtExplainTable, string[] ExplainKeys)
     {
         var AllCompanyName = new List<String>();
 
-        foreach (var item in ReplaceCompany)
+        foreach (var item in CompanyAtExplainTable)
         {
             if (!String.IsNullOrEmpty(item.secShortName)) AllCompanyName.Add(item.secShortName);
             if (!String.IsNullOrEmpty(item.secFullName)) AllCompanyName.Add(item.secFullName);
@@ -242,7 +255,7 @@ public class Reorganization : AnnouceDocument
         var OtherTargets = new string[] { "资产及负债", "直属资产" };
 
         var TargetAndCompanyList = new List<(string Target, string Comany)>();
-        foreach (var Rplkey in ReplacementKeys)
+        foreach (var Rplkey in ExplainKeys)
         {
             //可能性最大的排在最前
             foreach (var item in ExplainDict)
@@ -290,7 +303,7 @@ public class Reorganization : AnnouceDocument
                             if (ExpResult.Count == 0)
                             {
                                 //其他类型的标的
-                                foreach (var rc in ReplaceCompany)
+                                foreach (var rc in CompanyAtExplainTable)
                                 {
                                     var IsFullNameHit = false;
                                     if (!String.IsNullOrEmpty(rc.secFullName) && targetAndcompany.Contains(rc.secFullName))
