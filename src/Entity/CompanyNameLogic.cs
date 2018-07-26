@@ -232,7 +232,11 @@ public class CompanyNameLogic
         }
     }
 
-
+    /// <summary>
+    /// 从字典中寻找字典
+    /// </summary>
+    /// <param name="FullName"></param>
+    /// <returns></returns>
     public static struCompanyName GetCompanyNameByFullName(string FullName)
     {
         if (dictFullName.ContainsKey(FullName)) return dictFullName[FullName];
@@ -341,7 +345,12 @@ public class CompanyNameLogic
         return CandidateWords[0];
     }
 
-
+    /// <summary>
+    /// 公司名称的获得
+    /// </summary>
+    /// <param name="FullName"></param>
+    /// <param name="ShortName"></param>
+    /// <returns></returns>
     public static (String FullName, String ShortName) NormalizeCompanyName(AnnouceDocument doc, string word)
     {
         if (String.IsNullOrEmpty(word)) return (String.Empty, String.Empty);
@@ -374,10 +383,53 @@ public class CompanyNameLogic
             }
         }
 
-        if (shortname == String.Empty)
+        if (string.IsNullOrEmpty(shortname))
         {
+            //字典
             shortname = CompanyNameLogic.GetCompanyNameByFullName(fullname).secShortName;
         }
+
+        if (string.IsNullOrEmpty(shortname))
+        {
+            //在原文中寻找该字符名称，然后看一下，其后是否有【简称】字样，
+            //简称后是否有引号字样“XXXX”有的话，差不多就是了
+            shortname = GetShortNameByFullName(fullname, doc);
+            if (!string.IsNullOrEmpty(shortname)) Console.WriteLine(fullname + ":" + shortname);
+        }
+
         return (fullname, shortname);
     }
+
+    public static string GetShortNameByFullName(String FullName, AnnouceDocument doc)
+    {
+        if (FullName.Length <= 4) return string.Empty; //名称或者已经是简称的场合，退出
+        var quotationList = LocateProperty.LocateQuotation(doc.root, false);
+        var fullnamelist = LocateProperty.LocateCustomerWord(doc.root, new string[] { FullName }.ToList());
+        var jianchenglist = LocateProperty.LocateCustomerWord(doc.root, new string[] { "简称" }.ToList());
+
+        foreach (var fn in fullnamelist)
+        {
+            var ql = quotationList.Where((x) =>
+            {
+                return x.Loc == fn.Loc && x.Description == "引号" && x.StartIdx > fn.StartIdx;
+            });
+            foreach (var shrotmane in ql)
+            {
+                foreach (var jc in jianchenglist)
+                {
+                    if (jc.Loc == fn.Loc && jc.StartIdx > fn.StartIdx &&
+                        jc.StartIdx < shrotmane.StartIdx &&
+                        (shrotmane.StartIdx - jc.StartIdx) <= 4)
+                    {
+                        if (shrotmane.Value.Length < FullName.Length)
+                        {
+                            return shrotmane.Value;
+                        }
+                    }
+                }
+            }
+        }
+        return string.Empty;
+    }
+
 }

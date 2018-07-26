@@ -107,7 +107,7 @@ public partial class HTMLTable
                             if (Rules[checkItemIdx].IsTitleEq)
                             {
                                 //相等模式
-                                if (!EvaluateTitle.Equals(HeaderRow[ColIndex])) continue;
+                                if (!EvaluateTitle.Equals(HeaderRow[ColIndex].Replace(" ",""))) continue;
                                 if (Rules[checkItemIdx].ExcludeTitle != null)
                                 {
                                     var isOK = true;
@@ -125,7 +125,7 @@ public partial class HTMLTable
                             else
                             {
                                 //包含模式
-                                if (!HeaderRow[ColIndex].Contains(EvaluateTitle)) continue;
+                                if (!HeaderRow[ColIndex].Replace(" ","").Contains(EvaluateTitle)) continue;
                                 if (Rules[checkItemIdx].ExcludeTitle != null)
                                 {
                                     var isOK = true;
@@ -148,7 +148,7 @@ public partial class HTMLTable
                                 var IsFoundSuperTitle = false;
                                 for (int superRowNo = 1; superRowNo < TestRowHeader; superRowNo++)
                                 {
-                                    var value = table.CellValue(superRowNo, ColIndex + 1);
+                                    var value = table.CellValue(superRowNo, ColIndex + 1).Replace(" ","");
                                     if (Rules[checkItemIdx].IsSuperTitleEq)
                                     {
                                         //等于

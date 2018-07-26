@@ -59,7 +59,8 @@ public static class LocateProperty
                     {
                         Loc = sentence.PositionId,
                         Description = "书名号",
-                        Value = item.Value.Substring(1, item.Value.Length - 2)
+                        Value = item.Value.Substring(1, item.Value.Length - 2),
+                        StartIdx = item.Index
                     });
                 }
                 r = new Regex(@"\“.*?\”");
@@ -79,7 +80,8 @@ public static class LocateProperty
                     {
                         Loc = sentence.PositionId,
                         Description = "引号",
-                        Value = item.Value.Substring(1, item.Value.Length - 2)
+                        Value = item.Value.Substring(1, item.Value.Length - 2),
+                        StartIdx = item.Index
                     });
                 }
             }
@@ -267,15 +269,17 @@ public static class LocateProperty
                 var OrgString = sentence.Content;
                 foreach (var word in CustomerWord)
                 {
-                    if (OrgString.IndexOf(word) != -1)
+                    int ScanStartIdx = 0;
+                    while (OrgString.IndexOf(word,ScanStartIdx) != -1)
                     {
                         list.Add(new LocAndValue<String>()
                         {
                             Loc = sentence.PositionId,
                             Description = description,
                             Value = word,
-                            StartIdx = OrgString.IndexOf(word)
+                            StartIdx = OrgString.IndexOf(word,ScanStartIdx)
                         });
+                        ScanStartIdx = OrgString.IndexOf(word,ScanStartIdx) + word.Length;
                     }
                 }
             }

@@ -177,7 +177,7 @@ public class StockChange : AnnouceDocument
 
         var ChangePriceRule = new TableSearchTitleRule();
         ChangePriceRule.Name = "变动价格";
-        ChangePriceRule.Title = new string[] { "成交均价", "减持价格", "增持价格", "减持均", "增持均" }.ToList();
+        ChangePriceRule.Title = new string[] { "买入均价","卖出均价","成交均价", "减持价格", "增持价格", "减持股均价","增持股均价","减持均", "增持均", "价格区间" }.ToList();
         ChangePriceRule.IsTitleEq = false;
         ChangePriceRule.Normalize = (x, y) =>
         {
@@ -200,7 +200,7 @@ public class StockChange : AnnouceDocument
 
         var ChangeNumberRule = new TableSearchTitleRule();
         ChangeNumberRule.Name = "变动数量";
-        ChangeNumberRule.Title = new string[] { "成交数量", "减持股数", "增持股数", "减持数量", "增持数量", "买入股份数", "卖出股份数" }.ToList();
+        ChangeNumberRule.Title = new string[] { "成交数量", "减持股数", "增持股数", "减持数量", "增持数量", "买入股份数", "卖出股份数", "股数" }.ToList();
         ChangeNumberRule.IsTitleEq = false;
         ChangeNumberRule.Normalize = NumberUtility.NormalizerStockNumber;
 
@@ -608,7 +608,7 @@ public class StockChange : AnnouceDocument
         //最后要求结果不应该包含 增持，减持等字样
         var ForbitWords = new string[] { "增持", "减持" };
         var Extractor = new ExtractPropertyByHTML();
-        var StartArray = new string[] { "接到", "收到"};
+        var StartArray = new string[] { "接到", "收到" };
         var EndArray = new string[] { "通知", "告知函", "减持", "增持" };
         Extractor.StartEndFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
         Extractor.Extract(root);
@@ -629,8 +629,8 @@ public class StockChange : AnnouceDocument
             if (word.Value.Contains("实际控制人"))
             {
                 HolderName = Utility.GetStringAfter(word.Value, "实际控制人");
-                if (HolderName.Contains("先生")) HolderName = Utility.GetStringAfter(HolderName, "先生");
-                if (HolderName.Contains("女士")) HolderName = Utility.GetStringAfter(HolderName, "女士");
+                if (HolderName.Contains("先生")) HolderName = Utility.GetStringBefore(HolderName, "先生");
+                if (HolderName.Contains("女士")) HolderName = Utility.GetStringBefore(HolderName, "女士");
                 return (HolderName, string.Empty);
             }
             var FullName = CompanyNameLogic.AfterProcessFullName(word.Value);
