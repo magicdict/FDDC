@@ -63,16 +63,43 @@ public class Reorganization : AnnouceDocument
         return list;
     }
 
+    public string GetAnOtherNameFromExplainTable(string CompanyName)
+    {
+        foreach (var dict in ReplacementDict)
+        {
+            var keys = dict.Key.Split(Utility.SplitChar);
+            var keys2 = dict.Key.Split("/");
+            if (keys.Length == 1 && keys2.Length > 1)
+            {
+                keys = keys2;
+            }
+            foreach (var key in keys)
+            {
+                if (key.Contains("标的")) continue;
+                if (key.Contains("目标")) continue;
+                if (key.Equals("上市公司")) continue;
+                if (key.Equals("本公司")) continue;
+                if (dict.Key.Equals(CompanyName) || dict.Value.Equals(CompanyName))
+                {
+                    return key.Equals(CompanyName) ? dict.Value : key;
+                }
+            }
+        }
+        return string.Empty;
+    }
+
 
     TableSearchTitleRule TragetCompany = new TableSearchTitleRule();
-    TableSearchTitleRule EvaluateMethod = new TableSearchTitleRule();
     TableSearchTitleRule TradeCompany = new TableSearchTitleRule();
 
 
     void InitTableRules()
     {
         TragetCompany.Name = "标的公司";
-        TragetCompany.Title = new string[] { "标的公司" }.ToList();
+        TragetCompany.Title = new string[] {
+        "标的公司", "标的资产",     //26%	00115	标的资产 16%	00069	标的公司
+        "拟购买资产","拟出售标的资产",
+        "被投资单位名称" ,"评估目的","预估标的","评估事由","交易标的","被评估企业","股权名称","公司名称","企业名称","序号"}.ToList();
         TragetCompany.IsTitleEq = true;
         TragetCompany.IsRequire = true;
 
@@ -214,6 +241,12 @@ public class Reorganization : AnnouceDocument
                         var SingleItemList = Utility.CutByPOSConection(targetRecordItem);
                         if (SingleItemList.Count == 2)
                         {
+                            //1.家和股份  和的问题
+                            //2.空格问题
+                            //3.置入和置出问题
+                            //4.其他奇怪的问题
+                            //5.资产和负债
+                            //6.所拥有的，所持有的
                             Console.WriteLine(Id + " 分割：");
                             Console.WriteLine(Id + " 原词：" + targetRecordItem);
                             Console.WriteLine(Id + " 分量1：" + SingleItemList[0]);
@@ -464,6 +497,13 @@ public class Reorganization : AnnouceDocument
     /// <returns></returns>
     (String MoneyAmount, String MoneyCurrency) GetPrice(ReorganizationRec rec)
     {
+        //表格法优先
+        var tablePrice = getPriceByTable(rec);
+        if (!String.IsNullOrEmpty(tablePrice.MoneyAmount))
+        {
+            tablePrice.MoneyAmount += "万元";
+            return tablePrice;
+        }
         var targetLoc = LocateProperty.LocateCustomerWord(root, new string[] { rec.TargetCompany + rec.Target }.ToList());
         //按照段落为依据，进行分组
         var MoneyLocMap = new Dictionary<int, List<LocateProperty.LocAndValue<(String MoneyAmount, String MoneyCurrency)>>>();
@@ -500,6 +540,77 @@ public class Reorganization : AnnouceDocument
         }
         return ("", "");
     }
+
+    /// <summary>
+    /// 作价
+    /// </summary>
+    /// <param name="rec"></param>
+    /// <returns></returns>
+    (String MoneyAmount, String MoneyCurrency) getPriceByTable(ReorganizationRec rec)
+    {
+
+
+        var FinallyPrice = new TableSearchTitleRule();
+        FinallyPrice.Name = "作价";
+        FinallyPrice.Title = new string[] {
+             "标的资产作价","评估结果" }.ToList();
+        FinallyPrice.IsTitleEq = true;
+        FinallyPrice.IsRequire = true;
+
+        var Rules = new List<TableSearchTitleRule>();
+        Rules.Add(TragetCompany);
+        Rules.Add(FinallyPrice);
+        var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, false);
+        foreach (var item in result)
+        {
+            if (item[0].RawData.Contains(rec.TargetCompany))
+            {
+                Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
+                return (item[1].RawData, string.Empty);
+            }
+            var AnOtherName = GetAnOtherNameFromExplainTable(rec.TargetCompany);
+            if (!String.IsNullOrEmpty(AnOtherName))
+            {
+                if (item[0].RawData.Contains(AnOtherName))
+                {
+                    Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
+                    return (item[1].RawData, string.Empty);
+                }
+            }
+        }
+
+        var Price = new TableSearchTitleRule();
+        Price.Name = "作价";
+        Price.Title = new string[] {
+          "标的资产评估值" ,"标的资产初步作价"  }.ToList();
+        Price.IsTitleEq = true;
+        Price.IsRequire = true;
+
+        Rules.Clear();
+        Rules.Add(TragetCompany);
+        Rules.Add(Price);
+        result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, false);
+        foreach (var item in result)
+        {
+            if (item[0].RawData.Contains(rec.TargetCompany))
+            {
+                Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
+                return (item[1].RawData, string.Empty);
+
+            }
+            var AnOtherName = GetAnOtherNameFromExplainTable(rec.TargetCompany);
+            if (!String.IsNullOrEmpty(AnOtherName))
+            {
+                if (item[0].RawData.Contains(AnOtherName))
+                {
+                    Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
+                    return (item[1].RawData, string.Empty);
+                }
+            }
+        }
+        return (string.Empty, string.Empty);
+    }
+
     /// <summary>
     /// 评估方式
     /// </summary>
@@ -553,14 +664,16 @@ public class Reorganization : AnnouceDocument
         return string.Empty;
     }
 
+
+
+    /// <summary>
+    /// 评估方法
+    /// </summary>
+    /// <param name="rec"></param>
+    /// <returns></returns>
     string getEvaluateMethodByTable(ReorganizationRec rec)
     {
-        TragetCompany.Name = "标的公司";
-        TragetCompany.Title = new string[] { "标的公司", "标的资产","被投资单位名称","企业名称" ,
-        "拟购买资产","拟出售标的资产","序号","评估目的","预估标的","评估事由","交易标的","被评估企业","股权名称","公司名称"}.ToList();
-        TragetCompany.IsTitleEq = false;
-        TragetCompany.IsRequire = true;
-
+        var EvaluateMethod = new TableSearchTitleRule();
         EvaluateMethod.Name = "评估方法";
         EvaluateMethod.Title = new string[] {
             "预估方法","预估方式",
@@ -568,18 +681,18 @@ public class Reorganization : AnnouceDocument
             "定价方法","定价方式",
             "预估结论方法","预估结论方式",
             "预估值采用评估方法","预估值采用评估方式" }.ToList();
-        EvaluateMethod.IsTitleEq = false;   
+        EvaluateMethod.IsTitleEq = true;
         EvaluateMethod.IsRequire = true;
 
         var FinallyEvaluateMethod = new TableSearchTitleRule();
         FinallyEvaluateMethod.Name = "评估方法";
         FinallyEvaluateMethod.Title = new string[] {
-             "作为评估结论",
+             "作为评估结论","评估结论选取方法",
              "选定评估方法","选定评估方式",
              "最终选取的评估方法", "最终选取的评估方式",   //方式，方法
              "最终使用的评估方法",  "最终使用的评估方式",
              "最终评估结果使用方法", "最终评估结果使用方式" }.ToList();
-        FinallyEvaluateMethod.IsTitleEq = false;    
+        FinallyEvaluateMethod.IsTitleEq = true;
         FinallyEvaluateMethod.IsRequire = true;
 
         var Rules = new List<TableSearchTitleRule>();
@@ -593,6 +706,15 @@ public class Reorganization : AnnouceDocument
                 Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
                 return item[1].RawData;
             }
+            var AnOtherName = GetAnOtherNameFromExplainTable(rec.TargetCompany);
+            if (!String.IsNullOrEmpty(AnOtherName))
+            {
+                if (item[0].RawData.Contains(AnOtherName))
+                {
+                    Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
+                    return item[1].RawData;
+                }
+            }
         }
 
         Rules.Clear();
@@ -605,6 +727,15 @@ public class Reorganization : AnnouceDocument
             {
                 Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
                 return item[1].RawData;
+            }
+            var AnOtherName = GetAnOtherNameFromExplainTable(rec.TargetCompany);
+            if (!String.IsNullOrEmpty(AnOtherName))
+            {
+                if (item[0].RawData.Contains(AnOtherName))
+                {
+                    Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
+                    return item[1].RawData;
+                }
             }
         }
         return string.Empty;

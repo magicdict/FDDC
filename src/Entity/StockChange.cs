@@ -564,7 +564,7 @@ public class StockChange : AnnouceDocument
 
             StockHolderRule.SuperTitle = StockHolderRule.Title;
             StockHolderRule.IsSuperTitleEq = true;
-            StockHolderRule.Title = null;
+            StockHolderRule.Title.Clear();
             StockHolderRule.IsTitleEq = false;
 
             Rules = new List<TableSearchTitleRule>();
