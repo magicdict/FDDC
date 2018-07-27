@@ -24,7 +24,7 @@ namespace FDDC
         /// <summary>
         /// Windows
         /// </summary>
-        //public static String DocBase = @"E:" + Path.DirectorySeparatorChar + "WorkSpace2018" + Path.DirectorySeparatorChar + "FDDC2018";
+        public static String DocBase = @"E:" + Path.DirectorySeparatorChar + "WorkSpace2018" + Path.DirectorySeparatorChar + "FDDC2018";
         /// <summary>
         /// CentOS
         /// </summary>
@@ -32,7 +32,7 @@ namespace FDDC
         /// <summary>
         /// MAC
         /// </summary>
-        public static String DocBase = @"/Users/hu/Desktop/FDDC2018";
+        //public static String DocBase = @"/Users/hu/Desktop/FDDC2018";
 
         /// <summary>
         /// 这个模式下，有问题的数据会输出，正式比赛的时候设置为False，降低召回率！
@@ -41,7 +41,7 @@ namespace FDDC
         /// <summary>
         /// 多线程模式
         /// </summary>
-        public static bool IsMultiThreadMode = true;
+        public static bool IsMultiThreadMode = false;
 
 
         /// <summary>
@@ -49,8 +49,8 @@ namespace FDDC
         /// </summary>
         private static void QuickTestArea()
         {
-            var t = new StockChange();
-            t.Init(StockChangePath_TEST + "/html/15752069.html");
+            var t = new Contract();
+            t.Init(ContractPath_TRAIN + "/html/165122.html");
             var recs = t.Extract();
         }
 
@@ -114,14 +114,14 @@ namespace FDDC
         }
 
         //重大合同
-        public static bool IsRunContract = false;
-        public static bool IsRunContract_TEST = false;
+        public static bool IsRunContract = true;
+        public static bool IsRunContract_TEST = true;
         public static string ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
         public static string ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
 
         //增减持
-        public static bool IsRunStockChange = true;
-        public static bool IsRunStockChange_TEST = true;
+        public static bool IsRunStockChange = false;
+        public static bool IsRunStockChange_TEST = false;
         public static string StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
         public static string StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "增减持";
 
@@ -135,6 +135,7 @@ namespace FDDC
         {
             if (IsRunContract)
             {
+                IsMultiThreadMode = true;
                 //合同处理
                 Console.WriteLine("Start To Extract Info Contract TRAIN");
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong_train.txt", false, utf8WithoutBom);
@@ -144,6 +145,7 @@ namespace FDDC
             }
             if (IsRunContract_TEST)
             {
+                IsMultiThreadMode = false;
                 Console.WriteLine("Start To Extract Info Contract TEST");
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong.txt", false, utf8WithoutBom);
                 var Contract_Result = Run<Contract>(ContractPath_TEST, ResultCSV);
@@ -227,7 +229,7 @@ namespace FDDC
                     }
                 }
             }
-            Announce_Result.Sort((x, y) => { return int.Parse(x.Id).CompareTo(int.Parse(y.Id)); });
+            if (IsMultiThreadMode) Announce_Result.Sort((x, y) => { return int.Parse(x.Id).CompareTo(int.Parse(y.Id)); });
             ResultCSV.WriteLine(Announce_Result.First().CSVTitle());
             foreach (var item in Announce_Result)
             {

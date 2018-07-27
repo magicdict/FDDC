@@ -25,8 +25,6 @@ public class NerMap
         var nerlist = new List<LocAndValue<String>>();
         if (doc.Nerlist != null)
         {
-            var nh = doc.Nerlist.Where(x => x.Type == enmNerType.Nh).Select(y => y.RawData).Distinct();
-            nerlist.AddRange(LocateCustomerWord(doc.root, nh.ToList(), "人名"));
 
             var ni = doc.Nerlist.Where(x => x.Type == enmNerType.Ni).Select(y => y.RawData).Distinct();
             nerlist.AddRange(LocateCustomerWord(doc.root, ni.ToList(), "机构"));
@@ -34,6 +32,16 @@ public class NerMap
             var ns = doc.Nerlist.Where(x => x.Type == enmNerType.Ns).Select(y => y.RawData).Distinct();
             nerlist.AddRange(LocateCustomerWord(doc.root, ns.ToList(), "地名"));
 
+            var nh = doc.Nerlist.Where(x => x.Type == enmNerType.Nh).Select(y => y.RawData).Distinct();
+            nerlist.AddRange(LocateCustomerWord(doc.root, nh.ToList(), "人名"));
+        }
+
+        if (doc is Contract)
+        {
+            var FullNameList = doc.companynamelist.Select((x) => x.secFullName).ToList();
+            FullNameList = FullNameList.Where(x => !String.IsNullOrEmpty(x)).Distinct().ToList();
+            //补充公司名称
+            nerlist.AddRange(LocateCustomerWord(doc.root, FullNameList, "公司名"));
         }
 
         foreach (var paragragh in doc.root.Children)
@@ -73,7 +81,7 @@ public class NerMap
         {
             if (item.Loc == PosId) paragragh.NerList.Add(item);
         }
-
+        paragragh.NerList.Sort((x, y) => { return x.StartIdx.CompareTo(y.StartIdx); });
         return paragragh;
     }
 

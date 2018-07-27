@@ -135,7 +135,7 @@ public class Reorganization : AnnouceDocument
         TragetCompany.Title = new string[] {
         "标的公司", "标的资产",     //26%	00115	标的资产 16%	00069	标的公司
         "拟购买资产","拟出售标的资产",
-        "被投资单位名称" ,"评估目的","预估标的","评估事由","交易标的","被评估企业","股权名称","公司名称","企业名称","序号"}.ToList();
+        "被投资单位名称" ,"评估目的","预估标的","评估事由","交易标的","被评估企业","股权名称","公司名称","企业名称","项目","序号"}.ToList();
         TragetCompany.IsTitleEq = true;
         TragetCompany.IsRequire = true;
 
@@ -614,7 +614,7 @@ public class Reorganization : AnnouceDocument
         FinallyPrice.Name = "作价";
         FinallyPrice.Title = new string[] {
              "标的资产作价",
-             "评估结果",
+             "评估结果","评估价值",
              "交易价格",
              "预估值","预估作价" }.ToList();
         FinallyPrice.IsTitleEq = false;

@@ -271,7 +271,10 @@ public class CompanyNameLogic
                     if (ShortNameList.Count > 0)
                     {
                         ShortName = ShortNameList.First();
-                        if (!String.IsNullOrEmpty(ShortName)) ShortName = ShortName.Substring(1, ShortName.Length - 2);
+                        if (!String.IsNullOrEmpty(ShortName)) {
+                            ShortName = ShortName.Substring(1, ShortName.Length - 2);
+                            break;
+                        }
                     }
                 }
                 FullName = Utility.GetStringBefore(FullName, trailing);

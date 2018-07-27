@@ -63,6 +63,7 @@ public static class LocateProperty
                         StartIdx = item.Index
                     });
                 }
+
                 r = new Regex(@"\“.*?\”");
                 foreach (var item in r.Matches(OrgString).ToList())
                 {
@@ -84,6 +85,19 @@ public static class LocateProperty
                         StartIdx = item.Index
                     });
                 }
+
+                r = new Regex(@"\（.*?\）");
+                foreach (var item in r.Matches(OrgString).ToList())
+                {
+                    list.Add(new LocAndValue<String>()
+                    {
+                        Loc = sentence.PositionId,
+                        Description = "中文小括号",
+                        Value = item.Value.Substring(1, item.Value.Length - 2),
+                        StartIdx = item.Index
+                    });
+                }
+
             }
         }
         return list;

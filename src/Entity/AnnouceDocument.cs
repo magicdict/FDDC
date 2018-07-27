@@ -42,6 +42,9 @@ public abstract class AnnouceDocument
     /// </summary>
     public List<LocAndValue<String>> quotationList;
 
+
+
+
     /// <summary>
     /// NER列表(机构)
     /// </summary>
@@ -108,33 +111,7 @@ public abstract class AnnouceDocument
         {
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("识别实体：" + ner.RawData + ":" + ner.Type);
         }
-        if (Nerlist.Count != 0)
-        {
-            //最后一个机构名
-            AnnouceCompanyName = Nerlist.
-                                Where((n) => n.Type == enmNerType.Ni)
-                                .Select((m) => m.RawData).Last();
-            Nerlist = Nerlist.Distinct().ToList();
-        }
-        else
-        {
-            //从最后向前查找
-            for (int i = root.Children.Count - 1; i >= 0; i--)
-            {
-                for (int j = root.Children[i].Children.Count - 1; j >= 0; j--)
-                {
-                    var content = root.Children[i].Children[j].Content;
-                    content = content.Replace(" ", String.Empty);
-                    if (content.EndsWith("有限公司董事会"))
-                    {
-                        AnnouceCompanyName = content.Substring(0, content.Length - 3);
-                        break;
-                    }
-                }
-                if (!String.IsNullOrEmpty(AnnouceCompanyName)) break;
-            }
-        }
-
+        Nerlist = Nerlist.Distinct().ToList();
         XMLPath = fi.DirectoryName.Replace("html", "dp");
         Dplist = LTPTrainingDP.AnlayzeDP(XMLPath + Path.DirectorySeparatorChar + "" + XMLFileName);
         XMLPath = fi.DirectoryName.Replace("html", "srl");
@@ -159,6 +136,7 @@ public abstract class AnnouceDocument
             if (datelist.Count > 0) AnnouceDate = datelist.Last().Value;
         }
 
+        //引号和书名号
         quotationList = LocateProperty.LocateQuotation(root, true);
         foreach (var m in quotationList)
         {
@@ -166,6 +144,9 @@ public abstract class AnnouceDocument
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("括号内容：" + m.Value);
         }
 
+
+
+        //货币
         moneylist = LocateProperty.LocateMoney(root);
         foreach (var m in moneylist)
         {
@@ -174,9 +155,153 @@ public abstract class AnnouceDocument
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("货币：" + m.Value.MoneyCurrency);
         }
 
+        //实体地图
+        CompanyNameAnlayze();
+        nermap = new NerMap();
+        nermap.Anlayze(this);
+        //使用简称表
+        FillShortName();
+
+        if (root.TableList == null) return;
+        //表格的处理(表分页)
+        HTMLTable.FixSpiltTable(this);
+        //NULL的对应
+        HTMLTable.FixNullValue(this);
+        //指代表
+        GetExplainTable();
+
+        GetAnnouceCompanyName();
+
+    }
+
+    private void GetAnnouceCompanyName()
+    {
+        //江苏林洋电子股份有限公司
+        //董事会
+        //江苏林洋电子股份有限公司董事会
+        //从文本中获得
+        if (File.Exists(TextFileName))
+        {
+            var Lines = new List<string>();
+            var sr = new StreamReader(TextFileName);
+            while (!sr.EndOfStream)
+            {
+                var line = sr.ReadLine();
+                if (!String.IsNullOrEmpty(line))
+                {
+                    Lines.Add(line.Replace(" ", ""));
+                }
+            }
+            sr.Close();
+
+            for (int lineidx = Lines.Count - 1; lineidx >= 0; lineidx--)
+            {
+                var line = Lines[lineidx];
+                if (line.Contains("董事会"))
+                {
+                    if (line.Equals("董事会"))
+                    {
+                        //有些奇葩公司董事会后面是公司名称
+                        if ((lineidx + 1) != Lines.Count)
+                        {
+                            foreach (var cn in companynamelist)
+                            {
+                                if (Lines[lineidx + 1].Equals(cn.secFullName))
+                                {
+                                    AnnouceCompanyName = cn.secFullName;
+                                    return;
+                                }
+                            }
+                        }
+                        AnnouceCompanyName = Lines[lineidx - 1];
+                    }
+                    else
+                    {
+                        AnnouceCompanyName = Utility.GetStringBefore(line, "董事会");
+                    }
+                    return;
+                }
+            }
+        }
+
+
+
+        //从实体中寻找最后一个公司名称
+        foreach (var p in root.Children)
+        {
+            foreach (var s in p.Children)
+            {
+                if (!nermap.ParagraghlocateDict.ContainsKey(s.PositionId)) continue;
+                var nerlist = nermap.ParagraghlocateDict[s.PositionId].NerList;
+                foreach (var ner in nerlist)
+                {
+                    if (ner.Description == "公司名" || ner.Description == "机构")
+                    {
+                        AnnouceCompanyName = ner.Value;
+                    }
+                }
+            }
+        }
+
+    }
+
+    private void FillShortName()
+    {
+        foreach (var p in root.Children)
+        {
+            foreach (var s in p.Children)
+            {
+                if (!nermap.ParagraghlocateDict.ContainsKey(s.PositionId)) continue;
+                var nerlist = nermap.ParagraghlocateDict[s.PositionId].NerList;
+                for (int nerIdx = 0; nerIdx < nerlist.Count; nerIdx++)
+                {
+                    if (nerlist[nerIdx].Description == "中文小括号" && nerlist[nerIdx].Value.Contains("简称"))
+                    {
+                        if (nerIdx == 0) continue;
+                        var Preview = nerlist[nerIdx - 1];
+                        if (Preview.Description == "公司名" || Preview.Description == "机构")
+                        {
+                            var QL = RegularTool.GetChineseQuotation(nerlist[nerIdx].Value);
+                            foreach (var strQ in QL)
+                            {
+                                var Q = strQ.Substring(1, strQ.Length - 2);
+                                if (Q == "公司" || Q == "本公司" || Q == "招标人" || Q == "发包人") continue;
+                                var Clone = new List<struCompanyName>();
+                                //使用NER表对于残缺公司名称的修补：
+                                foreach (var item in companynamelist)
+                                {
+                                    Clone.Add(item);
+                                }
+                                foreach (var cn in Clone)
+                                {
+                                    if (!String.IsNullOrEmpty(cn.secFullName) && cn.secFullName.Equals(Preview.Value))
+                                    {
+                                        if (String.IsNullOrEmpty(cn.secShortName))
+                                        {
+                                            companynamelist.Add(new struCompanyName()
+                                            {
+                                                secFullName = cn.secFullName,
+                                                secShortName = Q
+                                            });
+                                            companynamelist.Remove(cn);
+
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void CompanyNameAnlayze()
+    {
         companynamelist = CompanyNameLogic.GetCompanyNameByCutWord(root);
 
         var Clone = new List<struCompanyName>();
+        //使用NER表对于残缺公司名称的修补：
         foreach (var item in companynamelist)
         {
             Clone.Add(item);
@@ -185,10 +310,10 @@ public abstract class AnnouceDocument
         {
             if (ner.Type == enmNerType.Ni)
             {
-                //对于公司名称的修补：
                 foreach (var cn in Clone)
                 {
-                    if (!ner.RawData.Equals(cn.secFullName) && ner.RawData.Contains(cn.secFullName))
+                    if (!ner.RawData.Equals(cn.secFullName) &&
+                         ner.RawData.Contains(cn.secFullName))
                     {
                         companynamelist.Add(new struCompanyName()
                         {
@@ -207,9 +332,10 @@ public abstract class AnnouceDocument
         {
             if (!string.IsNullOrEmpty(cn.secFullName) && string.IsNullOrEmpty(cn.secShortName))
             {
-                //是否存在引号里面的词语正好是公司全称
                 foreach (var item in quotationList)
                 {
+                    //是否存在引号里面的词语正好是公司全称的开始
+                    if (item.Description != "引号") continue;
                     if (cn.secFullName.StartsWith(item.Value))
                     {
                         var newComp = new struCompanyName()
@@ -223,7 +349,6 @@ public abstract class AnnouceDocument
                 }
             }
         }
-
         companynamelist.AddRange(newname);
 
         foreach (var cn in companynamelist)
@@ -231,19 +356,6 @@ public abstract class AnnouceDocument
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("公司名称：" + cn.secFullName);
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("公司简称：" + cn.secShortName);
         }
-
-        if (root.TableList == null) return;
-        //表格的处理(表分页)
-        HTMLTable.FixSpiltTable(this);
-        //NULL的对应
-        HTMLTable.FixNullValue(this);
-        //指代表
-        GetExplainTable();
-
-        //实体地图
-        nermap = new NerMap();
-        nermap.Anlayze(this);
-
     }
 
     public abstract List<RecordBase> Extract();

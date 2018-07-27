@@ -14,7 +14,11 @@ public class StockChange : AnnouceDocument
     public static Dictionary<String, String> PublishTime = new Dictionary<String, String>();
     public static void ImportPublishTime()
     {
-        if (!System.IO.Directory.Exists(Program.DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_public_time_20180629")) return;
+        if (!System.IO.Directory.Exists(Program.DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_public_time_20180629"))
+        {
+            Console.WriteLine("FDDC_announcements_round1_public_time_20180629 Not Exist");
+            return;
+        }
         foreach (var csvfilename in System.IO.Directory.GetFiles(Program.DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_public_time_20180629"))
         {
             if (csvfilename.EndsWith(".csv"))
@@ -177,7 +181,7 @@ public class StockChange : AnnouceDocument
 
         var ChangePriceRule = new TableSearchTitleRule();
         ChangePriceRule.Name = "变动价格";
-        ChangePriceRule.Title = new string[] { "买入均价","卖出均价","成交均价", "减持价格", "增持价格", "减持股均价","增持股均价","减持均", "增持均", "价格区间" }.ToList();
+        ChangePriceRule.Title = new string[] { "买入均价", "卖出均价", "成交均价", "减持价格", "增持价格", "减持股均价", "增持股均价", "减持均", "增持均", "价格区间" }.ToList();
         ChangePriceRule.IsTitleEq = false;
         ChangePriceRule.Normalize = (x, y) =>
         {
@@ -633,8 +637,12 @@ public class StockChange : AnnouceDocument
                 if (HolderName.Contains("女士")) HolderName = Utility.GetStringBefore(HolderName, "女士");
                 return (HolderName, string.Empty);
             }
-            var FullName = CompanyNameLogic.AfterProcessFullName(word.Value);
-            if (FullName.Score == 80) return (FullName.secFullName, FullName.secShortName);
+            var ClearWord = word.Value;
+            if (word.Value.Contains("发来的"))
+            {
+                ClearWord = Utility.GetStringBefore(ClearWord,"发来的");
+            }
+            var FullName = CompanyNameLogic.AfterProcessFullName(ClearWord);
             var name = CompanyNameLogic.NormalizeCompanyName(this, FullName.secFullName);
             if (!String.IsNullOrEmpty(name.FullName) && !String.IsNullOrEmpty(name.ShortName))
             {

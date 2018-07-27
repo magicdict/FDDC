@@ -71,7 +71,7 @@ public class EvaluateItem
     }
 
 
-    public void PutItemData(string StardardValue, string EvaluateValue)
+    public void PutItemData(string StardardValue, string EvaluateValue, String Id = "")
     {
         if (!String.IsNullOrEmpty(StardardValue))
         {
@@ -120,6 +120,7 @@ public class EvaluateItem
             else
             {
                 //存在标准值 不存在测评值
+                if (!String.IsNullOrEmpty(Id)) Program.Evaluator.WriteLine(ItemName + " " + Id + ":" + StardardValue);
                 NotPickCnt++;
             }
         }
