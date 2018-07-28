@@ -101,6 +101,11 @@ public class EvaluateItem
                     }
                     else
                     {
+                        if (!String.IsNullOrEmpty(Id))
+                        {
+                            Program.Evaluator.WriteLine(ItemName + " " + Id + ":【标准】" + StardardValue);
+                            Program.Evaluator.WriteLine(ItemName + " " + Id + ":【评估】" + EvaluateValue);
+                        }
                         WrongCnt++;
                     }
                 }
@@ -139,7 +144,7 @@ public class EvaluateItem
             {
                 if (!String.IsNullOrEmpty(Id))
                 {
-                    Program.Evaluator.WriteLine(ItemName + " " + Id + ":[错误检出]]]");
+                    Program.Evaluator.WriteLine(ItemName + " " + Id + ":[错误检出]");
                 }
                 MistakePickCnt++;
             }

@@ -50,7 +50,7 @@ namespace FDDC
         private static void QuickTestArea()
         {
             var t = new Contract();
-            t.Init(ContractPath_TRAIN + "/html/128162.html");
+            t.Init(ContractPath_TRAIN + "/html/36071.html");
             var recs = t.Extract();
         }
 

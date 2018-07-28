@@ -16,6 +16,10 @@ public class CompanyNameLogic
         public string secShortNameChg;
         //是否为子公司
         public bool isSubCompany;
+        /// <summary>
+        /// 母公司
+        /// </summary>
+        public string FatherName;
         //段落编号
         public int positionId;
         //词位置

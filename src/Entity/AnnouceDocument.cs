@@ -177,13 +177,31 @@ public abstract class AnnouceDocument
     private void FixSubCompany()
     {
         var loc = LocateCustomerWord(root, new string[] { "子公司" }.ToList());
-        foreach (var subcomploc in loc)
+        var FatherCompany = "";
+        foreach (var subcompMarkloc in loc)
         {
-            if (nermap.ParagraghlocateDict.ContainsKey(subcomploc.Loc))
+            if (nermap.ParagraghlocateDict.ContainsKey(subcompMarkloc.Loc))
             {
-                foreach (var ner in nermap.ParagraghlocateDict[subcomploc.Loc].NerList)
+                foreach (var ner in nermap.ParagraghlocateDict[subcompMarkloc.Loc].NerList)
                 {
-                    if ((ner.StartIdx - subcomploc.StartIdx) == 3)
+                    if (ner.StartIdx < subcompMarkloc.StartIdx)
+                    {
+                        var Words = "";
+                        foreach (var p in root.Children)
+                        {
+                            foreach (var s in p.Children)
+                            {
+                                if (s.PositionId == subcompMarkloc.Loc)
+                                {
+                                    Words = s.Content.Substring(ner.StartIdx + ner.Value.Length,
+                                                                subcompMarkloc.StartIdx - ner.StartIdx - ner.Value.Length);
+                                    Words = RegularTool.TrimChineseBrackets(Words);
+                                    if (Words.Length <= 5) FatherCompany = ner.Value;
+                                }
+                            }
+                        }
+                    }
+                    if (ner.Distance(subcompMarkloc) == 0)
                     {
                         if (ner.Value.EndsWith("有限公司"))
                         {
@@ -194,8 +212,33 @@ public abstract class AnnouceDocument
                                 companynamelist.Add(new struCompanyName()
                                 {
                                     secFullName = ner.Value,
-                                    isSubCompany = true
+                                    isSubCompany = true,
+                                    FatherName = FatherCompany
                                 });
+                            }
+                            else
+                            {
+                                var Clone = new List<struCompanyName>();
+                                //使用NER表对于残缺公司名称的修补：
+                                foreach (var item in companynamelist)
+                                {
+                                    Clone.Add(item);
+                                }
+                                foreach (var clone in Clone)
+                                {
+                                    if (!String.IsNullOrEmpty(clone.secFullName) &&
+                                       clone.secFullName.Equals(ner.Value))
+                                    {
+                                        companynamelist.Add(new struCompanyName()
+                                        {
+                                            isSubCompany = true,
+                                            secFullName = ner.Value,
+                                            secShortName = clone.secShortName,
+                                            FatherName = FatherCompany
+                                        });
+                                        companynamelist.Remove(clone);
+                                    }
+                                }
                             }
                             return;
                         }

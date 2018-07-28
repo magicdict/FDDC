@@ -618,7 +618,10 @@ public partial class Contract : AnnouceDocument
                 {
                     //检索出来的乙方是一个公司名字
                     foundCompanys.Add(comp.secFullName);
-                    if (!comp.secFullName.Equals(YiFang) && !comp.secFullName.Equals(JiaFang))
+                    //如果这里的A和B是父子关系，可能会出问题。
+                    //可以考虑追加一个Flag，是否检查父子关系
+                    var IsJiaYiFang = IsUnionEqualJiaYiFang(JiaFang, YiFang, comp.secFullName,false);
+                    if (!IsJiaYiFang)
                     {
                         Union.Add(comp.secFullName);
                     }
@@ -628,7 +631,11 @@ public partial class Contract : AnnouceDocument
             if (foundCompanys.Count > 1)
             {
                 //可能出现的关联交易的情报，所以，必须保证，这里出现多个公司名字
-                if (Union.Count != 0) return String.Join(Utility.SplitChar, Union);
+                if (Union.Count != 0)
+                {
+                    Union = Union.Distinct().ToList();
+                    return String.Join(Utility.SplitChar, Union);
+                }
             }
         }
 
@@ -646,15 +653,120 @@ public partial class Contract : AnnouceDocument
                     var union = item.Value.Replace("通知", "");
                     if (!Union.Contains(union))
                     {
-                        if (!union.Equals(YiFang) && !union.Equals(JiaFang))
+                        var IsJiaYiFang = IsUnionEqualJiaYiFang(JiaFang, YiFang, union);
+                        if (!IsJiaYiFang)
                         {
+                            //这里可能同时出现简称和全称，需要再过滤掉甲方和乙方的简称
                             Union.Add(union);
                         }
                     }
                 }
             }
         }
+        Union = Union.Distinct().ToList();
         return String.Join(Utility.SplitChar, Union);
     }
 
+    private bool IsUnionEqualJiaYiFang(string JiaFang, string YiFang, string union,bool isCheckSubCompany = true)
+    {
+        bool IsJiaYiFang = false;
+        foreach (var cn in companynamelist)
+        {
+            if (cn.isSubCompany && isCheckSubCompany)
+            {
+                if (union.Equals(cn.FatherName))
+                {
+                    IsJiaYiFang = true;
+                    break;
+                }
+            }
+
+            if (!String.IsNullOrEmpty(cn.secFullName))
+            {
+                if (!String.IsNullOrEmpty(JiaFang))
+                {
+                    if (cn.secFullName.Equals(JiaFang))
+                    {
+                        //当前的公司是全称，是甲方    
+                        if (union.Equals(JiaFang))
+                        {
+                            //如果联合体是甲方公司的全称
+                            IsJiaYiFang = true;
+                            break;
+                        }
+                        if (!String.IsNullOrEmpty(cn.secShortName))
+                        {
+                            if (union.Equals(cn.secShortName))
+                            {
+                                IsJiaYiFang = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (!String.IsNullOrEmpty(YiFang))
+                {
+                    if (cn.secFullName.Equals(YiFang))
+                    {
+                        if (union.Equals(YiFang))
+                        {
+                            IsJiaYiFang = true;
+                            break;
+                        }
+                        if (!String.IsNullOrEmpty(cn.secShortName))
+                        {
+                            if (union.Equals(cn.secShortName))
+                            {
+                                IsJiaYiFang = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!String.IsNullOrEmpty(cn.secShortName))
+            {
+                if (!String.IsNullOrEmpty(JiaFang))
+                {
+                    if (cn.secShortName.Equals(JiaFang))
+                    {
+                        if (union.Equals(JiaFang))
+                        {
+                            IsJiaYiFang = true;
+                            break;
+                        }
+                        if (!String.IsNullOrEmpty(cn.secFullName))
+                        {
+                            if (union.Equals(cn.secFullName))
+                            {
+                                IsJiaYiFang = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (!String.IsNullOrEmpty(YiFang))
+                {
+                    if (cn.secShortName.Equals(YiFang))
+                    {
+                        if (union.Equals(YiFang))
+                        {
+                            IsJiaYiFang = true;
+                            break;
+                        }
+                        if (!String.IsNullOrEmpty(cn.secFullName))
+                        {
+                            if (union.Equals(cn.secFullName))
+                            {
+                                IsJiaYiFang = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return IsJiaYiFang;
+    }
 }
