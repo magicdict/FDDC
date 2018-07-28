@@ -387,8 +387,6 @@ public partial class Contract : AnnouceDocument
         return OrgString;
     }
 
-
-
     /// <summary>
     /// 获得乙方
     /// </summary>
@@ -601,34 +599,56 @@ public partial class Contract : AnnouceDocument
         {
             return union.Value;
         }
-        var ExtractDP = new ExtractPropertyByDP();
-        var KeyList = new List<ExtractPropertyByDP.DPKeyWord>();
-        KeyList.Add(new ExtractPropertyByDP.DPKeyWord()
-        {
-            StartWord = new string[] { "与", },
-            StartDPValue = new string[] { LTPTrainingDP.核心关系, LTPTrainingDP.定中关系, LTPTrainingDP.并列关系 },
-            EndWord = new string[] { "联合体" },
-            EndDPValue = new string[] { }
-        });
-        ExtractDP.StartWithKey(KeyList, Dplist);
-        foreach (var union in ExtractDP.CandidateWord)
-        {
-            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("联合体候补词：[" + union + "]");
-            return union.Value;
-        }
-        var paragrahlist = ExtractPropertyByHTML.FindWordCnt("联合体", root);
+
         var Union = new List<String>();
-        foreach (var paragrahId in paragrahlist)
+
+        //中标人：A公司B公司，A公司已经是甲方的情况下，B公司则为联合体
+        Extractor.LeadingColonKeyWordList = new string[] {
+        "乙方：","供应商名称：","中标单位：",
+        "中标人：","中标单位：","中标人：","乙方（供方）：",
+        "承包人：","承包方：","中标方：","供应商名称：","中标人名称：" };
+        Extractor.ExtractFromTextFile(this.TextFileName);
+
+        foreach (var union in Extractor.CandidateWord)
         {
+            var foundCompanys = new List<string>();
             foreach (var comp in companynamelist)
             {
-                if (comp.positionId == paragrahId)
+                if (union.Value.Contains(comp.secFullName))
                 {
-                    if (!Union.Contains(comp.secFullName))
+                    //检索出来的乙方是一个公司名字
+                    foundCompanys.Add(comp.secFullName);
+                    if (!comp.secFullName.Equals(YiFang) && !comp.secFullName.Equals(JiaFang))
                     {
-                        if (!comp.secFullName.Equals(YiFang) && !comp.secFullName.Equals(JiaFang))
+                        Union.Add(comp.secFullName);
+                    }
+                }
+            }
+            foundCompanys = foundCompanys.Distinct().ToList();
+            if (foundCompanys.Count > 1)
+            {
+                //可能出现的关联交易的情报，所以，必须保证，这里出现多个公司名字
+                if (Union.Count != 0) return String.Join(Utility.SplitChar, Union);
+            }
+        }
+
+
+        var paragrahlist = ExtractPropertyByHTML.FindWordCnt("联合体", root);
+
+        foreach (var paragrahId in paragrahlist)
+        {
+            if (!nermap.ParagraghlocateDict.ContainsKey(paragrahId)) continue;
+            foreach (var item in nermap.ParagraghlocateDict[paragrahId].NerList)
+            {
+                if (item.Description == "公司名" || item.Description == "机构")
+                {
+                    //LTP修正
+                    var union = item.Value.Replace("通知", "");
+                    if (!Union.Contains(union))
+                    {
+                        if (!union.Equals(YiFang) && !union.Equals(JiaFang))
                         {
-                            Union.Add(comp.secFullName);
+                            Union.Add(union);
                         }
                     }
                 }

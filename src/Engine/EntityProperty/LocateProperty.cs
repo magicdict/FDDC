@@ -25,6 +25,35 @@ public static class LocateProperty
         /// 描述
         /// </summary>
         public string Description;
+
+        /// <summary>
+        /// 距离（别的词语在后面，则为正数）
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public int Distance(LocAndValue<T> other)
+        {
+            int mypos = Loc * 1000 + StartIdx;
+            int otherpos = other.Loc * 1000 + other.StartIdx;
+            if (Value is string)
+            {
+                //别的词语在后面，则为正数
+                if (other.StartIdx > this.StartIdx)
+                {
+                    //其他
+                    return otherpos - mypos - Value.ToString().Length;
+                }
+                else
+                {
+                    return otherpos + other.Value.ToString().Length - mypos;
+                }
+            }
+            else
+            {
+                //别的词语在后面，则为正数
+                return otherpos - mypos;
+            }
+        }
     }
 
     /// <summary>
@@ -272,8 +301,8 @@ public static class LocateProperty
     /// <param name="root"></param>
     /// <param name="CustomerWord"></param>
     /// <returns></returns>
-    public static List<LocAndValue<String>> LocateCustomerWord(HTMLEngine.MyRootHtmlNode root, 
-                                        List<String> CustomerWord,string description = "字符")
+    public static List<LocAndValue<String>> LocateCustomerWord(HTMLEngine.MyRootHtmlNode root,
+                                        List<String> CustomerWord, string description = "字符")
     {
         var list = new List<LocAndValue<String>>();
         foreach (var paragrah in root.Children)
@@ -284,16 +313,16 @@ public static class LocateProperty
                 foreach (var word in CustomerWord)
                 {
                     int ScanStartIdx = 0;
-                    while (OrgString.IndexOf(word,ScanStartIdx) != -1)
+                    while (OrgString.IndexOf(word, ScanStartIdx) != -1)
                     {
                         list.Add(new LocAndValue<String>()
                         {
                             Loc = sentence.PositionId,
                             Description = description,
                             Value = word,
-                            StartIdx = OrgString.IndexOf(word,ScanStartIdx)
+                            StartIdx = OrgString.IndexOf(word, ScanStartIdx)
                         });
-                        ScanStartIdx = OrgString.IndexOf(word,ScanStartIdx) + word.Length;
+                        ScanStartIdx = OrgString.IndexOf(word, ScanStartIdx) + word.Length;
                     }
                 }
             }

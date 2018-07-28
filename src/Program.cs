@@ -24,7 +24,7 @@ namespace FDDC
         /// <summary>
         /// Windows
         /// </summary>
-        public static String DocBase = @"E:" + Path.DirectorySeparatorChar + "WorkSpace2018" + Path.DirectorySeparatorChar + "FDDC2018";
+        //public static String DocBase = @"E:" + Path.DirectorySeparatorChar + "WorkSpace2018" + Path.DirectorySeparatorChar + "FDDC2018";
         /// <summary>
         /// CentOS
         /// </summary>
@@ -32,7 +32,7 @@ namespace FDDC
         /// <summary>
         /// MAC
         /// </summary>
-        //public static String DocBase = @"/Users/hu/Desktop/FDDC2018";
+        public static String DocBase = @"/Users/hu/Desktop/FDDC2018";
 
         /// <summary>
         /// 这个模式下，有问题的数据会输出，正式比赛的时候设置为False，降低召回率！
@@ -41,7 +41,7 @@ namespace FDDC
         /// <summary>
         /// 多线程模式
         /// </summary>
-        public static bool IsMultiThreadMode = false;
+        public static bool IsMultiThreadMode = true;
 
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace FDDC
         private static void QuickTestArea()
         {
             var t = new Contract();
-            t.Init(ContractPath_TRAIN + "/html/165122.html");
+            t.Init(ContractPath_TRAIN + "/html/128162.html");
             var recs = t.Extract();
         }
 
@@ -69,7 +69,7 @@ namespace FDDC
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             CIRecord = new StreamWriter("CI.log");
-            //QuickTestArea(); return;
+            QuickTestArea(); return;
             //PDFToTXT.GetPdf2TxtBatchFile();
             //公司全称简称曾用名字典   
             CompanyNameLogic.LoadCompanyName("Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
@@ -135,7 +135,7 @@ namespace FDDC
         {
             if (IsRunContract)
             {
-                IsMultiThreadMode = true;
+                //IsMultiThreadMode = true;
                 //合同处理
                 Console.WriteLine("Start To Extract Info Contract TRAIN");
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong_train.txt", false, utf8WithoutBom);
@@ -145,7 +145,7 @@ namespace FDDC
             }
             if (IsRunContract_TEST)
             {
-                IsMultiThreadMode = false;
+                //IsMultiThreadMode = false;
                 Console.WriteLine("Start To Extract Info Contract TEST");
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong.txt", false, utf8WithoutBom);
                 var Contract_Result = Run<Contract>(ContractPath_TEST, ResultCSV);

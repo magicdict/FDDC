@@ -144,8 +144,6 @@ public abstract class AnnouceDocument
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("括号内容：" + m.Value);
         }
 
-
-
         //货币
         moneylist = LocateProperty.LocateMoney(root);
         foreach (var m in moneylist)
@@ -169,9 +167,42 @@ public abstract class AnnouceDocument
         HTMLTable.FixNullValue(this);
         //指代表
         GetExplainTable();
-
+        //公告公司
         GetAnnouceCompanyName();
+        //使用NER表，修正子公司，
+        //本公司所属子公司中铁六局集团有限公司
+        FixSubCompany();
+    }
 
+    private void FixSubCompany()
+    {
+        var loc = LocateCustomerWord(root, new string[] { "子公司" }.ToList());
+        foreach (var subcomploc in loc)
+        {
+            if (nermap.ParagraghlocateDict.ContainsKey(subcomploc.Loc))
+            {
+                foreach (var ner in nermap.ParagraghlocateDict[subcomploc.Loc].NerList)
+                {
+                    if ((ner.StartIdx - subcomploc.StartIdx) == 3)
+                    {
+                        if (ner.Value.EndsWith("有限公司"))
+                        {
+                            //如果公司表没有这个公司，则追加
+                            var m = companynamelist.Where(x => x.secFullName == ner.Value).ToList();
+                            if (m.Count == 0)
+                            {
+                                companynamelist.Add(new struCompanyName()
+                                {
+                                    secFullName = ner.Value,
+                                    isSubCompany = true
+                                });
+                            }
+                            return;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void GetAnnouceCompanyName()
@@ -197,6 +228,11 @@ public abstract class AnnouceDocument
             for (int lineidx = Lines.Count - 1; lineidx >= 0; lineidx--)
             {
                 var line = Lines[lineidx];
+                if (line.EndsWith("有限公司"))
+                {
+                    AnnouceCompanyName = line;
+                    break;
+                }
                 if (line.Contains("董事会"))
                 {
                     if (line.Equals("董事会"))

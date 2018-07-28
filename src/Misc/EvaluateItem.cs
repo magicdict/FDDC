@@ -113,6 +113,11 @@ public class EvaluateItem
                     }
                     else
                     {
+                        if (!String.IsNullOrEmpty(Id))
+                        {
+                            Program.Evaluator.WriteLine(ItemName + " " + Id + ":【标准】" + StardardValue);
+                            Program.Evaluator.WriteLine(ItemName + " " + Id + ":【评估】" + EvaluateValue);
+                        }
                         WrongCnt++;
                     }
                 }
@@ -120,7 +125,10 @@ public class EvaluateItem
             else
             {
                 //存在标准值 不存在测评值
-                if (!String.IsNullOrEmpty(Id)) Program.Evaluator.WriteLine(ItemName + " " + Id + ":" + StardardValue);
+                if (!String.IsNullOrEmpty(Id))
+                {
+                    Program.Evaluator.WriteLine(ItemName + " " + Id + ":【未检出】" + StardardValue);
+                }
                 NotPickCnt++;
             }
         }
@@ -129,6 +137,10 @@ public class EvaluateItem
             //不存在标准值
             if (!String.IsNullOrEmpty(EvaluateValue))
             {
+                if (!String.IsNullOrEmpty(Id))
+                {
+                    Program.Evaluator.WriteLine(ItemName + " " + Id + ":[错误检出]]]");
+                }
                 MistakePickCnt++;
             }
         }
