@@ -36,7 +36,6 @@ public class NerMap
             nerlist.AddRange(LocateCustomerWord(doc.root, nh.ToList(), "人名"));
         }
 
-        if (doc is Contract)
         {
             var FullNameList = doc.companynamelist.Select((x) => x.secFullName).ToList();
             FullNameList = FullNameList.Where(x => !String.IsNullOrEmpty(x)).Distinct().ToList();

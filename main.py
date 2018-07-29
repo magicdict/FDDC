@@ -62,5 +62,7 @@ def pdfTotxt(fileDir):
             print("Exception:", e)
 
 pdfTotxt(u'/home/118_4/FDDC_announcements_round1_test_b_20180708/重大合同/')
+pdfTotxt(u'/home/118_4/FDDC_announcements_round1_test_b_20180708/增减持/')
+pdfTotxt(u'/home/118_4/FDDC_announcements_round1_train_20180518/增减持/')
 os.chdir("/home/118_4/FDDC_SRC")
 os.system("dotnet run")

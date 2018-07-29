@@ -64,8 +64,15 @@ public class CompanyNameLogic
                        )
                     {
                         //是否能够在后面找到简称
-                        for (int JCIdx = baseInd; JCIdx < words.Count; JCIdx++)
+                        for (int JCIdx = baseInd + 1; JCIdx < words.Count; JCIdx++)
                         {
+                            //注意，这个简称还必须在下一个出现公司之前才可以！
+                            if (
+                                words[JCIdx].Word == "有限公司" ||
+                                (words[JCIdx].Word == "公司" && JCIdx != 0 && words[JCIdx - 1].Word == "有限责任") ||
+                                (words[JCIdx].Word == "公司" && JCIdx != 0 && words[JCIdx - 1].Word == "承包") ||
+                                (words[JCIdx].Word == "有限" && JCIdx != words.Count - 1 && words[JCIdx + 1].Word == "合伙")
+                            ) { break; }
                             //简称关键字
                             if (words[JCIdx].Word.Equals("简称") || words[JCIdx].Word.Equals("称"))
                             {
@@ -147,9 +154,10 @@ public class CompanyNameLogic
                             }
                             if (words[NRIdx].Flag == LTPTrainingNER.词性标点)
                             {
-                                if (words[NRIdx].Word != "（" && words[NRIdx].Word != "）") break;
-                                if (words[NRIdx].Word == "）") IsMarkClosed = false;    //打开
-                                if (words[NRIdx].Word == "（") IsMarkClosed = true;     //关闭
+                                if (words[NRIdx].Word != "（" && words[NRIdx].Word != "）" &&
+                                   words[NRIdx].Word != "(" && words[NRIdx].Word != ")") break;
+                                if (words[NRIdx].Word == "）" || words[NRIdx].Word == ")") IsMarkClosed = false;    //打开
+                                if (words[NRIdx].Word == "（" || words[NRIdx].Word == "(") IsMarkClosed = true;     //关闭
                             }
                         }
 
@@ -162,7 +170,9 @@ public class CompanyNameLogic
                             {
                                 FullName += words[NRIdx].Word;
                             }
-                            //(有限合伙)
+
+
+                            //有限合伙
                             if (words[baseInd].Word == "有限")
                             {
                                 FullName += words[baseInd + 1].Word;
@@ -275,7 +285,8 @@ public class CompanyNameLogic
                     if (ShortNameList.Count > 0)
                     {
                         ShortName = ShortNameList.First();
-                        if (!String.IsNullOrEmpty(ShortName)) {
+                        if (!String.IsNullOrEmpty(ShortName))
+                        {
                             ShortName = ShortName.Substring(1, ShortName.Length - 2);
                             break;
                         }

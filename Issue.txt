@@ -3,6 +3,14 @@
 奇诡表头。测试：6416043
 非公司简称 测试：15752069，18839861
 
+表问题：558702
+HTML:15597970
+
+                        (baseInd + 4 <= words.Count &&
+                         (words[baseInd].Word + words[baseInd + 1].Word +
+                          words[baseInd + 2].Word + words[baseInd + 3].Word).Equals("(有限合伙)"))
+
+
 2.重大合同
 
 金额 #35975 36017  39498

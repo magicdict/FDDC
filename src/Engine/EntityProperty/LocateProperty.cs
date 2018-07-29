@@ -309,7 +309,7 @@ public static class LocateProperty
         {
             foreach (var sentence in paragrah.Children)
             {
-                var OrgString = sentence.Content;
+                var OrgString = sentence.Content.Replace(" ","");
                 foreach (var word in CustomerWord)
                 {
                     int ScanStartIdx = 0;

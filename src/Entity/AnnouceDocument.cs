@@ -193,6 +193,8 @@ public abstract class AnnouceDocument
                             {
                                 if (s.PositionId == subcompMarkloc.Loc)
                                 {
+                                    var length = subcompMarkloc.StartIdx - ner.StartIdx - ner.Value.Length;
+                                    if (length <= 0) continue;
                                     Words = s.Content.Substring(ner.StartIdx + ner.Value.Length,
                                                                 subcompMarkloc.StartIdx - ner.StartIdx - ner.Value.Length);
                                     Words = RegularTool.TrimChineseBrackets(Words);
@@ -347,6 +349,15 @@ public abstract class AnnouceDocument
                                 if (Q == "公司" || Q == "本公司" || Q == "招标人" || Q == "发包人") continue;
                                 var Clone = new List<struCompanyName>();
                                 //使用NER表对于残缺公司名称的修补：
+                                if (!companynamelist.Select(x => x.secFullName).Contains(Preview.Value))
+                                {
+                                    companynamelist.Add(
+                                        new struCompanyName()
+                                        {
+                                            secFullName = Preview.Value
+                                        }
+                                    );
+                                }
                                 foreach (var item in companynamelist)
                                 {
                                     Clone.Add(item);
@@ -363,7 +374,6 @@ public abstract class AnnouceDocument
                                                 secShortName = Q
                                             });
                                             companynamelist.Remove(cn);
-
                                         }
                                     }
                                 }

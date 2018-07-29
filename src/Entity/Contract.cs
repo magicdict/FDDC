@@ -620,7 +620,7 @@ public partial class Contract : AnnouceDocument
                     foundCompanys.Add(comp.secFullName);
                     //如果这里的A和B是父子关系，可能会出问题。
                     //可以考虑追加一个Flag，是否检查父子关系
-                    var IsJiaYiFang = IsUnionEqualJiaYiFang(JiaFang, YiFang, comp.secFullName,false);
+                    var IsJiaYiFang = IsUnionEqualJiaYiFang(JiaFang, YiFang, comp.secFullName, false);
                     if (!IsJiaYiFang)
                     {
                         Union.Add(comp.secFullName);
@@ -640,12 +640,11 @@ public partial class Contract : AnnouceDocument
         }
 
 
-        var paragrahlist = ExtractPropertyByHTML.FindWordCnt("联合体", root);
-
-        foreach (var paragrahId in paragrahlist)
+        var UnionKeyList = LocateCustomerWord(root, new string[] { "联合体" }.ToList());
+        foreach (var UnionKey in UnionKeyList)
         {
-            if (!nermap.ParagraghlocateDict.ContainsKey(paragrahId)) continue;
-            foreach (var item in nermap.ParagraghlocateDict[paragrahId].NerList)
+            if (!nermap.ParagraghlocateDict.ContainsKey(UnionKey.Loc)) continue;
+            foreach (var item in nermap.ParagraghlocateDict[UnionKey.Loc].NerList)
             {
                 if (item.Description == "公司名" || item.Description == "机构")
                 {
@@ -656,6 +655,8 @@ public partial class Contract : AnnouceDocument
                         var IsJiaYiFang = IsUnionEqualJiaYiFang(JiaFang, YiFang, union);
                         if (!IsJiaYiFang)
                         {
+                            //联合体一般在公司名之前
+                            if (Union.Count > 0 && item.StartIdx > UnionKey.StartIdx) continue;
                             //这里可能同时出现简称和全称，需要再过滤掉甲方和乙方的简称
                             Union.Add(union);
                         }
@@ -667,9 +668,21 @@ public partial class Contract : AnnouceDocument
         return String.Join(Utility.SplitChar, Union);
     }
 
-    private bool IsUnionEqualJiaYiFang(string JiaFang, string YiFang, string union,bool isCheckSubCompany = true)
+    private bool IsUnionEqualJiaYiFang(string JiaFang, string YiFang, string union, bool isCheckSubCompany = true)
     {
         bool IsJiaYiFang = false;
+        //乙方的去括号问题
+        if (!String.IsNullOrEmpty(YiFang) && RegularTool.TrimBrackets(union.NormalizeTextResult()).Equals(YiFang))
+        {
+            return true;
+        }
+        foreach (var cn in companynamelist)
+        {
+            if (!String.IsNullOrEmpty(cn.secShortName) && union.Equals(cn.secShortName))
+            {
+                return true;
+            }
+        }
         foreach (var cn in companynamelist)
         {
             if (cn.isSubCompany && isCheckSubCompany)

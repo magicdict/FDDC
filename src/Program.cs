@@ -28,11 +28,11 @@ namespace FDDC
         /// <summary>
         /// CentOS
         /// </summary>
-        //public static String DocBase =  @"/home/118_4";
+        public static String DocBase =  @"/home/118_4";
         /// <summary>
         /// MAC
         /// </summary>
-        public static String DocBase = @"/Users/hu/Desktop/FDDC2018";
+        //public static String DocBase = @"/Users/hu/Desktop/FDDC2018";
 
         /// <summary>
         /// 这个模式下，有问题的数据会输出，正式比赛的时候设置为False，降低召回率！
@@ -49,8 +49,8 @@ namespace FDDC
         /// </summary>
         private static void QuickTestArea()
         {
-            var t = new Contract();
-            t.Init(ContractPath_TRAIN + "/html/36071.html");
+            var t = new StockChange();
+            t.Init(StockChangePath_TEST + "/html/14809964.html");
             var recs = t.Extract();
         }
 
@@ -69,7 +69,7 @@ namespace FDDC
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             CIRecord = new StreamWriter("CI.log");
-            QuickTestArea(); return;
+            //QuickTestArea(); return;
             //PDFToTXT.GetPdf2TxtBatchFile();
             //公司全称简称曾用名字典   
             CompanyNameLogic.LoadCompanyName("Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
@@ -120,8 +120,8 @@ namespace FDDC
         public static string ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
 
         //增减持
-        public static bool IsRunStockChange = false;
-        public static bool IsRunStockChange_TEST = false;
+        public static bool IsRunStockChange = true;
+        public static bool IsRunStockChange_TEST = true;
         public static string StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
         public static string StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "增减持";
 

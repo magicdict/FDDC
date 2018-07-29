@@ -33,11 +33,21 @@ public class LTPTrainingNER
             var x = RegularTool.GetMultiValueBetweenMark(element, "\"", "\"");
             if (x.Count != 4)
             {
-                //Console.WriteLine(element);
-                id = int.Parse(x[0]);
-                cont = "\"";    //&quot;
-                pos = x[1];
-                ne = x[2];
+                if (x.Count == 3)
+                {
+                    //Console.WriteLine(element);
+                    id = int.Parse(x[0]);
+                    cont = "\"";    //&quot;
+                    pos = x[1];
+                    ne = x[2];
+                }
+                else
+                {
+                    id = int.Parse(x[0]);
+                    cont = "";
+                    pos = "";
+                    ne = "";
+                }
             }
             else
             {
@@ -107,9 +117,12 @@ public class LTPTrainingNER
                         break;
                     case "E-Ni":
                         ner += word.cont;
-                        NerList.Add(new struNerInfo() { RawData = ner, Type = enmNerType.Ni });
+                        NerList.Add(new struNerInfo()
+                        {
+                            RawData = ner.Replace("股东", ""),
+                            Type = enmNerType.Ni
+                        });
                         break;
-
                     case "B-Ns":
                         ner = word.cont;
                         break;
