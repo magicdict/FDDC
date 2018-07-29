@@ -387,7 +387,12 @@ public abstract class AnnouceDocument
 
     private void CompanyNameAnlayze()
     {
-        companynamelist = CompanyNameLogic.GetCompanyNameByCutWord(root);
+        companynamelist = CompanyNameLogic.GetCompanyNameByCutWordFromHTML(root);
+        if (File.Exists(TextFileName))
+        {
+            var companynamelistText = CompanyNameLogic.GetCompanyNameByCutWordFromTextFile(TextFileName);
+            companynamelist.AddRange(companynamelistText);
+        }
 
         var Clone = new List<struCompanyName>();
         //使用NER表对于残缺公司名称的修补：

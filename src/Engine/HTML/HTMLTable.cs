@@ -445,33 +445,56 @@ public partial class HTMLTable
         }
     }
 
+    /// <summary>
+    /// 使用公司名称填null值
+    /// </summary>
+    /// <param name="doc"></param>
     public static void FixNullValue(AnnouceDocument doc)
     {
         var CompanyFullNameList = doc.companynamelist.Select((x) => { return x.secFullName; }).Distinct().ToList();
         var CompanyShortNameList = doc.companynamelist.Select((x) => { return x.secShortName; }).Distinct().ToList();
+        var CompanyPos = new List<String>();
         for (int tableId = 1; tableId <= doc.root.TableList.Count; tableId++)
         {
-            var table = doc.root.TableList[tableId];
-            for (int checkItemIdx = 0; checkItemIdx < table.Count; checkItemIdx++)
+            var tableCells = doc.root.TableList[tableId];
+            for (int checkItemIdx = 0; checkItemIdx < tableCells.Count; checkItemIdx++)
             {
-                var tablerec = table[checkItemIdx].Split("|");
+                var tablerec = tableCells[checkItemIdx].Split("|");
                 var pos = tablerec[0].Split(",");
                 var value = tablerec[1].Replace(" ", "");
                 var col = int.Parse(pos[2]);
                 if (CompanyFullNameList.Contains(value) || CompanyShortNameList.Contains(value))
                 {
-                    for (int fixIdx = 0; fixIdx < table.Count; fixIdx++)
+                    CompanyPos.Add(tableCells[checkItemIdx]);
+                }
+            }
+            CompanyPos.Reverse();
+            for (int fixIdx = 0; fixIdx < tableCells.Count; fixIdx++)
+            {
+                var nullvalue = tableCells[fixIdx].Split("|")[1];
+                var nullcol = int.Parse(tableCells[fixIdx].Split("|")[0].Split(",")[2]);
+                var nullrow = int.Parse(tableCells[fixIdx].Split("|")[0].Split(",")[1]);
+                if (nullvalue.Equals(strNullValue))
+                {
+                    foreach (var item in CompanyPos)
                     {
-                        var nullvalue = table[fixIdx].Split("|")[1];
-                        var nullcol = int.Parse(table[fixIdx].Split("|")[0].Split(",")[2]);
-                        if (nullvalue.Equals(strNullValue) && col == nullcol)
+                        //向上寻找最近的
+                        var tablerec = item.Split("|");
+                        var pos = tablerec[0].Split(",");
+                        var value = tablerec[1].Replace(" ", "");
+                        var col = int.Parse(pos[2]);
+                        var row = int.Parse(pos[1]);
+                        if (nullcol == col && nullrow > row)
                         {
-                            table[fixIdx] = table[fixIdx].Split("|")[0] + "|" + value;
+                            tableCells[fixIdx] = tableCells[fixIdx].Split("|")[0] + "|" + value;
+                            break;
                         }
                     }
                 }
             }
         }
+
+
 
         for (int tableId = 1; tableId <= doc.root.TableList.Count; tableId++)
         {

@@ -112,7 +112,7 @@ public class EvaluateItem
                 else
                 {
                     //单项的情况
-                    if (StardardValue.Equals(EvaluateValue))
+                    if (StardardValue.NormalizeTextResult().Equals(EvaluateValue.NormalizeTextResult()))
                     {
                         CorrentCnt++;
                     }

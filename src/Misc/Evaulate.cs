@@ -90,8 +90,8 @@ public static class Evaluate
                     F1_ID.PutItemData(contract.Id, contract_Result.Id);
                     F1_JiaFang.PutItemData(contract.JiaFang, contract_Result.JiaFang);
                     F1_YiFang.PutItemData(contract.YiFang, contract_Result.YiFang);
-                    F1_ProjectName.PutItemData(contract.ProjectName, contract_Result.ProjectName);
-                    F1_ContractName.PutItemData(contract.ContractName, contract_Result.ContractName);
+                    F1_ProjectName.PutItemData(contract.ProjectName, contract_Result.ProjectName, contract.Id);
+                    F1_ContractName.PutItemData(contract.ContractName, contract_Result.ContractName, contract.Id);
                     F1_ContractMoneyUpLimit.PutItemData(contract.ContractMoneyUpLimit, contract_Result.ContractMoneyUpLimit);
                     F1_ContractMoneyDownLimit.PutItemData(contract.ContractMoneyDownLimit, contract_Result.ContractMoneyDownLimit);
                     F1_UnionMember.PutItemData(contract.UnionMember, contract_Result.UnionMember, contract.Id);

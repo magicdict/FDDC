@@ -149,7 +149,7 @@ public partial class Contract : AnnouceDocument
                 ContractRec.YiFang = ContractRec.YiFang.NormalizeTextResult();
                 foreach (var cn in companynamelist)
                 {
-                    if (cn.secShortName.Equals(ContractRec.YiFang))
+                    if (!String.IsNullOrEmpty(cn.secShortName) && cn.secShortName.Equals(ContractRec.YiFang))
                     {
                         if (!string.IsNullOrEmpty(cn.secFullName))
                         {
@@ -314,9 +314,6 @@ public partial class Contract : AnnouceDocument
                 if (NiList.Contains("国家电网公司")) contract.JiaFang = "国家电网公司";
             }
         }
-
-
-
         //项目
         contract.ProjectName = GetProjectName();
         if (contract.ProjectName.StartsWith("“") && contract.ProjectName.EndsWith("”"))
@@ -346,6 +343,7 @@ public partial class Contract : AnnouceDocument
             contract.ContractName = Utility.GetStringAfter(contract.ContractName, "（以下简称");
         }
         contract.ContractName = contract.ContractName.NormalizeTextResult();
+        contract.ContractName = ExtendContractName(contract.ContractName);
 
         //如果是采购协议，则工程名清空
         if (contract.ContractName.Contains("采购"))
@@ -420,7 +418,6 @@ public partial class Contract : AnnouceDocument
     /// <returns></returns>
     string GetProjectName()
     {
-
         var e = new EntityProperty();
         e.PropertyName = "工程名称";
         e.LeadingColonKeyWordList = new string[] { "项目名称：", "工程名称：", "中标项目：", "合同标的：", "工程内容：" };
@@ -431,16 +428,32 @@ public partial class Contract : AnnouceDocument
         e.ExternalStartEndStringFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
         e.Extract(this);
         var prj = e.EvaluateCI();
-        if (!String.IsNullOrEmpty(prj)) return prj;
+        if (!String.IsNullOrEmpty(prj))
+        {
+            return ExtendProjectName(prj);
+        }
         foreach (var item in quotationList)
         {
             if (item.Value.Contains("推荐的中标候选人公示"))
             {
-                return Utility.GetStringBefore(item.Value, "推荐的中标候选人公示");
+                prj = Utility.GetStringBefore(item.Value, "推荐的中标候选人公示");
+                return ExtendProjectName(prj);
             }
         }
         return string.Empty;
     }
+
+    string ExtendProjectName(string Proj)
+    {
+        //尝试看一下是否有Proj + 项目的词语
+        var ExtendWords = new string[] { "项目","活动" };
+        foreach (var word in ExtendWords)
+        {
+            if (LocateCustomerWord(root, new string[] { Proj.Replace(" ","") + word }.ToList()).Count > 0) return Proj + word;
+        }
+        return Proj;
+    }
+
 
     /// <summary>
     /// 获得合同名
@@ -500,6 +513,17 @@ public partial class Contract : AnnouceDocument
         e.Extract(this);
         //冒号优先
         return e.EvaluateCI();
+    }
+
+    string ExtendContractName(string contract)
+    {
+        //尝试看一下是否有Proj + 项目的词语
+        var ExtendWords = new string[] { "补充协议" };
+        foreach (var word in ExtendWords)
+        {
+            if (LocateCustomerWord(root, new string[] { contract.Replace(" ","") + word }.ToList()).Count > 0) return contract + word;
+        }
+        return contract;
     }
 
     /// <summary>

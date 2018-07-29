@@ -250,7 +250,7 @@ public class HTMLEngine
     }
 
     /// <summary>
-    /// 行调整
+    /// 行调整（HTML两行合并为一行）
     /// </summary>
     /// <param name="root"></param>
     /// <param name="txtfilename"></param>

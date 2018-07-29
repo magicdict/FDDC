@@ -6,15 +6,15 @@
 表问题：558702
 HTML:15597970
 
-                        (baseInd + 4 <= words.Count &&
-                         (words[baseInd].Word + words[baseInd + 1].Word +
-                          words[baseInd + 2].Word + words[baseInd + 3].Word).Equals("(有限合伙)"))
-
 
 2.重大合同
 
 金额 #35975 36017  39498
 
+-补充协议
+-项目
+-(招标编号 需要去除
+44627 项目名称：换行
 
 
 20596831	 45%的股权和信添公司 45%的股权。	锦冠公司

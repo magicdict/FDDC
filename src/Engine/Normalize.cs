@@ -44,7 +44,7 @@ public static class Normalizer
         orgString = orgString.Replace("（", "(");
         orgString = orgString.Replace("）", ")");
         orgString = orgString.Replace("～", "~");
-        orgString = orgString.TrimStart(new Char[] { '—', '-', ']' });
+        orgString = orgString.Trim(new Char[] { '—', '-', ']' });
         orgString = orgString.Replace("/", "");
         return orgString;
     }
