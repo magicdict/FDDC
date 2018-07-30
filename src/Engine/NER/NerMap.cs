@@ -48,7 +48,7 @@ public class NerMap
             foreach (var s in paragragh.Children)
             {
                 var p = LocateParagraphInfo(doc, s.PositionId, nerlist);
-                if (p.NerList.Count + p.moneylist.Count + p.datelist.Count != 0)
+                if (p.NerList.Count + p.moneylist.Count + p.datelist.Count + p.percentList.Count != 0)
                 {
                     if (!ParagraghlocateDict.ContainsKey(s.PositionId)) ParagraghlocateDict.Add(s.PositionId, p);
                 }
@@ -72,6 +72,10 @@ public class NerMap
         {
             if (item.Loc == PosId) paragragh.moneylist.Add(item);
         }
+        foreach (var item in doc.percentList)
+        {
+            if (item.Loc == PosId) paragragh.percentList.Add(item);
+        }
         foreach (var item in doc.quotationList)
         {
             if (item.Loc == PosId) paragragh.NerList.Add(item);
@@ -94,6 +98,10 @@ public class NerMap
         /// </summary>
         public List<LocAndValue<DateTime>> datelist;
         /// <summary>
+        /// 百分比
+        /// </summary>
+        public List<LocAndValue<String>> percentList;
+        /// <summary>
         /// 金额
         /// </summary>
         /// <param name="MoneyAmount"></param>
@@ -108,6 +116,7 @@ public class NerMap
             datelist = new List<LocAndValue<DateTime>>();
             moneylist = new List<LocAndValue<(String MoneyAmount, String MoneyCurrency)>>();
             NerList = new List<LocAndValue<String>>();
+            percentList = new List<LocAndValue<String>>();
         }
     }
 }

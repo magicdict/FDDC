@@ -80,7 +80,17 @@ public class StockChange : AnnouceDocument
             if (!stockchange.HolderFullName.Contains("增持") && !stockchange.HolderFullName.Contains("减持")) list.Add(stockchange);
         }
 
+        if (list.Count == 0)
+        {
+            ExtractSingle();
+        }
         return list;
+    }
+
+
+    public void ExtractSingle()
+    {
+
     }
 
     /// <summary>
@@ -640,7 +650,7 @@ public class StockChange : AnnouceDocument
             var ClearWord = word.Value;
             if (word.Value.Contains("发来的"))
             {
-                ClearWord = Utility.GetStringBefore(ClearWord,"发来的");
+                ClearWord = Utility.GetStringBefore(ClearWord, "发来的");
             }
             var FullName = CompanyNameLogic.AfterProcessFullName(ClearWord);
             var name = CompanyNameLogic.NormalizeCompanyName(this, FullName.secFullName);

@@ -42,7 +42,7 @@ public abstract class AnnouceDocument
     /// </summary>
     public List<LocAndValue<String>> quotationList;
 
-
+    public List<LocAndValue<String>> percentList;
 
 
     /// <summary>
@@ -138,6 +138,9 @@ public abstract class AnnouceDocument
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("位置：" + m.Loc);
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("括号内容：" + m.Value);
         }
+
+        //百分比
+        percentList = LocatePercent(root);
 
         //货币
         moneylist = LocateProperty.LocateMoney(root);

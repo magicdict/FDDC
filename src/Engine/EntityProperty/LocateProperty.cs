@@ -132,6 +132,33 @@ public static class LocateProperty
         return list;
     }
 
+    public static List<LocAndValue<String>> LocatePercent(HTMLEngine.MyRootHtmlNode root)
+    {
+        var list = new List<LocAndValue<String>>();
+        foreach (var paragrah in root.Children)
+        {
+            foreach (var sentence in paragrah.Children)
+            {
+                var OrgString = sentence.Content;
+                var BracketList = RegularTool.GetChineseBrackets(OrgString);
+                Regex r = new Regex(RegularTool.PercentExpress);
+                foreach (var item in r.Matches(OrgString).ToList())
+                {
+                    list.Add(new LocAndValue<String>()
+                    {
+                        Loc = sentence.PositionId,
+                        Description = "百分比",
+                        Value = item.Value,
+                        StartIdx = item.Index
+                    });
+                }
+
+
+            }
+        }
+        return list;
+    }
+
 
     /// <summary>
     /// 获得日期范围

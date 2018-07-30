@@ -24,13 +24,13 @@ namespace FDDC
         /// <summary>
         /// 基本Windows
         /// </summary>
-        //public static String DocBase = @"E:" + Path.DirectorySeparatorChar + "WorkSpace2018" + Path.DirectorySeparatorChar + "FDDC2018";
+        public static String DocBase = @"E:" + Path.DirectorySeparatorChar + "WorkSpace2018" + Path.DirectorySeparatorChar + "FDDC2018";
 
 
         /// <summary>
         /// 基本CentOS
         /// </summary>
-        public static String DocBase =  @"/home/118_4";
+        //public static String DocBase =  @"/home/118_4";
 
         /// <summary>
         /// 基本MAC
@@ -53,9 +53,9 @@ namespace FDDC
         /// </summary>
         private static void QuickTestArea()
         {
-            var t = new Reorganization();
+            var t = new StockChange();
             t.Id = "346497";
-            t.HTMLFileName = ReorganizationPath_TRAIN + "/html/346497.html";
+            t.HTMLFileName = StockChangePath_TEST + "/html/407056.html";
             t.Init();
             var recs = t.Extract();
         }
@@ -76,7 +76,7 @@ namespace FDDC
             //结巴分词的地名修正词典
             PosNS.ImportNS("Resources" + Path.DirectorySeparatorChar + "ns.dict");
             CIRecord = new StreamWriter("CI.log");
-            //QuickTestArea(); return;
+            QuickTestArea(); return;
             //PDFToTXT.GetPdf2TxtBatchFile();
             //公司全称简称曾用名字典   
             CompanyNameLogic.LoadCompanyName("Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
