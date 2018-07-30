@@ -44,374 +44,210 @@ public class CompanyNameLogic
         sr.Close();
         foreach (var sentence in Lines)
         {
-            if (string.IsNullOrEmpty(sentence)) continue;
-            var words = posSeg.Cut(sentence).ToList();
-            var PreviewEndIdx = -1;
-            for (int baseInd = 0; baseInd < words.Count; baseInd++)
-            {
-                var FullName = String.Empty;
-                var ShortName = String.Empty;
-                var IsSubCompany = false;
-                if (words[baseInd].Word == "国家电网" &&
-                    (baseInd + 1) < words.Count &&
-                    words[baseInd + 1].Word == "公司")
-                {
-                    namelist.Add(new struCompanyName()
-                    {
-                        secFullName = "国家电网公司",
-                        WordIdx = baseInd,
-                        Score = 100
-                    });
-                    continue;
-                }
-                if (
-                     words[baseInd].Word == "有限公司" ||
-                    (words[baseInd].Word == "公司" && baseInd != 0 && words[baseInd - 1].Word == "有限责任") ||
-                    (words[baseInd].Word == "公司" && baseInd != 0 && words[baseInd - 1].Word == "承包") ||
-                    (words[baseInd].Word == "有限" && baseInd != words.Count - 1 && words[baseInd + 1].Word == "合伙")
-                   )
-                {
-                    //是否能够在后面找到简称
-                    for (int JCIdx = baseInd + 1; JCIdx < words.Count; JCIdx++)
-                    {
-                        //注意，这个简称还必须在下一个出现公司之前才可以！
-                        if (
-                            words[JCIdx].Word == "有限公司" ||
-                            (words[JCIdx].Word == "公司" && JCIdx != 0 && words[JCIdx - 1].Word == "有限责任") ||
-                            (words[JCIdx].Word == "公司" && JCIdx != 0 && words[JCIdx - 1].Word == "承包") ||
-                            (words[JCIdx].Word == "有限" && JCIdx != words.Count - 1 && words[JCIdx + 1].Word == "合伙")
-                        ) { break; }
-                        //简称关键字
-                        if (words[JCIdx].Word.Equals("简称") || words[JCIdx].Word.Equals("称"))
-                        {
-                            var ShortNameStart = -1;
-                            var ShortNameEnd = -1;
-                            for (int ShortNameIdx = JCIdx; ShortNameIdx < words.Count; ShortNameIdx++)
-                            {
-                                if (words[ShortNameIdx].Word.Equals("“"))
-                                {
-                                    ShortNameStart = ShortNameIdx + 1;
-                                }
-                                if (words[ShortNameIdx].Word.Equals("”"))
-                                {
-                                    ShortNameEnd = ShortNameIdx - 1;
-                                    break;
-                                }
-                            }
-                            if (ShortNameStart != -1 && ShortNameEnd != -1)
-                            {
-                                ShortName = String.Empty;
-                                for (int i = ShortNameStart; i <= ShortNameEnd; i++)
-                                {
-                                    ShortName += words[i].Word;
-                                }
-                            }
-                            break;
-                        }
-                    }
-
-                    var FirstShortNameWord = String.Empty;
-                    if (ShortName.Length == 4)
-                    {
-                        FirstShortNameWord = ShortName.Substring(0, 2);
-                    }
-                    var IsMarkClosed = true;
-                    var CompanyStartIdx = -1;
-                    var FirstShortNameIdx = -1; //包含简称的位置
-                                                //是否能够在前面找到地名
-                    for (int NRIdx = baseInd; NRIdx > PreviewEndIdx; NRIdx--)
-                    {
-                        if (words[NRIdx].Word == FirstShortNameWord)
-                        {
-                            FirstShortNameIdx = NRIdx;   //备用
-                        }
-                        //寻找地名?words[NRIdx].Flag == EntityWordAnlayzeTool.机构团体
-                        //posSeg.Cut(words[NRIdx].Word + "市").First().Flag == EntityWordAnlayzeTool.地名
-                        if (words[NRIdx].Flag == LTPTrainingNER.地名 || PosNS.NsDict.Contains(words[NRIdx].Word))
-                        {
-                            //注意，地名可能相连，例如：上海市嘉定
-                            if (NRIdx != 0 && (words[NRIdx - 1].Flag == LTPTrainingNER.地名 || PosNS.NsDict.Contains(words[NRIdx - 1].Word))) continue;
-                            FullName = String.Empty;
-                            for (int companyFullNameInd = NRIdx; companyFullNameInd <= baseInd; companyFullNameInd++)
-                            {
-                                FullName += words[companyFullNameInd].Word;
-                            }
-                            //(有限合伙)
-                            if (words[baseInd].Word == "有限")
-                            {
-                                FullName += words[baseInd + 1].Word;
-                                if ((baseInd + 2) < words.Count) FullName += words[baseInd + 2].Word;
-                            }
-                            //子公司判断
-                            if (NRIdx != 0 && words[NRIdx - 1].Word == "子公司")
-                            {
-                                IsSubCompany = true;
-                            }
-                            if (NRIdx > 2 && (words[NRIdx - 1].Word == "下属" || words[NRIdx - 2].Word == "下属"))
-                            {
-                                IsSubCompany = true;
-                            }
-
-                            if (IsMarkClosed)
-                            {
-                                //皆大欢喜的局面
-                                CompanyStartIdx = NRIdx;
-                                PreviewEndIdx = baseInd;
-                                break;  //不要继续寻找地名了
-                            }
-                        }
-                        if (words[NRIdx].Flag == LTPTrainingNER.词性标点)
-                        {
-                            if (words[NRIdx].Word != "（" && words[NRIdx].Word != "）" &&
-                               words[NRIdx].Word != "(" && words[NRIdx].Word != ")") break;
-                            if (words[NRIdx].Word == "）" || words[NRIdx].Word == ")") IsMarkClosed = false;    //打开
-                            if (words[NRIdx].Word == "（" || words[NRIdx].Word == "(") IsMarkClosed = true;     //关闭
-                        }
-                    }
-
-                    if (CompanyStartIdx == -1)
-                    {
-                        if (FirstShortNameIdx == -1) continue;
-                        if (posSeg.Cut(ShortName).First().Flag == LTPTrainingNER.地名) continue;
-                        FullName = String.Empty;
-                        for (int NRIdx = FirstShortNameIdx; NRIdx <= baseInd; NRIdx++)
-                        {
-                            FullName += words[NRIdx].Word;
-                        }
-
-
-                        //有限合伙
-                        if (words[baseInd].Word == "有限")
-                        {
-                            FullName += words[baseInd + 1].Word;
-                            FullName += words[baseInd + 2].Word;
-                        }
-                        //子公司判断
-                        if (FirstShortNameIdx != 0 && words[FirstShortNameIdx - 1].Word == "子公司")
-                        {
-                            IsSubCompany = true;
-                        }
-                        if (FirstShortNameIdx > 2 && (words[FirstShortNameIdx - 1].Word == "下属" || words[FirstShortNameIdx - 2].Word == "下属"))
-                        {
-                            IsSubCompany = true;
-                        }
-                    }
-
-                    if (FullName != String.Empty)
-                    {
-                        FullName = FullName.Replace(" ", String.Empty).Trim();
-                        ShortName = ShortName.Replace(" ", String.Empty).Trim();
-                        if (ShortName == "公司" || ShortName == "本公司") ShortName = String.Empty;
-                        if (ShortName == String.Empty)
-                        {
-                            var json = GetCompanyNameByFullName(FullName);
-                            ShortName = json.secShortName;
-                        }
-                        namelist.Add(new struCompanyName()
-                        {
-                            secFullName = FullName,
-                            secShortName = ShortName,
-                            isSubCompany = IsSubCompany,
-                            WordIdx = CompanyStartIdx,
-                            Score = 100
-                        });
-                    }
-                }
-
-            }
+            GetCompany(namelist, sentence, 0);
         }
         return namelist;
     }
 
     public static List<struCompanyName> GetCompanyNameByCutWordFromHTML(HTMLEngine.MyRootHtmlNode root)
     {
-        var posSeg = new PosSegmenter();
         var namelist = new List<struCompanyName>();
         foreach (var paragrah in root.Children)
         {
             foreach (var sentence in paragrah.Children)
             {
-                if (string.IsNullOrEmpty(sentence.Content)) continue;
-                var words = posSeg.Cut(sentence.Content).ToList();
-                var PreviewEndIdx = -1;
-                for (int baseInd = 0; baseInd < words.Count; baseInd++)
-                {
-                    var FullName = String.Empty;
-                    var ShortName = String.Empty;
-                    var IsSubCompany = false;
-                    if (words[baseInd].Word == "国家电网" &&
-                        (baseInd + 1) < words.Count &&
-                        words[baseInd + 1].Word == "公司")
-                    {
-                        namelist.Add(new struCompanyName()
-                        {
-                            secFullName = "国家电网公司",
-                            positionId = sentence.PositionId,
-                            WordIdx = baseInd,
-                            Score = 100
-                        });
-                        continue;
-                    }
-                    if (
-                         words[baseInd].Word == "有限公司" ||
-                        (words[baseInd].Word == "公司" && baseInd != 0 && words[baseInd - 1].Word == "有限责任") ||
-                        (words[baseInd].Word == "公司" && baseInd != 0 && words[baseInd - 1].Word == "承包") ||
-                        (words[baseInd].Word == "有限" && baseInd != words.Count - 1 && words[baseInd + 1].Word == "合伙")
-                       )
-                    {
-                        //是否能够在后面找到简称
-                        for (int JCIdx = baseInd + 1; JCIdx < words.Count; JCIdx++)
-                        {
-                            //注意，这个简称还必须在下一个出现公司之前才可以！
-                            if (
-                                words[JCIdx].Word == "有限公司" ||
-                                (words[JCIdx].Word == "公司" && JCIdx != 0 && words[JCIdx - 1].Word == "有限责任") ||
-                                (words[JCIdx].Word == "公司" && JCIdx != 0 && words[JCIdx - 1].Word == "承包") ||
-                                (words[JCIdx].Word == "有限" && JCIdx != words.Count - 1 && words[JCIdx + 1].Word == "合伙")
-                            ) { break; }
-                            //简称关键字
-                            if (words[JCIdx].Word.Equals("简称") || words[JCIdx].Word.Equals("称"))
-                            {
-                                var ShortNameStart = -1;
-                                var ShortNameEnd = -1;
-                                for (int ShortNameIdx = JCIdx; ShortNameIdx < words.Count; ShortNameIdx++)
-                                {
-                                    if (words[ShortNameIdx].Word.Equals("“"))
-                                    {
-                                        ShortNameStart = ShortNameIdx + 1;
-                                    }
-                                    if (words[ShortNameIdx].Word.Equals("”"))
-                                    {
-                                        ShortNameEnd = ShortNameIdx - 1;
-                                        break;
-                                    }
-                                }
-                                if (ShortNameStart != -1 && ShortNameEnd != -1)
-                                {
-                                    ShortName = String.Empty;
-                                    for (int i = ShortNameStart; i <= ShortNameEnd; i++)
-                                    {
-                                        ShortName += words[i].Word;
-                                    }
-                                }
-                                break;
-                            }
-                        }
-
-                        var FirstShortNameWord = String.Empty;
-                        if (ShortName.Length == 4)
-                        {
-                            FirstShortNameWord = ShortName.Substring(0, 2);
-                        }
-                        var IsMarkClosed = true;
-                        var CompanyStartIdx = -1;
-                        var FirstShortNameIdx = -1; //包含简称的位置
-                        //是否能够在前面找到地名
-                        for (int NRIdx = baseInd; NRIdx > PreviewEndIdx; NRIdx--)
-                        {
-                            if (words[NRIdx].Word == FirstShortNameWord)
-                            {
-                                FirstShortNameIdx = NRIdx;   //备用
-                            }
-                            //寻找地名?words[NRIdx].Flag == EntityWordAnlayzeTool.机构团体
-                            //posSeg.Cut(words[NRIdx].Word + "市").First().Flag == EntityWordAnlayzeTool.地名
-                            if (words[NRIdx].Flag == LTPTrainingNER.地名 || PosNS.NsDict.Contains(words[NRIdx].Word))
-                            {
-                                //注意，地名可能相连，例如：上海市嘉定
-                                if (NRIdx != 0 && (words[NRIdx - 1].Flag == LTPTrainingNER.地名 || PosNS.NsDict.Contains(words[NRIdx - 1].Word))) continue;
-                                FullName = String.Empty;
-                                for (int companyFullNameInd = NRIdx; companyFullNameInd <= baseInd; companyFullNameInd++)
-                                {
-                                    FullName += words[companyFullNameInd].Word;
-                                }
-                                //(有限合伙)
-                                if (words[baseInd].Word == "有限")
-                                {
-                                    FullName += words[baseInd + 1].Word;
-                                    if ((baseInd + 2) < words.Count) FullName += words[baseInd + 2].Word;
-                                }
-                                //子公司判断
-                                if (NRIdx != 0 && words[NRIdx - 1].Word == "子公司")
-                                {
-                                    IsSubCompany = true;
-                                }
-                                if (NRIdx > 2 && (words[NRIdx - 1].Word == "下属" || words[NRIdx - 2].Word == "下属"))
-                                {
-                                    IsSubCompany = true;
-                                }
-
-                                if (IsMarkClosed)
-                                {
-                                    //皆大欢喜的局面
-                                    CompanyStartIdx = NRIdx;
-                                    PreviewEndIdx = baseInd;
-                                    break;  //不要继续寻找地名了
-                                }
-                            }
-                            if (words[NRIdx].Flag == LTPTrainingNER.词性标点)
-                            {
-                                if (words[NRIdx].Word != "（" && words[NRIdx].Word != "）" &&
-                                   words[NRIdx].Word != "(" && words[NRIdx].Word != ")") break;
-                                if (words[NRIdx].Word == "）" || words[NRIdx].Word == ")") IsMarkClosed = false;    //打开
-                                if (words[NRIdx].Word == "（" || words[NRIdx].Word == "(") IsMarkClosed = true;     //关闭
-                            }
-                        }
-
-                        if (CompanyStartIdx == -1)
-                        {
-                            if (FirstShortNameIdx == -1) continue;
-                            if (posSeg.Cut(ShortName).First().Flag == LTPTrainingNER.地名) continue;
-                            FullName = String.Empty;
-                            for (int NRIdx = FirstShortNameIdx; NRIdx <= baseInd; NRIdx++)
-                            {
-                                FullName += words[NRIdx].Word;
-                            }
-
-
-                            //有限合伙
-                            if (words[baseInd].Word == "有限")
-                            {
-                                FullName += words[baseInd + 1].Word;
-                                FullName += words[baseInd + 2].Word;
-                            }
-                            //子公司判断
-                            if (FirstShortNameIdx != 0 && words[FirstShortNameIdx - 1].Word == "子公司")
-                            {
-                                IsSubCompany = true;
-                            }
-                            if (FirstShortNameIdx > 2 && (words[FirstShortNameIdx - 1].Word == "下属" || words[FirstShortNameIdx - 2].Word == "下属"))
-                            {
-                                IsSubCompany = true;
-                            }
-                        }
-
-                        if (FullName != String.Empty)
-                        {
-                            FullName = FullName.Replace(" ", String.Empty).Trim();
-                            ShortName = ShortName.Replace(" ", String.Empty).Trim();
-                            if (ShortName == "公司" || ShortName == "本公司") ShortName = String.Empty;
-                            if (ShortName == String.Empty)
-                            {
-                                var json = GetCompanyNameByFullName(FullName);
-                                ShortName = json.secShortName;
-                            }
-                            namelist.Add(new struCompanyName()
-                            {
-                                secFullName = FullName,
-                                secShortName = ShortName,
-                                isSubCompany = IsSubCompany,
-                                positionId = sentence.PositionId,
-                                WordIdx = CompanyStartIdx,
-                                Score = 100
-                            });
-                        }
-                    }
-
-                }
+                GetCompany(namelist, sentence.Content, sentence.PositionId);
             }
         }
         return namelist;
     }
+
+    static void GetCompany(List<struCompanyName> namelist, string sentence, int PositionId = 0)
+    {
+        var posSeg = new PosSegmenter();
+        if (string.IsNullOrEmpty(sentence)) return;
+        var words = posSeg.Cut(sentence).ToList();
+        var PreviewEndIdx = -1;
+        for (int baseInd = 0; baseInd < words.Count; baseInd++)
+        {
+            var FullName = String.Empty;
+            var ShortName = String.Empty;
+            var IsSubCompany = false;
+            if (words[baseInd].Word == "国家电网" &&
+                (baseInd + 1) < words.Count &&
+                words[baseInd + 1].Word == "公司")
+            {
+                namelist.Add(new struCompanyName()
+                {
+                    secFullName = "国家电网公司",
+                    positionId = PositionId,
+                    WordIdx = baseInd,
+                    Score = 100
+                });
+                continue;
+            }
+            if (
+                 words[baseInd].Word == "有限公司" ||
+                (words[baseInd].Word == "公司" && baseInd != 0 && words[baseInd - 1].Word == "有限责任") ||
+                (words[baseInd].Word == "公司" && baseInd != 0 && words[baseInd - 1].Word == "承包") ||
+                (words[baseInd].Word == "有限" && baseInd != words.Count - 1 && words[baseInd + 1].Word == "合伙")
+               )
+            {
+                //是否能够在后面找到简称
+                for (int JCIdx = baseInd + 1; JCIdx < words.Count; JCIdx++)
+                {
+                    //注意，这个简称还必须在下一个出现公司之前才可以！
+                    if (
+                        words[JCIdx].Word == "有限公司" ||
+                        (words[JCIdx].Word == "公司" && JCIdx != 0 && words[JCIdx - 1].Word == "有限责任") ||
+                        (words[JCIdx].Word == "公司" && JCIdx != 0 && words[JCIdx - 1].Word == "承包") ||
+                        (words[JCIdx].Word == "有限" && JCIdx != words.Count - 1 && words[JCIdx + 1].Word == "合伙")
+                    )
+                    {
+                        break;
+                    }
+                    //简称关键字
+                    if (words[JCIdx].Word.Equals("简称") || words[JCIdx].Word.Equals("称"))
+                    {
+                        var ShortNameStart = -1;
+                        var ShortNameEnd = -1;
+                        for (int ShortNameIdx = JCIdx; ShortNameIdx < words.Count; ShortNameIdx++)
+                        {
+                            if (words[ShortNameIdx].Word.Equals("“"))
+                            {
+                                ShortNameStart = ShortNameIdx + 1;
+                            }
+                            if (words[ShortNameIdx].Word.Equals("”"))
+                            {
+                                ShortNameEnd = ShortNameIdx - 1;
+                                break;
+                            }
+                        }
+                        if (ShortNameStart != -1 && ShortNameEnd != -1)
+                        {
+                            ShortName = String.Empty;
+                            for (int i = ShortNameStart; i <= ShortNameEnd; i++)
+                            {
+                                ShortName += words[i].Word;
+                            }
+                        }
+                        break;
+                    }
+                }
+
+                var FirstShortNameWord = String.Empty;
+                if (ShortName.Length == 4)
+                {
+                    FirstShortNameWord = ShortName.Substring(0, 2);
+                }
+                var IsMarkClosed = true;
+                var CompanyStartIdx = -1;
+                var FirstShortNameIdx = -1; //包含简称的位置
+                                            //是否能够在前面找到地名
+                for (int NRIdx = baseInd; NRIdx > PreviewEndIdx; NRIdx--)
+                {
+                    if (words[NRIdx].Word == FirstShortNameWord)
+                    {
+                        FirstShortNameIdx = NRIdx;   //备用
+                    }
+                    //寻找地名?words[NRIdx].Flag == EntityWordAnlayzeTool.机构团体
+                    //posSeg.Cut(words[NRIdx].Word + "市").First().Flag == EntityWordAnlayzeTool.地名
+                    if (words[NRIdx].Flag == LTPTrainingNER.地名 || PosNS.NsDict.Contains(words[NRIdx].Word))
+                    {
+                        //注意，地名可能相连，例如：上海市嘉定
+                        if (NRIdx != 0 && (words[NRIdx - 1].Flag == LTPTrainingNER.地名 || PosNS.NsDict.Contains(words[NRIdx - 1].Word))) continue;
+                        FullName = String.Empty;
+                        for (int companyFullNameInd = NRIdx; companyFullNameInd <= baseInd; companyFullNameInd++)
+                        {
+                            FullName += words[companyFullNameInd].Word;
+                        }
+                        //(有限合伙)
+                        if (words[baseInd].Word == "有限")
+                        {
+                            FullName += words[baseInd + 1].Word;
+                            if ((baseInd + 2) < words.Count) FullName += words[baseInd + 2].Word;
+                        }
+                        //子公司判断
+                        if (NRIdx != 0 && words[NRIdx - 1].Word == "子公司")
+                        {
+                            IsSubCompany = true;
+                        }
+                        if (NRIdx > 2 && (words[NRIdx - 1].Word == "下属" || words[NRIdx - 2].Word == "下属"))
+                        {
+                            IsSubCompany = true;
+                        }
+
+                        if (IsMarkClosed)
+                        {
+                            //皆大欢喜的局面
+                            CompanyStartIdx = NRIdx;
+                            PreviewEndIdx = baseInd;
+                            break;  //不要继续寻找地名了
+                        }
+                    }
+                    if (words[NRIdx].Flag == LTPTrainingNER.词性标点)
+                    {
+                        if (words[NRIdx].Word != "（" && words[NRIdx].Word != "）" &&
+                           words[NRIdx].Word != "(" && words[NRIdx].Word != ")") break;
+                        if (words[NRIdx].Word == "）" || words[NRIdx].Word == ")") IsMarkClosed = false;    //打开
+                        if (words[NRIdx].Word == "（" || words[NRIdx].Word == "(") IsMarkClosed = true;     //关闭
+                    }
+                }
+
+                if (CompanyStartIdx == -1)
+                {
+                    if (FirstShortNameIdx == -1) continue;
+                    if (posSeg.Cut(ShortName).First().Flag == LTPTrainingNER.地名) continue;
+                    FullName = String.Empty;
+                    for (int NRIdx = FirstShortNameIdx; NRIdx <= baseInd; NRIdx++)
+                    {
+                        FullName += words[NRIdx].Word;
+                    }
+
+
+                    //有限合伙
+                    if (words[baseInd].Word == "有限")
+                    {
+                        FullName += words[baseInd + 1].Word;
+                        FullName += words[baseInd + 2].Word;
+                    }
+                    //子公司判断
+                    if (FirstShortNameIdx != 0 && words[FirstShortNameIdx - 1].Word == "子公司")
+                    {
+                        IsSubCompany = true;
+                    }
+                    if (FirstShortNameIdx > 2 && (words[FirstShortNameIdx - 1].Word == "下属" || words[FirstShortNameIdx - 2].Word == "下属"))
+                    {
+                        IsSubCompany = true;
+                    }
+                }
+
+                if (FullName != String.Empty)
+                {
+                    FullName = FullName.Replace(" ", String.Empty).Trim();
+                    ShortName = ShortName.Replace(" ", String.Empty).Trim();
+                    if (ShortName == "公司" || ShortName == "本公司") ShortName = String.Empty;
+                    if (ShortName == String.Empty)
+                    {
+                        var json = GetCompanyNameByFullName(FullName);
+                        ShortName = json.secShortName;
+                    }
+                    namelist.Add(new struCompanyName()
+                    {
+                        secFullName = FullName,
+                        secShortName = ShortName,
+                        isSubCompany = IsSubCompany,
+                        positionId = PositionId,
+                        WordIdx = CompanyStartIdx,
+                        Score = 100
+                    });
+                }
+            }
+
+        }
+    }
+
+
 
     #region  JSON文件
 

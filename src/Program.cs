@@ -24,11 +24,11 @@ namespace FDDC
         /// <summary>
         /// Windows
         /// </summary>
-        //public static String DocBase = @"E:" + Path.DirectorySeparatorChar + "WorkSpace2018" + Path.DirectorySeparatorChar + "FDDC2018";
+        public static String DocBase = @"E:" + Path.DirectorySeparatorChar + "WorkSpace2018" + Path.DirectorySeparatorChar + "FDDC2018";
         /// <summary>
         /// CentOS
         /// </summary>
-        public static String DocBase =  @"/home/118_4";
+        //public static String DocBase =  @"/home/118_4";
         /// <summary>
         /// MAC
         /// </summary>
@@ -49,8 +49,8 @@ namespace FDDC
         /// </summary>
         private static void QuickTestArea()
         {
-            var t = new StockChange();
-            t.Init(StockChangePath_TEST + "/html/14809964.html");
+            var t = new Reorganization();
+            t.Init(ReorganizationPath_TRAIN + "/html/14367.html");
             var recs = t.Extract();
         }
 
@@ -67,14 +67,13 @@ namespace FDDC
             EntityProperty.Logger = Logger;
             //全局编码    
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
+            //结巴分词的地名修正词典
+            PosNS.ImportNS("Resources" + Path.DirectorySeparatorChar + "ns.dict");
             CIRecord = new StreamWriter("CI.log");
-            //QuickTestArea(); return;
+            QuickTestArea(); return;
             //PDFToTXT.GetPdf2TxtBatchFile();
             //公司全称简称曾用名字典   
             CompanyNameLogic.LoadCompanyName("Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
-            //结巴分词的地名修正词典
-            PosNS.ImportNS("Resources" + Path.DirectorySeparatorChar + "ns.dict");
             //预处理
             Traning();
             Evaluator = new StreamWriter("Evaluator.log");
