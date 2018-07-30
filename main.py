@@ -35,19 +35,17 @@ def Reformat(filepath):
 
 
 #一个文件夹下的所有pdf文档转换成txt
-def pdfTotxt(fileDir):
+def pdfTotxt(fileDir,txtDir,nerDir):
     files = os.listdir(fileDir + 'pdf/')
-    tarDir = fileDir + 'txt/'
-    if not os.path.exists(tarDir):
-        os.mkdir(tarDir)
-    nerDir = fileDir + 'ner/'
+    if not os.path.exists(txtDir):
+        os.mkdir(txtDir)
     if not os.path.exists(nerDir):
         os.mkdir(nerDir)
     replace = re.compile(r'\.pdf', re.I)
 
     for file in files:
         filePath = fileDir + 'pdf/' + file
-        outPath = tarDir + re.sub(replace, '', file) + '.txt'
+        outPath = txtDir + re.sub(replace, '', file) + '.txt'
         outNerPath = nerDir + re.sub(replace, '', file) + '.xml'
         try:
             if not os.path.exists(outPath):
@@ -61,8 +59,13 @@ def pdfTotxt(fileDir):
         except Exception as e:
             print("Exception:", e)
 
-pdfTotxt(u'/home/118_4/FDDC_announcements_round1_test_b_20180708/重大合同/')
-pdfTotxt(u'/home/118_4/FDDC_announcements_round1_test_b_20180708/增减持/')
-pdfTotxt(u'/home/118_4/FDDC_announcements_round1_train_20180518/增减持/')
-os.chdir("/home/118_4/FDDC_SRC")
-os.system("dotnet run")
+if not os.path.exists("/home/118_4/temp"):
+        os.mkdir("/home/118_4/temp")
+if not os.path.exists("/home/118_4/temp/hetong"):
+        os.mkdir("/home/118_4/temp/hetong")
+if not os.path.exists("/home/118_4/temp/zengjianchi"):
+        os.mkdir("/home/118_4/temp/zengjianchi")
+pdfTotxt('/home/data/hetong/','/home/118_4/temp/hetong/txt/','/home/118_4/temp/hetong/ner/')
+pdfTotxt('/home/data/zengjianchi/','/home/118_4/temp/zengjianchi/txt/','/home/118_4/temp/zengjianchi/ner/')
+#os.chdir("/home/118_4/FDDC_SRC")
+#os.system("dotnet run")

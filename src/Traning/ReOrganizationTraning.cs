@@ -106,7 +106,7 @@ public class ReOrganizationTraning
                 var htmlfile = Program.ReorganizationPath_TRAIN + @"\html\" + ReOrg.Id + ".html";
                 if (!System.IO.File.Exists(htmlfile)) continue;
                 PreviewRoot = new Reorganization();
-                PreviewRoot.Init(htmlfile);
+                PreviewRoot.Init();
                 PreviewId = ReOrg.Id;
                 Cnt++; if (Cnt == TraningCnt) break;
             }

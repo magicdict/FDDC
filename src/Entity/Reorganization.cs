@@ -9,6 +9,7 @@ public class Reorganization : AnnouceDocument
 {
     public override List<RecordBase> Extract()
     {
+        Console.WriteLine("ID:" + Id);
         InitTableRules();
         var list = new List<RecordBase>();
         var targets = getTargetListFromReplaceTable();
@@ -20,6 +21,7 @@ public class Reorganization : AnnouceDocument
             reorgRec.Id = this.Id;
             reorgRec.Target = item.Target;
             reorgRec.TargetCompany = item.Comany;
+            if (reorgRec.TargetCompany == "本公司") continue;
             foreach (var tc in TradeCompany)
             {
                 if (tc.TargetCompany == item.Comany)
@@ -222,10 +224,72 @@ public class Reorganization : AnnouceDocument
         var ReplaceIn = ExtractFromExplainTable(CompanyAtExplainTable, ExplainInKeys);
         var ReplaceOut = ExtractFromExplainTable(CompanyAtExplainTable, ExplainOutKeys);
         var Target = ExtractFromExplainTable(CompanyAtExplainTable, ExplainKeys);
+        var TargetWithOutCompanyName = ExtractExtend(ExplainKeys);
         if (HasReplaceIn) Target.AddRange(ReplaceIn);
         if (HasReplaceOut) Target.AddRange(ReplaceOut);
+        Target.AddRange(TargetWithOutCompanyName);
         return Target.Distinct().ToList();
     }
+
+    private List<(String, String)> ExtractExtend(string[] ExplainKeys)
+    {
+        var targetRegular = new ExtractProperyBase.struRegularExpressFeature()
+        {
+            RegularExpress = RegularTool.PercentExpress,
+            TrailingWordList = new string[] { "的股权", "股权", "的权益", "权益", "的股份", "股份" }.ToList()
+        };
+        var Result = new List<(String, String)>();
+        //可能性最大的排在最前
+        foreach (var item in ExplainDict)
+        {
+            var list = new List<(String, String)>();
+            var keys = item.Key.Split(Utility.SplitChar);
+            var keys2 = item.Key.Split("/");
+            if (keys.Length == 1 && keys2.Length > 1)
+            {
+                keys = keys2;
+            }
+            var values = item.Value.Split(Utility.SplitChar);
+            var values2 = item.Value.Split("；");
+            if (values.Length == 1 && values2.Length > 1)
+            {
+                values = values2;
+            }
+            foreach (var ek in ExplainKeys)
+            {
+                if (keys.Contains(ek))
+                {
+                    foreach (var value in values2)
+                    {
+                        var serachWord = value.Replace(" ", string.Empty);
+                        foreach (var words in serachWord.Split(Utility.SplitChar))
+                        {
+                            var SingleItemList = Utility.CutByPOSConection(words);
+                            foreach (var SingleItem in SingleItemList)
+                            {
+                                var ExpResult = ExtractPropertyByHTML.RegularExFinder(0, SingleItem, targetRegular, "|");
+                                foreach (var r in ExpResult)
+                                {
+                                    var arr = r.Value.Split("|");
+                                    var target = arr[1] + arr[2];
+                                    var targetCompany = SingleItem.Substring(0, r.StartIdx);
+                                    if (targetCompany.Contains("持有的")) targetCompany = Utility.GetStringAfter(targetCompany, "持有的");
+                                    if (targetCompany.Contains("持有")) targetCompany = Utility.GetStringAfter(targetCompany, "持有");
+                                    if (targetCompany.Contains("所持")) targetCompany = Utility.GetStringAfter(targetCompany, "所持");
+                                    var extra = (target, targetCompany);
+                                    list.Add(extra);
+                                }
+                            }
+                        }
+                    }
+                    if (list.Count != 0) return list.Distinct().ToList();
+                }
+            }
+        }
+
+        return Result;
+    }
+
 
     /// <summary>
     /// 从释义表抽取数据
@@ -248,11 +312,16 @@ public class Reorganization : AnnouceDocument
         {
             LeadingWordList = AllCompanyName,
             RegularExpress = RegularTool.PercentExpress,
-            TrailingWordList = new string[] { "的股权", "股权", "的权益", "权益" }.ToList()
+            TrailingWordList = new string[] { "的股权", "股权", "的权益", "权益", "的股份", "股份" }.ToList()
         };
 
 
-        var OtherTargets = new string[] { "资产及负债", "直属资产" };
+        //其他标的
+        var OtherTargets = new string[] { "资产及负债", "资产和负债",
+                                          "主要资产和部分负债","主要资产及部分负债",
+                                          "经营性资产及负债","经营性资产和负债","应收账款和其他应收款",
+                                          "负债", "债权", "全部权益","经营性资产","非股权类资产","资产、负债、业务",
+                                          "直属资产", "普通股股份", "土地使用权","使用权","房产" };
 
         var TargetAndCompanyList = new List<(string Target, string Comany)>();
         foreach (var Rplkey in ExplainKeys)
@@ -290,14 +359,19 @@ public class Reorganization : AnnouceDocument
                             //4.其他奇怪的问题
                             //5.资产和负债
                             //6.所拥有的，所持有的
-                            //Console.WriteLine(Id + " 分割：");
-                            //Console.WriteLine(Id + " 原词：" + targetRecordItem);
-                            //Console.WriteLine(Id + " 分量1：" + SingleItemList[0]);
-                            //Console.WriteLine(Id + " 分量2：" + SingleItemList[1]);
+                            Console.WriteLine(Id + " 分割：");
+                            Console.WriteLine(Id + " 原词：" + targetRecordItem);
+                            Console.WriteLine(Id + " 分量1：" + SingleItemList[0]);
+                            Console.WriteLine(Id + " 分量2：" + SingleItemList[1]);
                         }
                         foreach (var SingleItem in SingleItemList)
                         {
                             var targetAndcompany = SingleItem.Trim().Replace(" ", "");
+                            targetAndcompany = targetAndcompany.Trim().Replace("合计", "");
+                            if (targetAndcompany.Contains("持有的")) targetAndcompany = Utility.GetStringAfter(targetAndcompany, "持有的");
+                            if (targetAndcompany.Contains("持有")) targetAndcompany = Utility.GetStringAfter(targetAndcompany, "持有");
+                            if (targetAndcompany.Contains("所持")) targetAndcompany = Utility.GetStringAfter(targetAndcompany, "所持");
+
                             //将公司名称和交易标的划分开来
                             var ExpResult = ExtractPropertyByHTML.RegularExFinder(0, targetAndcompany, targetRegular, "|");
                             if (ExpResult.Count == 0)
@@ -334,10 +408,10 @@ public class Reorganization : AnnouceDocument
                                             }
                                         }
                                     }
-
+                                    //XXXX持有的XXXX的形式，不过现在可能已经不用了
                                     if (TargetAndCompanyList.Count == 0 && !String.IsNullOrEmpty(rc.secFullName) && targetAndcompany.StartsWith(rc.secFullName))
                                     {
-                                        var extra = (SingleItem.Substring(rc.secFullName.Length), rc.secFullName);
+                                        var extra = (targetAndcompany.Substring(rc.secFullName.Length), rc.secFullName);
                                         if (!TargetAndCompanyList.Contains(extra))
                                         {
                                             TargetAndCompanyList.Add(extra);
@@ -346,7 +420,7 @@ public class Reorganization : AnnouceDocument
                                     }
                                     if (TargetAndCompanyList.Count == 0 && !String.IsNullOrEmpty(rc.secShortName) && targetAndcompany.StartsWith(rc.secShortName))
                                     {
-                                        var extra = (SingleItem.Substring(rc.secShortName.Length), rc.secShortName);
+                                        var extra = (targetAndcompany.Substring(rc.secShortName.Length), rc.secShortName);
                                         if (!TargetAndCompanyList.Contains(extra))
                                         {
                                             TargetAndCompanyList.Add(extra);
@@ -361,7 +435,12 @@ public class Reorganization : AnnouceDocument
                                 foreach (var r in ExpResult)
                                 {
                                     var arr = r.Value.Split("|");
-                                    var extra = (arr[1] + arr[2], arr[0]);
+                                    var target = arr[1] + arr[2];
+                                    var targetCompany = arr[0];
+                                    if (targetCompany.Contains("持有的")) targetCompany = Utility.GetStringAfter(targetCompany, "持有的");
+                                    if (targetCompany.Contains("持有")) targetCompany = Utility.GetStringAfter(targetCompany, "持有");
+                                    if (targetCompany.Contains("所持")) targetCompany = Utility.GetStringAfter(targetCompany, "所持");
+                                    var extra = (target.Replace(" ", ""), targetCompany.Replace(" ", ""));
                                     if (!TargetAndCompanyList.Contains(extra))
                                     {
                                         TargetAndCompanyList.Add(extra);

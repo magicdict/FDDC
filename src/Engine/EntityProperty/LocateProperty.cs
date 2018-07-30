@@ -309,10 +309,11 @@ public static class LocateProperty
         {
             foreach (var sentence in paragrah.Children)
             {
-                var OrgString = sentence.Content.Replace(" ","");
+                var OrgString = sentence.Content.Replace(" ", "");
                 foreach (var word in CustomerWord)
                 {
                     int ScanStartIdx = 0;
+                    int Count = 0;
                     while (OrgString.IndexOf(word, ScanStartIdx) != -1)
                     {
                         list.Add(new LocAndValue<String>()
@@ -322,6 +323,14 @@ public static class LocateProperty
                             Value = word,
                             StartIdx = OrgString.IndexOf(word, ScanStartIdx)
                         });
+                        Count++;
+                        if (Count > 5000)
+                        {
+                            //死循环的防止
+                            Console.WriteLine("OrgString:" + OrgString);
+                            Console.WriteLine("word:" + word);
+                            break;
+                        }
                         ScanStartIdx = OrgString.IndexOf(word, ScanStartIdx) + word.Length;
                     }
                 }

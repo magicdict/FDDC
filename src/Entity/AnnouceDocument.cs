@@ -60,12 +60,12 @@ public abstract class AnnouceDocument
     /// <summary>
     /// DP列表
     /// </summary>
-    public List<List<struWordDP>> Dplist;
+    public List<List<struWordDP>> Dplist = new List<List<struWordDP>>();
 
     /// <summary>
     /// SRL列表
     /// </summary>
-    public List<List<LTPTrainingSRL.struWordSRL>> Srllist;
+    public List<List<LTPTrainingSRL.struWordSRL>> Srllist = new List<List<LTPTrainingSRL.struWordSRL>>();
 
     /// <summary>
     /// 公告日期
@@ -78,44 +78,39 @@ public abstract class AnnouceDocument
     /// <summary>
     /// 文本文件
     /// </summary>
+    public String HTMLFileName;
+    /// <summary>
+    /// 文本文件
+    /// </summary>
     public String TextFileName;
+    /// <summary>
+    /// NER的XML文件位置
+    /// </summary>
+    public String NerXMLFileName;
     /// <summary>
     /// 初始化
     /// </summary>
     /// <param name="htmlFileName"></param>
-    public void Init(string htmlFileName)
+    public void Init()
     {
-        var fi = new System.IO.FileInfo(htmlFileName);
-        TextFileName = htmlFileName.Replace("html", "txt");
-        if (!TextFileName.EndsWith(".txt"))
-        {
-            //防止无扩展名的html文件
-            TextFileName += ".txt";
-        }
+        var fi = new System.IO.FileInfo(HTMLFileName);
         if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("Start FileName:[" + fi.Name + "]");
-        Id = fi.Name.Replace(".html", String.Empty);
         if (!Program.IsMultiThreadMode) Program.CIRecord.WriteLine("公告ID" + Id);
         if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("公告ID:" + Id);
-        root = new HTMLEngine().Anlayze(htmlFileName, TextFileName);
-        AnnouceCompanyName = String.Empty;
-
-        var XMLFileName = fi.Name.Replace("html", "xml");
-        if (!XMLFileName.EndsWith(".xml"))
+        if (this is StockChange || this is Contract)
         {
-            //防止无扩展名的html文件
-            XMLFileName += ".xml";
+            //增减持和合同的时候，一定要确保文本和XML的存在
+            if (!File.Exists(TextFileName)) Console.WriteLine(TextFileName + "Not Found");
+            if (!File.Exists(NerXMLFileName)) Console.WriteLine(NerXMLFileName + "Not Found");
         }
-        var XMLPath = fi.DirectoryName.Replace("html", "ner");
-        Nerlist = LTPTrainingNER.AnlayzeNER(XMLPath + Path.DirectorySeparatorChar + "" + XMLFileName);
+        root = new HTMLEngine().Anlayze(HTMLFileName, TextFileName);
+        AnnouceCompanyName = String.Empty;
+        Nerlist = LTPTrainingNER.AnlayzeNER(NerXMLFileName);
         foreach (var ner in Nerlist)
         {
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("识别实体：" + ner.RawData + ":" + ner.Type);
         }
         Nerlist = Nerlist.Distinct().ToList();
-        XMLPath = fi.DirectoryName.Replace("html", "dp");
-        Dplist = LTPTrainingDP.AnlayzeDP(XMLPath + Path.DirectorySeparatorChar + "" + XMLFileName);
-        XMLPath = fi.DirectoryName.Replace("html", "srl");
-        Srllist = LTPTrainingSRL.AnlayzeSRL(XMLPath + Path.DirectorySeparatorChar + "" + XMLFileName);
 
         datelist = LocateProperty.LocateDate(root);
         foreach (var m in datelist)
@@ -194,9 +189,11 @@ public abstract class AnnouceDocument
                                 if (s.PositionId == subcompMarkloc.Loc)
                                 {
                                     var length = subcompMarkloc.StartIdx - ner.StartIdx - ner.Value.Length;
+                                    var startidx = ner.StartIdx + ner.Value.Length;
+                                    if (startidx + length >= s.Content.Length) continue;
+                                    if (s.Content.Length < startidx) continue;
                                     if (length <= 0) continue;
-                                    Words = s.Content.Substring(ner.StartIdx + ner.Value.Length,
-                                                                subcompMarkloc.StartIdx - ner.StartIdx - ner.Value.Length);
+                                    Words = s.Content.Substring(startidx, length);
                                     Words = RegularTool.TrimChineseBrackets(Words);
                                     if (Words.Length <= 5) FatherCompany = ner.Value;
                                 }
@@ -554,6 +551,10 @@ public abstract class AnnouceDocument
                             //公司的情况，需要去掉逗号之后的干扰
                             var tempvalue = value;
                             if (tempvalue.Contains("，")) tempvalue = Utility.GetStringBefore(tempvalue, "，");
+                            if (tempvalue.Contains("及其前身"))
+                            {
+                                tempvalue = Utility.GetStringBefore(tempvalue, "及其前身");
+                            }
                             companynamelist.Add(new struCompanyName()
                             {
                                 secFullName = tempvalue,

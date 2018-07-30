@@ -22,17 +22,23 @@ namespace FDDC
         public static StreamWriter CIRecord;
         public static StreamWriter Score;
         /// <summary>
-        /// Windows
+        /// 基本Windows
         /// </summary>
         public static String DocBase = @"E:" + Path.DirectorySeparatorChar + "WorkSpace2018" + Path.DirectorySeparatorChar + "FDDC2018";
+
+
         /// <summary>
-        /// CentOS
+        /// 基本CentOS
         /// </summary>
         //public static String DocBase =  @"/home/118_4";
+
+
+
         /// <summary>
-        /// MAC
+        /// 基本MAC
         /// </summary>
         //public static String DocBase = @"/Users/hu/Desktop/FDDC2018";
+
 
         /// <summary>
         /// 这个模式下，有问题的数据会输出，正式比赛的时候设置为False，降低召回率！
@@ -50,7 +56,9 @@ namespace FDDC
         private static void QuickTestArea()
         {
             var t = new Reorganization();
-            t.Init(ReorganizationPath_TRAIN + "/html/14367.html");
+            t.Id = "346497";
+            t.HTMLFileName = ReorganizationPath_TRAIN + "/html/346497.html";
+            t.Init();
             var recs = t.Extract();
         }
 
@@ -70,7 +78,7 @@ namespace FDDC
             //结巴分词的地名修正词典
             PosNS.ImportNS("Resources" + Path.DirectorySeparatorChar + "ns.dict");
             CIRecord = new StreamWriter("CI.log");
-            QuickTestArea(); return;
+            //QuickTestArea(); return;
             //PDFToTXT.GetPdf2TxtBatchFile();
             //公司全称简称曾用名字典   
             CompanyNameLogic.LoadCompanyName("Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
@@ -78,11 +86,38 @@ namespace FDDC
             Traning();
             Evaluator = new StreamWriter("Evaluator.log");
             Score = new StreamWriter("Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
-            Extract();
+            //Extract();
+            Final();
             CIRecord.Close();
             Score.Close();
             Evaluator.Close();
             Logger.Close();
+        }
+
+        /// <summary>
+        /// 最后用抽取
+        /// </summary>
+        private static void Final()
+        {
+            //TODO:这里可以HardCoding
+            if (!Directory.Exists("/home/118_4/submit")) Directory.CreateDirectory("/home/118_4/submit");
+            Console.WriteLine("Start To Extract Info Contract TRAIN");
+            StreamWriter ResultCSV = new StreamWriter(@"/home/118_4/submit/hetong.txt", false, utf8WithoutBom);
+            Run<Contract>(@"/home/data/hetong", @"/home/118_4/temp/hetong", ResultCSV);
+            Console.WriteLine("Complete Extract Info Contract");
+
+            Console.WriteLine("Start To Extract Info StockChange TRAIN");
+
+            //这里需要修补
+            StockChange.ImportPublishTime();
+            ResultCSV = new StreamWriter(@"/home/118_4/submit/zengjianchi.txt", false, utf8WithoutBom);
+            Run<StockChange>(@"/home/data/zengjianchi", @"/home/118_4/temp/zengjianchi", ResultCSV);
+            Console.WriteLine("Complete Extract Info StockChange");
+
+            Console.WriteLine("Start To Extract Info Reorganization TRAIN");
+            ResultCSV = new StreamWriter(@"/home/118_4/submit/chongzu.txt", false, utf8WithoutBom);
+            Run<Reorganization>(@"/home/data/chongzu", "", ResultCSV);
+            Console.WriteLine("Complete Extract Info Reorganization");
         }
 
         private static void Traning()
@@ -118,11 +153,13 @@ namespace FDDC
         public static string ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
         public static string ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
 
+
         //增减持
         public static bool IsRunStockChange = true;
         public static bool IsRunStockChange_TEST = true;
         public static string StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
         public static string StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "增减持";
+
 
         //资产重组
         public static bool IsRunReorganization = false;
@@ -138,7 +175,7 @@ namespace FDDC
                 //合同处理
                 Console.WriteLine("Start To Extract Info Contract TRAIN");
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong_train.txt", false, utf8WithoutBom);
-                var Contract_Result = Run<Contract>(ContractPath_TRAIN, ResultCSV);
+                var Contract_Result = Run<Contract>(ContractPath_TRAIN, ContractPath_TRAIN, ResultCSV);
                 Evaluate.EvaluateContract(Contract_Result.Select((x) => (ContractRec)x).ToList());
                 Console.WriteLine("Complete Extract Info Contract");
             }
@@ -147,7 +184,7 @@ namespace FDDC
                 //IsMultiThreadMode = false;
                 Console.WriteLine("Start To Extract Info Contract TEST");
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong.txt", false, utf8WithoutBom);
-                var Contract_Result = Run<Contract>(ContractPath_TEST, ResultCSV);
+                var Contract_Result = Run<Contract>(ContractPath_TEST, ContractPath_TEST, ResultCSV);
                 Console.WriteLine("Complete Extract Info Contract");
             }
 
@@ -162,7 +199,7 @@ namespace FDDC
             {
                 Console.WriteLine("Start To Extract Info StockChange TRAIN");
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "zengjianchi_train.txt", false, utf8WithoutBom);
-                var StockChange_Result = Run<StockChange>(StockChangePath_TRAIN, ResultCSV);
+                var StockChange_Result = Run<StockChange>(StockChangePath_TRAIN, StockChangePath_TRAIN, ResultCSV);
                 Evaluate.EvaluateStockChange(StockChange_Result.Select((x) => (StockChangeRec)x).ToList());
                 Console.WriteLine("Complete Extract Info StockChange");
             }
@@ -170,7 +207,7 @@ namespace FDDC
             {
                 Console.WriteLine("Start To Extract Info StockChange TEST");
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "zengjianchi.txt", false, utf8WithoutBom);
-                var StockChange_Result = Run<StockChange>(StockChangePath_TEST, ResultCSV);
+                var StockChange_Result = Run<StockChange>(StockChangePath_TEST, StockChangePath_TEST, ResultCSV);
                 Console.WriteLine("Complete Extract Info StockChange");
             }
 
@@ -179,7 +216,7 @@ namespace FDDC
             {
                 Console.WriteLine("Start To Extract Info Reorganization TRAIN");
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "chongzu_train.txt", false, utf8WithoutBom);
-                var Reorganization_Result = Run<Reorganization>(ReorganizationPath_TRAIN, ResultCSV);
+                var Reorganization_Result = Run<Reorganization>(ReorganizationPath_TRAIN, "", ResultCSV);
                 Evaluate.EvaluateReorganization(Reorganization_Result.Select((x) => (ReorganizationRec)x).ToList());
                 Console.WriteLine("Complete Extract Info Reorganization");
             }
@@ -187,7 +224,7 @@ namespace FDDC
             {
                 Console.WriteLine("Start To Extract Info Reorganization TEST");
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "chongzu.txt", false, utf8WithoutBom);
-                var Reorganization_Result = Run<Reorganization>(ReorganizationPath_TEST, ResultCSV);
+                var Reorganization_Result = Run<Reorganization>(ReorganizationPath_TEST, "", ResultCSV);
                 Console.WriteLine("Complete Extract Info Reorganization");
             }
 
@@ -196,19 +233,27 @@ namespace FDDC
         /// <summary>
         /// 运行
         /// </summary>
-        /// <param name="path"></param>
+        /// <param name="DataPath"></param>
         /// <typeparam name="T">公告类型</typeparam>
         /// <typeparam name="S">记录类型</typeparam>
-        public static List<RecordBase> Run<T>(string path, StreamWriter ResultCSV) where T : AnnouceDocument, new()
+        public static List<RecordBase> Run<T>(string DataPath, string TmpPath, StreamWriter ResultCSV) where T : AnnouceDocument, new()
         {
             var Announce_Result = new List<RecordBase>();
             if (IsMultiThreadMode)
             {
                 var Bag = new ConcurrentBag<RecordBase>();    //线程安全版本
-                Parallel.ForEach(System.IO.Directory.GetFiles(path + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar), (filename) =>
+                Parallel.ForEach(System.IO.Directory.GetFiles(DataPath + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar), (filename) =>
                 {
                     var announce = new T();
-                    announce.Init(filename);
+                    var fi = new System.IO.FileInfo(filename);
+                    announce.Id = fi.Name.Replace(".html", String.Empty);
+                    announce.HTMLFileName = filename;
+                    if (!String.IsNullOrEmpty(TmpPath))
+                    {
+                        announce.TextFileName = TmpPath + Path.DirectorySeparatorChar + "txt" + Path.DirectorySeparatorChar + announce.Id + ".txt";
+                        announce.NerXMLFileName = TmpPath + Path.DirectorySeparatorChar + "ner" + Path.DirectorySeparatorChar + announce.Id + ".xml";
+                    }
+                    announce.Init();
                     foreach (var item in announce.Extract())
                     {
                         Bag.Add(item);
@@ -218,11 +263,19 @@ namespace FDDC
             }
             else
             {
-                foreach (var filename in System.IO.Directory.GetFiles(path + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
+                foreach (var filename in System.IO.Directory.GetFiles(DataPath + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar))
                 {
-                    var contract = new T();
-                    contract.Init(filename);
-                    foreach (var item in contract.Extract())
+                    var announce = new T();
+                    var fi = new System.IO.FileInfo(filename);
+                    announce.Id = fi.Name.Replace(".html", String.Empty);
+                    announce.HTMLFileName = filename;
+                    if (!String.IsNullOrEmpty(TmpPath))
+                    {
+                        announce.TextFileName = TmpPath + Path.DirectorySeparatorChar + "txt" + Path.DirectorySeparatorChar + announce.Id + ".txt";
+                        announce.NerXMLFileName = TmpPath + Path.DirectorySeparatorChar + "ner" + Path.DirectorySeparatorChar + announce.Id + ".xml";
+                    }
+                    announce.Init();
+                    foreach (var item in announce.Extract())
                     {
                         Announce_Result.Add(item);
                     }
