@@ -24,15 +24,13 @@ namespace FDDC
         /// <summary>
         /// 基本Windows
         /// </summary>
-        public static String DocBase = @"E:" + Path.DirectorySeparatorChar + "WorkSpace2018" + Path.DirectorySeparatorChar + "FDDC2018";
+        //public static String DocBase = @"E:" + Path.DirectorySeparatorChar + "WorkSpace2018" + Path.DirectorySeparatorChar + "FDDC2018";
 
 
         /// <summary>
         /// 基本CentOS
         /// </summary>
-        //public static String DocBase =  @"/home/118_4";
-
-
+        public static String DocBase =  @"/home/118_4";
 
         /// <summary>
         /// 基本MAC
@@ -86,8 +84,8 @@ namespace FDDC
             Traning();
             Evaluator = new StreamWriter("Evaluator.log");
             Score = new StreamWriter("Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
-            //Extract();
-            Final();
+            Extract();
+            //Final();
             CIRecord.Close();
             Score.Close();
             Evaluator.Close();
@@ -148,21 +146,21 @@ namespace FDDC
         }
 
         //重大合同
-        public static bool IsRunContract = true;
-        public static bool IsRunContract_TEST = true;
+        public static bool IsRunContract = false;
+        public static bool IsRunContract_TEST = false;
         public static string ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
         public static string ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
 
 
         //增减持
-        public static bool IsRunStockChange = true;
-        public static bool IsRunStockChange_TEST = true;
+        public static bool IsRunStockChange = false;
+        public static bool IsRunStockChange_TEST = false;
         public static string StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
         public static string StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "增减持";
 
 
         //资产重组
-        public static bool IsRunReorganization = false;
+        public static bool IsRunReorganization = true;
         public static bool IsRunReorganization_TEST = false;
         public static string ReorganizationPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型训练数据-20180712" + Path.DirectorySeparatorChar + "资产重组";
         public static string ReorganizationPath_TEST = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型测试数据-20180712" + Path.DirectorySeparatorChar + "资产重组";

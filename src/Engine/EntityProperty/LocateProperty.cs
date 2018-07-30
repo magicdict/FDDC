@@ -312,6 +312,7 @@ public static class LocateProperty
                 var OrgString = sentence.Content.Replace(" ", "");
                 foreach (var word in CustomerWord)
                 {
+                    if (String.IsNullOrEmpty(word)) continue;
                     int ScanStartIdx = 0;
                     int Count = 0;
                     while (OrgString.IndexOf(word, ScanStartIdx) != -1)
@@ -328,8 +329,8 @@ public static class LocateProperty
                         {
                             //死循环的防止
                             Console.WriteLine("OrgString:" + OrgString);
-                            Console.WriteLine("word:" + word);
-                            break;
+                            Console.WriteLine("word:[" + word + "]");
+                            throw new System.ArgumentException();
                         }
                         ScanStartIdx = OrgString.IndexOf(word, ScanStartIdx) + word.Length;
                     }
