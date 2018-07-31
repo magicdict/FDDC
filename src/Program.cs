@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using static Contract;
 using static IncreaseStock;
 using static StockChange;
+using NPOI.ReadExcel;
 
 namespace FDDC
 {
@@ -30,7 +31,7 @@ namespace FDDC
         /// <summary>
         /// 基本CentOS
         /// </summary>
-        //public static String DocBase =  @"/home/118_4";
+        //public static String DocBase = @"/home/118_4";
 
         /// <summary>
         /// 基本MAC
@@ -53,14 +54,25 @@ namespace FDDC
         /// </summary>
         private static void QuickTestArea()
         {
-            var t = new StockChange();
-            t.Id = "346497";
-            t.HTMLFileName = StockChangePath_TEST + "/html/407056.html";
+            Evaluator = new StreamWriter("Evaluator.log");
+            Score = new StreamWriter("Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
+            TraningDataset.InitReorganization();
+            Evaluate.EvaluateReorganizationByFile(@"E:\WorkSpace2018\FDDC2018\FDDC_SRC\Result\chongzu_train.txt");
+            Score.Close();
+            Evaluator.Close();
+
+            var t = new Contract();
+            t.Id = "82698";
+            t.HTMLFileName = ContractPath_TRAIN + "/html/39498.html";
+            t.TextFileName = ContractPath_TRAIN + "/txt/39498.txt";
             t.Init();
             var recs = t.Extract();
         }
 
-        static void Main(string[] args)
+
+
+
+        static void Main_TRAIN(string[] args)
         {
             if (Environment.OSVersion.Platform == System.PlatformID.Unix)
             {
@@ -80,12 +92,11 @@ namespace FDDC
             //PDFToTXT.GetPdf2TxtBatchFile();
             //公司全称简称曾用名字典   
             CompanyNameLogic.LoadCompanyName("Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
-            //预处理
-            Traning();
             Evaluator = new StreamWriter("Evaluator.log");
             Score = new StreamWriter("Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
+            //预处理
+            Traning();
             Extract();
-            //Final();
             CIRecord.Close();
             Score.Close();
             Evaluator.Close();
@@ -95,9 +106,16 @@ namespace FDDC
         /// <summary>
         /// 最后用抽取
         /// </summary>
-        private static void Final()
+        static void Main(string[] args)
         {
-            //TODO:这里可以HardCoding
+            Logger = new StreamWriter("Log.log");
+            //实体属性器日志设定
+            EntityProperty.Logger = Logger;
+            //全局编码    
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            //结巴分词的地名修正词典
+            PosNS.ImportNS("Resources" + Path.DirectorySeparatorChar + "ns.dict");
+
             if (!Directory.Exists("/home/118_4/submit")) Directory.CreateDirectory("/home/118_4/submit");
             Console.WriteLine("Start To Extract Info Contract TRAIN");
             StreamWriter ResultCSV = new StreamWriter(@"/home/118_4/submit/hetong.txt", false, utf8WithoutBom);
@@ -105,31 +123,45 @@ namespace FDDC
             Console.WriteLine("Complete Extract Info Contract");
 
             Console.WriteLine("Start To Extract Info StockChange TRAIN");
+            Console.WriteLine("读取增减持信息：" + "/home/data/zengjianchi/zengjianchi_public.xlsx");
 
-            //这里需要修补
-            StockChange.ImportPublishTime();
+            var excel = new ExcelHelper("/home/data/zengjianchi/zengjianchi_public.xlsx");
+            var dt = excel.ExcelToDataTable("",true);
+           
+            foreach (var row in dt.Rows)
+            {
+                PublishTime.Add(row[1], row[0]);
+            }
+
+
+            Console.WriteLine("读取增减持信息：" + PublishTime.Count);
             ResultCSV = new StreamWriter(@"/home/118_4/submit/zengjianchi.txt", false, utf8WithoutBom);
             Run<StockChange>(@"/home/data/zengjianchi", @"/home/118_4/temp/zengjianchi", ResultCSV);
             Console.WriteLine("Complete Extract Info StockChange");
 
             Console.WriteLine("Start To Extract Info Reorganization TRAIN");
+            //替代训练结果
+            Console.WriteLine("加载替代训练结果");
+            ReOrganizationTraning.EvaluateMethodList = new string[]{
+                "收益法","资产基础法","市场法","市场比较法","估值法","成本法","现金流折现法","现金流折现法",
+                "内含价值调整法","可比公司市净率法","重置成本法","收益现值法","基础资产法","假设清偿法",
+                "成本逼近法","单项资产加和法","成本加和法","基准地价修正法","收益还原法","现金流量法","单项资产加总法","折现现金流量法"
+            }.ToList();
             ResultCSV = new StreamWriter(@"/home/118_4/submit/chongzu.txt", false, utf8WithoutBom);
             Run<Reorganization>(@"/home/data/chongzu", "", ResultCSV);
             Console.WriteLine("Complete Extract Info Reorganization");
+
+            Logger.Close();
         }
 
         private static void Traning()
         {
-            Training = new StreamWriter("Training.log");
-
             TraningDataset.InitContract();
             TraningDataset.InitStockChange();
             TraningDataset.InitReorganization();
-
-            ContractTraning.Train();
-            //StockChangeTraning.Traning(); 没有实质性的统计
-            ReOrganizationTraning.Train();
-
+            Training = new StreamWriter("Training.log");
+            //ContractTraning.Train();
+            //ReOrganizationTraning.Train();
             Training.Close();
         }
 
@@ -146,7 +178,7 @@ namespace FDDC
         }
 
         //重大合同
-        public static bool IsRunContract = false;
+        public static bool IsRunContract = true;
         public static bool IsRunContract_TEST = false;
         public static string ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
         public static string ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
@@ -162,6 +194,8 @@ namespace FDDC
         //资产重组
         public static bool IsRunReorganization = false;
         public static bool IsRunReorganization_TEST = false;
+
+
         public static string ReorganizationPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型训练数据-20180712" + Path.DirectorySeparatorChar + "资产重组";
         public static string ReorganizationPath_TEST = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型测试数据-20180712" + Path.DirectorySeparatorChar + "资产重组";
 
@@ -169,7 +203,6 @@ namespace FDDC
         {
             if (IsRunContract)
             {
-                //IsMultiThreadMode = true;
                 //合同处理
                 Console.WriteLine("Start To Extract Info Contract TRAIN");
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong_train.txt", false, utf8WithoutBom);
@@ -179,7 +212,6 @@ namespace FDDC
             }
             if (IsRunContract_TEST)
             {
-                //IsMultiThreadMode = false;
                 Console.WriteLine("Start To Extract Info Contract TEST");
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "hetong.txt", false, utf8WithoutBom);
                 var Contract_Result = Run<Contract>(ContractPath_TEST, ContractPath_TEST, ResultCSV);
@@ -207,6 +239,17 @@ namespace FDDC
                 StreamWriter ResultCSV = new StreamWriter("Result" + Path.DirectorySeparatorChar + "zengjianchi.txt", false, utf8WithoutBom);
                 var StockChange_Result = Run<StockChange>(StockChangePath_TEST, StockChangePath_TEST, ResultCSV);
                 Console.WriteLine("Complete Extract Info StockChange");
+            }
+
+            if (IsRunReorganization || IsRunReorganization_TEST)
+            {
+                //替代训练结果
+                Console.WriteLine("加载替代训练结果");
+                ReOrganizationTraning.EvaluateMethodList = new string[]{
+                    "收益法","资产基础法","市场法","市场比较法","估值法","成本法","现金流折现法","现金流折现法",
+                    "内含价值调整法","可比公司市净率法","重置成本法","收益现值法","基础资产法","假设清偿法",
+                    "成本逼近法","单项资产加和法","成本加和法","基准地价修正法","收益还原法","现金流量法","单项资产加总法","折现现金流量法"
+                }.ToList();
             }
 
             //资产重组
@@ -245,16 +288,28 @@ namespace FDDC
                     var announce = new T();
                     var fi = new System.IO.FileInfo(filename);
                     announce.Id = fi.Name.Replace(".html", String.Empty);
-                    announce.HTMLFileName = filename;
-                    if (!String.IsNullOrEmpty(TmpPath))
+                    //以下一定要删除！！
+                    //if ((int.Parse(announce.Id) % 2) != 1)
                     {
-                        announce.TextFileName = TmpPath + Path.DirectorySeparatorChar + "txt" + Path.DirectorySeparatorChar + announce.Id + ".txt";
-                        announce.NerXMLFileName = TmpPath + Path.DirectorySeparatorChar + "ner" + Path.DirectorySeparatorChar + announce.Id + ".xml";
-                    }
-                    announce.Init();
-                    foreach (var item in announce.Extract())
-                    {
-                        Bag.Add(item);
+                        announce.HTMLFileName = filename;
+                        if (!String.IsNullOrEmpty(TmpPath))
+                        {
+                            announce.TextFileName = TmpPath + Path.DirectorySeparatorChar + "txt" + Path.DirectorySeparatorChar + announce.Id + ".txt";
+                            announce.NerXMLFileName = TmpPath + Path.DirectorySeparatorChar + "ner" + Path.DirectorySeparatorChar + announce.Id + ".xml";
+                            if (!File.Exists(announce.TextFileName))
+                            {
+                                Console.WriteLine(announce.Id + "TxtFileNotFound：" + announce.TextFileName);
+                            }
+                            if (!File.Exists(announce.NerXMLFileName))
+                            {
+                                Console.WriteLine(announce.Id + "NerXMLFileNotFound：" + announce.NerXMLFileName);
+                            }
+                        }
+                        announce.Init();
+                        foreach (var item in announce.Extract())
+                        {
+                            Bag.Add(item);
+                        }
                     }
                 });
                 Announce_Result = Bag.ToList();

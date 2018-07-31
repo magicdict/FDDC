@@ -50,7 +50,7 @@ def pdfTotxt(fileDir,txtDir,nerDir):
         try:
             if not os.path.exists(outPath):
                 print(filePath, outPath)
-                os.chdir("/home/118_4/")
+                os.chdir("/home/118_4/code")
                 os.system("python pdf2txt.py " + filePath + " > " + outPath)
                 Reformat(outPath)
                 os.chdir("/home/118_4/ltp-3.4.0/bin")
@@ -67,5 +67,5 @@ if not os.path.exists("/home/118_4/temp/zengjianchi"):
         os.mkdir("/home/118_4/temp/zengjianchi")
 pdfTotxt('/home/data/hetong/','/home/118_4/temp/hetong/txt/','/home/118_4/temp/hetong/ner/')
 pdfTotxt('/home/data/zengjianchi/','/home/118_4/temp/zengjianchi/txt/','/home/118_4/temp/zengjianchi/ner/')
-#os.chdir("/home/118_4/FDDC_SRC")
-#os.system("dotnet run")
+os.chdir("/home/118_4/code")
+os.system("dotnet run")

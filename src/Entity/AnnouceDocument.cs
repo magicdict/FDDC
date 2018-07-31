@@ -45,6 +45,11 @@ public abstract class AnnouceDocument
     public List<LocAndValue<String>> percentList;
 
     public List<LocAndValue<String>> StockNumberList;
+    /// <summary>
+    /// 自定义
+    /// </summary>
+    /// <returns></returns>
+    public List<LocAndValue<String>> CustomerList =  new List<LocAndValue<String>>();
 
     /// <summary>
     /// NER列表(机构)
@@ -432,7 +437,7 @@ public abstract class AnnouceDocument
                 {
                     //是否存在引号里面的词语正好是公司全称的开始
                     if (item.Description != "引号") continue;
-                    if (cn.secFullName.StartsWith(item.Value))
+                    if (cn.secFullName.StartsWith(item.Value) && !cn.secFullName.Equals(item.Value))
                     {
                         var newComp = new struCompanyName()
                         {

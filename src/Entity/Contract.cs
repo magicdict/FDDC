@@ -10,15 +10,9 @@ using static LocateProperty;
 
 public partial class Contract : AnnouceDocument
 {
-    List<String> ProjectNameList = new List<String>();
 
     public override List<RecordBase> Extract()
     {
-        ProjectNameList = ProjectNameLogic.GetProjectNameByCutWord(root);
-        foreach (var m in ProjectNameList)
-        {
-            if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("工程名：" + m);
-        }
         var ContractList = ExtractMulti();
         if (ContractList.Count != 0) return ContractList;
         var SingleItem = ExtractSingle();
@@ -423,11 +417,20 @@ public partial class Contract : AnnouceDocument
         e.LeadingColonKeyWordList = new string[] { "项目名称：", "工程名称：", "中标项目：", "合同标的：", "工程内容：" };
         e.LeadingColonKeyWordCandidatePreprocess = TrimEndJianCheng;
         e.QuotationTrailingWordList = new string[] { "工程", "标段", "标", "招标活动", "项目", "采购" };
+        e.Extract(this);
+        var prj = e.EvaluateCI();
+        if (!String.IsNullOrEmpty(prj))
+        {
+            return ExtendProjectName(prj);
+        }
+
+        
+        var ProjectNameList = ProjectNameLogic.GetProjectNameByCutWord(root);
         var StartArray = new string[] { "公司为", "参与了", "确定为" };
         var EndArray = new string[] { "的中标单位", "的公开招投标", "的中标人", "候选人" };
         e.ExternalStartEndStringFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
         e.Extract(this);
-        var prj = e.EvaluateCI();
+        prj = e.EvaluateCI();
         if (!String.IsNullOrEmpty(prj))
         {
             return ExtendProjectName(prj);
@@ -464,8 +467,8 @@ public partial class Contract : AnnouceDocument
         var e = new EntityProperty();
         e.PropertyName = "合同名称";
         e.PropertyType = EntityProperty.enmType.NER;
-        e.MaxLength = ContractTraning.ContractES.MaxLength;
-        e.MinLength = ContractTraning.ContractES.MinLength;
+        e.MaxLength = 200;
+        e.MinLength = 4;
         e.LeadingColonKeyWordList = new string[] { "合同名称：" };
         e.QuotationTrailingWordList = new string[] { "协议书", "合同书", "确认书", "合同", "协议" };
         e.QuotationTrailingWordList_IsSkipBracket = true;   //暂时只能选True
@@ -532,16 +535,16 @@ public partial class Contract : AnnouceDocument
     /// <returns></returns>
     (String MoneyAmount, String MoneyCurrency) GetMoney()
     {
-        var Extractor = new ExtractPropertyByHTML();
+        var Extractor = new ExtractPropertyByText();
         Extractor.LeadingColonKeyWordList = new string[] {
-            "订单总金额：","订单金额：","订单总价：","订单额：",
+            "订单总金额：","订单金额：","订单总价：","订单额：","金额：","中标成交金额（元）：",
             "合同总投资：", "合同总价：","合同金额：", "合同额：","合同总额：","合同总金额：","合同价：","合同价格：",
-            "中标业务总额","中标总金额", "中标金额", "中标价","中标总价",
-            "项目总价：","项目总投资：","项目估算总投资：", "项目投资额：","项目投资估算：","项目预计总投资：",
+            "中标业务总额","中标总金额", "中标金额", "中标价","中标总价","交易价格：",
+            "项目总价：","项目总投资：","项目估算总投资：", "项目投资额：","项目投资估算：","项目预计总投资：","投资总额：",
             "工程总价：","工程总投资：","工程估算总投资：", "工程投资额：","工程投资估算：","工程预计总投资：",
             "投标价格：","投标金额：","投标额：","投标总金额：","投标报价：","预算金额：","合同费用总额：","合同投资金额（人民币）："
         };
-        Extractor.Extract(root);
+        Extractor.ExtractFromTextFile(TextFileName);
         var AllMoneyList = new List<(String MoneyAmount, String MoneyCurrency)>();
         foreach (var item in Extractor.CandidateWord)
         {
@@ -573,11 +576,11 @@ public partial class Contract : AnnouceDocument
         Extractor.LeadingColonKeyWordList = new string[] {
             "订单总金额","订单金额","订单总价","订单额",
             "合同总投资", "合同总价","合同金额", "合同额","合同总额","合同总金额","合同价","合同价格",
-            "中标业务总额","中标总金额", "中标金额", "中标价","中标总价",
+            "中标业务总额","中标总金额", "中标金额", "中标价","中标总价","交易总金额","交易价格",
             "项目总价","项目总投资","项目估算总投资", "项目投资额","项目投资估算","项目预计总投资",
             "工程总价","工程总投资","工程估算总投资", "工程投资额","工程投资估算","工程预计总投资",
-            "投标价格","投标金额","投标额","投标总金额","投标报价","预算金额" };
-        Extractor.Extract(root);
+            "投标价格","投标金额","投标额","投标总金额","投标报价","预算金额","预算总投资" };
+        Extractor.ExtractFromTextFile(TextFileName);
         AllMoneyList = new List<(String MoneyAmount, String MoneyCurrency)>();
         foreach (var item in Extractor.CandidateWord)
         {
@@ -704,6 +707,7 @@ public partial class Contract : AnnouceDocument
         {
             if (!String.IsNullOrEmpty(cn.secShortName) && union.Equals(cn.secShortName))
             {
+                //去除简称
                 return true;
             }
         }
@@ -713,8 +717,7 @@ public partial class Contract : AnnouceDocument
             {
                 if (union.Equals(cn.FatherName))
                 {
-                    IsJiaYiFang = true;
-                    break;
+                    return true;
                 }
             }
 
@@ -728,15 +731,13 @@ public partial class Contract : AnnouceDocument
                         if (union.Equals(JiaFang))
                         {
                             //如果联合体是甲方公司的全称
-                            IsJiaYiFang = true;
-                            break;
+                            return true;
                         }
                         if (!String.IsNullOrEmpty(cn.secShortName))
                         {
                             if (union.Equals(cn.secShortName))
                             {
-                                IsJiaYiFang = true;
-                                break;
+                                return true;
                             }
                         }
                     }
@@ -747,15 +748,13 @@ public partial class Contract : AnnouceDocument
                     {
                         if (union.Equals(YiFang))
                         {
-                            IsJiaYiFang = true;
-                            break;
+                            return true;
                         }
                         if (!String.IsNullOrEmpty(cn.secShortName))
                         {
                             if (union.Equals(cn.secShortName))
                             {
-                                IsJiaYiFang = true;
-                                break;
+                                return true;
                             }
                         }
                     }
@@ -770,15 +769,13 @@ public partial class Contract : AnnouceDocument
                     {
                         if (union.Equals(JiaFang))
                         {
-                            IsJiaYiFang = true;
-                            break;
+                            return true;
                         }
                         if (!String.IsNullOrEmpty(cn.secFullName))
                         {
                             if (union.Equals(cn.secFullName))
                             {
-                                IsJiaYiFang = true;
-                                break;
+                                return true;
                             }
                         }
                     }
@@ -789,15 +786,13 @@ public partial class Contract : AnnouceDocument
                     {
                         if (union.Equals(YiFang))
                         {
-                            IsJiaYiFang = true;
-                            break;
+                            return true;
                         }
                         if (!String.IsNullOrEmpty(cn.secFullName))
                         {
                             if (union.Equals(cn.secFullName))
                             {
-                                IsJiaYiFang = true;
-                                break;
+                                return true;
                             }
                         }
                     }

@@ -5,6 +5,7 @@ using System.Linq;
 using static IncreaseStock;
 using static StockChange;
 using static Contract;
+using System.IO;
 
 public static class Evaluate
 {
@@ -90,11 +91,11 @@ public static class Evaluate
                     F1_ID.PutItemData(contract.Id, contract_Result.Id);
                     F1_JiaFang.PutItemData(contract.JiaFang, contract_Result.JiaFang);
                     F1_YiFang.PutItemData(contract.YiFang, contract_Result.YiFang);
-                    F1_ProjectName.PutItemData(contract.ProjectName, contract_Result.ProjectName, contract.Id);
-                    F1_ContractName.PutItemData(contract.ContractName, contract_Result.ContractName, contract.Id);
-                    F1_ContractMoneyUpLimit.PutItemData(contract.ContractMoneyUpLimit, contract_Result.ContractMoneyUpLimit);
+                    F1_ProjectName.PutItemData(contract.ProjectName, contract_Result.ProjectName);
+                    F1_ContractName.PutItemData(contract.ContractName, contract_Result.ContractName);
+                    F1_ContractMoneyUpLimit.PutItemData(contract.ContractMoneyUpLimit, contract_Result.ContractMoneyUpLimit, contract.Id);
                     F1_ContractMoneyDownLimit.PutItemData(contract.ContractMoneyDownLimit, contract_Result.ContractMoneyDownLimit);
-                    F1_UnionMember.PutItemData(contract.UnionMember, contract_Result.UnionMember, contract.Id);
+                    F1_UnionMember.PutItemData(contract.UnionMember, contract_Result.UnionMember);
                     break;
                 }
             }
@@ -104,6 +105,20 @@ public static class Evaluate
         F1_ContractName.F1 + F1_ContractMoneyUpLimit.F1 + F1_ContractMoneyDownLimit.F1 + F1_UnionMember.F1) / 8;
         Program.Score.WriteLine("合同score:" + score);
         Program.Score.Flush();
+    }
+
+
+    public static void EvaluateReorganizationByFile(string txtfilename)
+    {
+        List<ReorganizationRec> resultDataset = new List<ReorganizationRec>();
+        var sr = new StreamReader(txtfilename);
+        while (!sr.EndOfStream)
+        {
+            resultDataset.Add(ReorganizationRec.ConvertFromString(sr.ReadLine()));
+        }
+        Console.WriteLine("资产重组标准结果数:" + resultDataset.Count);
+        sr.Close();
+        EvaluateReorganization(resultDataset);
     }
 
     /// <summary>

@@ -6,7 +6,8 @@
   <ItemGroup>
     <PackageReference Include="HtmlAgilityPack" Version="1.8.2"/>
     <PackageReference Include="Jieba.NETCore" Version="1.0.8"/>
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.5.0-rc1"/>
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.5.0"/>
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2"/>
+    <PackageReference Include="DotNetCore.NPOI" Version="1.2.0"/>
   </ItemGroup>
 </Project>

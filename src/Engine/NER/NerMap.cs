@@ -22,6 +22,7 @@ public class NerMap
     /// <param name="doc"></param>
     public void Anlayze(AnnouceDocument doc)
     {
+        ParagraghlocateDict.Clear();
         var nerlist = new List<LocAndValue<String>>();
         if (doc.Nerlist != null)
         {
@@ -78,6 +79,10 @@ public class NerMap
         {
             if (item.Loc == PosId) paragragh.socketNumberList.Add(item);
         }
+        foreach (var item in doc.CustomerList)
+        {
+            if (item.Loc == PosId) paragragh.NerList.Add(item);
+        }
         foreach (var item in doc.quotationList)
         {
             if (item.Loc == PosId) paragragh.NerList.Add(item);
@@ -107,6 +112,9 @@ public class NerMap
         /// 股份数
         /// </summary>
         public List<LocAndValue<String>> socketNumberList;
+
+        public List<LocAndValue<String>> CustomerList;
+
         /// <summary>
         /// 金额
         /// </summary>
@@ -124,6 +132,7 @@ public class NerMap
             NerList = new List<LocAndValue<String>>();
             percentList = new List<LocAndValue<String>>();
             socketNumberList = new List<LocAndValue<String>>();
+            CustomerList = new List<LocAndValue<String>>();
         }
     }
 }

@@ -57,7 +57,7 @@ public class StockChange : AnnouceDocument
         stockchange.Id = Id;
         //if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("公告ID:" + stockchange.id);
         stockchange.HolderFullName = Name.FullName.NormalizeTextResult();
-        if (Utility.TrimEnglish(stockchange.HolderFullName).Length > ContractTraning.JiaFangES.MaxLength)
+        if (Utility.TrimEnglish(stockchange.HolderFullName).Length > 32)
         {
             stockchange.HolderFullName = String.Empty;
         }
