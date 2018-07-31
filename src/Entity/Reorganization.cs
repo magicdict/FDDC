@@ -9,7 +9,9 @@ public class Reorganization : AnnouceDocument
 {
     public override List<RecordBase> Extract()
     {
-        Console.WriteLine("ID:" + Id);
+        Program.Logger.WriteLine("ID:" + Id);
+        Program.Logger.Flush();
+        
         InitTableRules();
         var list = new List<RecordBase>();
         var targets = getTargetListFromReplaceTable();

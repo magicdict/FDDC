@@ -36,19 +36,17 @@ public class NerMap
             nerlist.AddRange(LocateCustomerWord(doc.root, nh.ToList(), "人名"));
         }
 
-        {
-            var FullNameList = doc.companynamelist.Select((x) => x.secFullName).ToList();
-            FullNameList = FullNameList.Where(x => !String.IsNullOrEmpty(x)).Distinct().ToList();
-            //补充公司名称
-            nerlist.AddRange(LocateCustomerWord(doc.root, FullNameList, "公司名"));
-        }
+        var FullNameList = doc.companynamelist.Select((x) => x.secFullName).ToList();
+        FullNameList = FullNameList.Where(x => !String.IsNullOrEmpty(x)).Distinct().ToList();
+        //补充公司名称
+        nerlist.AddRange(LocateCustomerWord(doc.root, FullNameList, "公司名"));
 
         foreach (var paragragh in doc.root.Children)
         {
             foreach (var s in paragragh.Children)
             {
                 var p = LocateParagraphInfo(doc, s.PositionId, nerlist);
-                if (p.NerList.Count + p.moneylist.Count + p.datelist.Count + p.percentList.Count != 0)
+                if (p.NerList.Count + p.moneylist.Count + p.datelist.Count + p.percentList.Count + p.socketNumberList.Count != 0)
                 {
                     if (!ParagraghlocateDict.ContainsKey(s.PositionId)) ParagraghlocateDict.Add(s.PositionId, p);
                 }
@@ -76,6 +74,10 @@ public class NerMap
         {
             if (item.Loc == PosId) paragragh.percentList.Add(item);
         }
+        foreach (var item in doc.StockNumberList)
+        {
+            if (item.Loc == PosId) paragragh.socketNumberList.Add(item);
+        }
         foreach (var item in doc.quotationList)
         {
             if (item.Loc == PosId) paragragh.NerList.Add(item);
@@ -102,6 +104,10 @@ public class NerMap
         /// </summary>
         public List<LocAndValue<String>> percentList;
         /// <summary>
+        /// 股份数
+        /// </summary>
+        public List<LocAndValue<String>> socketNumberList;
+        /// <summary>
         /// 金额
         /// </summary>
         /// <param name="MoneyAmount"></param>
@@ -117,6 +123,7 @@ public class NerMap
             moneylist = new List<LocAndValue<(String MoneyAmount, String MoneyCurrency)>>();
             NerList = new List<LocAndValue<String>>();
             percentList = new List<LocAndValue<String>>();
+            socketNumberList = new List<LocAndValue<String>>();
         }
     }
 }

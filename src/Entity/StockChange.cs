@@ -82,15 +82,63 @@ public class StockChange : AnnouceDocument
 
         if (list.Count == 0)
         {
-            ExtractSingle();
+            stockchange = ExtractSingle();
+            stockchange.Id = Id;
+            if (!String.IsNullOrEmpty(stockchange.HolderFullName) && !String.IsNullOrEmpty(stockchange.ChangeEndDate)) list.Add(stockchange);
         }
         return list;
     }
 
 
-    public void ExtractSingle()
+    public StockChangeRec ExtractSingle()
     {
-
+        var StockChange = new StockChangeRec();
+        foreach (var nerItem in nermap.ParagraghlocateDict)
+        {
+            var ner = nerItem.Value;
+            if (ner.datelist.Count == 1 &&
+                ner.socketNumberList.Count >= 1 &&
+                ner.percentList.Count >= 1)
+            {
+                StockChange.ChangeEndDate = ner.datelist.First().Value.ToString("yyyy-MM-dd");
+                if (companynamelist.Count == 1)
+                {
+                    StockChange.HolderFullName = companynamelist[0].secFullName;
+                    StockChange.HolderShortName = companynamelist[0].secShortName;
+                }
+                else
+                {
+                    var hn = GetHolderName();
+                    StockChange.HolderFullName = hn.FullName;
+                    StockChange.HolderShortName = hn.ShortName;
+                }
+                //寻找增持前，增持后这样的关键字
+                var Keyword = LocateCustomerWord(root, new string[] { "增持后", "减持后 " }.ToList(), "关键字");
+                foreach (var k in Keyword)
+                {
+                    if (k.Loc == nerItem.Key)
+                    {
+                        foreach (var p in ner.percentList)
+                        {
+                            if (p.StartIdx > k.StartIdx)
+                            {
+                                StockChange.HoldPercentAfterChange = getAfterpercent(p.Value);
+                                break;
+                            }
+                        }
+                        foreach (var p in ner.socketNumberList)
+                        {
+                            if (p.StartIdx > k.StartIdx)
+                            {
+                                StockChange.HoldNumberAfterChange = getAfterstock("", p.Value.NormalizeNumberResult());
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return StockChange;
     }
 
     /// <summary>

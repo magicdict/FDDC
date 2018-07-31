@@ -56,6 +56,30 @@ public static class LocateProperty
         }
     }
 
+
+    /// <summary>
+    /// 股数
+    /// </summary>
+    /// <param name="root"></param>
+    /// <returns></returns>
+    public static List<LocAndValue<String>> LocateStockNumber(HTMLEngine.MyRootHtmlNode root)
+    {
+        var targetRegular = new ExtractProperyBase.struRegularExpressFeature()
+        {
+            RegularExpress = @"\d+(,\d+)+",
+            TrailingWordList = new string[] { "股" }.ToList()
+        };
+        var list = new List<LocAndValue<String>>();
+        foreach (var paragrah in root.Children)
+        {
+            foreach (var sentence in paragrah.Children)
+            {
+                var ExpResult = ExtractPropertyByHTML.RegularExFinder(sentence.PositionId, sentence.Content, targetRegular, "|");
+                list.AddRange(ExpResult);
+            }
+        }
+        return list;
+    }
     /// <summary>
     /// 引号和书名号内容提取
     /// </summary>
@@ -329,7 +353,7 @@ public static class LocateProperty
     /// <param name="CustomerWord"></param>
     /// <returns></returns>
     public static List<LocAndValue<String>> LocateCustomerWord(HTMLEngine.MyRootHtmlNode root,
-                                        List<String> CustomerWord, string description = "字符")
+                                            List<String> CustomerWord, string description = "字符")
     {
         var list = new List<LocAndValue<String>>();
         foreach (var paragrah in root.Children)

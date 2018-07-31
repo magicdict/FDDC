@@ -44,6 +44,7 @@ public abstract class AnnouceDocument
 
     public List<LocAndValue<String>> percentList;
 
+    public List<LocAndValue<String>> StockNumberList;
 
     /// <summary>
     /// NER列表(机构)
@@ -142,6 +143,7 @@ public abstract class AnnouceDocument
         //百分比
         percentList = LocatePercent(root);
 
+        StockNumberList = LocateStockNumber(root);
         //货币
         moneylist = LocateProperty.LocateMoney(root);
         foreach (var m in moneylist)
