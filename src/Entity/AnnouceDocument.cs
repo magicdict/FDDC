@@ -127,10 +127,13 @@ public abstract class AnnouceDocument
         //增减持公告中出现的最后一个日期作为公告发布日
         if (StockChange.PublishTime.ContainsKey(Id))
         {
-            int year = int.Parse(StockChange.PublishTime[Id].Substring(0, 4));
-            int month = int.Parse(StockChange.PublishTime[Id].Substring(5, 2));
-            int day = int.Parse(StockChange.PublishTime[Id].Substring(8, 2));
+            //18-2月-2017
+            var numbers = RegularTool.GetNumberList(StockChange.PublishTime[Id]);
+            int year = int.Parse(numbers[2]);
+            int month = int.Parse(numbers[1]);
+            int day = int.Parse(numbers[0]);
             AnnouceDate = new DateTime(year, month, day);
+            Console.WriteLine("AnnouceDate:" + AnnouceDate.ToString("yyyy-MM-dd"));
         }
         else
         {

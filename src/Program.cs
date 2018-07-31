@@ -11,6 +11,7 @@ using static Contract;
 using static IncreaseStock;
 using static StockChange;
 using NPOI.ReadExcel;
+using System.Data;
 
 namespace FDDC
 {
@@ -68,10 +69,6 @@ namespace FDDC
             t.Init();
             var recs = t.Extract();
         }
-
-
-
-
         static void Main_TRAIN(string[] args)
         {
             if (Environment.OSVersion.Platform == System.PlatformID.Unix)
@@ -126,14 +123,17 @@ namespace FDDC
             Console.WriteLine("读取增减持信息：" + "/home/data/zengjianchi/zengjianchi_public.xlsx");
 
             var excel = new ExcelHelper("/home/data/zengjianchi/zengjianchi_public.xlsx");
-            var dt = excel.ExcelToDataTable("",true);
-           
-            foreach (var row in dt.Rows)
+            var dt = excel.ExcelToDataTable("", true);
+            foreach (DataRow row in dt.Rows)
             {
-                PublishTime.Add(row[1], row[0]);
+                //日期 + ID
+                PublishTime.Add(row[1].ToString(), row[0].ToString());
+                var numbers = RegularTool.GetNumberList(row[0].ToString());
+                int year = int.Parse(numbers[2]);
+                int month = int.Parse(numbers[1]);
+                int day = int.Parse(numbers[0]);
+                Console.WriteLine("AnnouceDate:" + new DateTime(year, month, day).ToString("yyyy-MM-dd"));
             }
-
-
             Console.WriteLine("读取增减持信息：" + PublishTime.Count);
             ResultCSV = new StreamWriter(@"/home/118_4/submit/zengjianchi.txt", false, utf8WithoutBom);
             Run<StockChange>(@"/home/data/zengjianchi", @"/home/118_4/temp/zengjianchi", ResultCSV);
@@ -147,6 +147,7 @@ namespace FDDC
                 "内含价值调整法","可比公司市净率法","重置成本法","收益现值法","基础资产法","假设清偿法",
                 "成本逼近法","单项资产加和法","成本加和法","基准地价修正法","收益还原法","现金流量法","单项资产加总法","折现现金流量法"
             }.ToList();
+            Console.WriteLine("加载替代训练结果:" + ReOrganizationTraning.EvaluateMethodList.Count);
             ResultCSV = new StreamWriter(@"/home/118_4/submit/chongzu.txt", false, utf8WithoutBom);
             Run<Reorganization>(@"/home/data/chongzu", "", ResultCSV);
             Console.WriteLine("Complete Extract Info Reorganization");
@@ -220,7 +221,7 @@ namespace FDDC
 
             if (IsRunStockChange || IsRunStockChange_TEST)
             {
-                //增减持公告日期的读入
+                //增减持公告日期的读入（这里读入的是CSV，本番使用XLSX文件）
                 StockChange.ImportPublishTime();
             }
 
@@ -250,6 +251,7 @@ namespace FDDC
                     "内含价值调整法","可比公司市净率法","重置成本法","收益现值法","基础资产法","假设清偿法",
                     "成本逼近法","单项资产加和法","成本加和法","基准地价修正法","收益还原法","现金流量法","单项资产加总法","折现现金流量法"
                 }.ToList();
+                Console.WriteLine("加载替代训练结果:" + ReOrganizationTraning.EvaluateMethodList.Count);
             }
 
             //资产重组
