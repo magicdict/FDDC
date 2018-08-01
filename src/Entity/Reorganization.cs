@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FDDC;
+using JiebaNet.Segmenter.PosSeg;
 using static CompanyNameLogic;
 using static HTMLTable;
 
@@ -11,7 +12,7 @@ public class Reorganization : AnnouceDocument
     {
         Program.Logger.WriteLine("ID:" + Id);
         Program.Logger.Flush();
-        
+
         InitTableRules();
         var list = new List<RecordBase>();
         var targets = getTargetListFromReplaceTable();
@@ -52,7 +53,7 @@ public class Reorganization : AnnouceDocument
                     if (key.Contains("目标")) continue;
                     if (key.Equals("上市公司")) continue;
                     if (key.Equals("本公司")) continue;
-                    if (dict.Key.Equals(reorgRec.TargetCompany) || dict.Value.Equals(reorgRec.TargetCompany))
+                    if (key.Equals(reorgRec.TargetCompany) || dict.Value.Equals(reorgRec.TargetCompany))
                     {
                         var tempKey = key;
                         if (tempKey.Contains("，")) tempKey = Utility.GetStringBefore(tempKey, "，");
@@ -71,7 +72,7 @@ public class Reorganization : AnnouceDocument
             list.Add(reorgRec);
         }
 
-        //需要在释义表中出现过的
+        //价格或者评估表中出现过的（以下代码这里只是检证）
         if (PriceTable.Count != 0 && EvaluateTable.Count != 0 && PriceTable.Count == EvaluateTable.Count)
         {
             if (PriceTable.Count != list.Count)
@@ -230,21 +231,73 @@ public class Reorganization : AnnouceDocument
         if (HasReplaceIn) Target.AddRange(ReplaceIn);
         if (HasReplaceOut) Target.AddRange(ReplaceOut);
         Target.AddRange(TargetWithOutCompanyName);
-        return Target.Distinct().ToList();
+        var Clear = new List<(string Target, string Company)>();
+        foreach (var item in Target)
+        {
+            Clear.Add((item.Target, TrimUJWords(item.Company)));
+        }
+        Clear = Clear.Distinct().ToList();
+        return Clear;
     }
 
-    private List<(String, String)> ExtractExtend(string[] ExplainKeys)
+    /// <summary>
+    /// 去掉动词 + 组词结构
+    /// </summary>
+    /// <param name="OrgString"></param>
+    /// <returns></returns>
+    string TrimUJWords(string OrgString)
+    {
+        var pos = new PosSegmenter();
+        var s1 = pos.Cut(OrgString).ToList();
+        var ujidx = -1;
+        for (int i = 0; i < s1.Count(); i++)
+        {
+            if (s1[i].Flag == "uj")
+            {
+                if (i - 1 >= 0 && s1[i - 1].Flag == "v")
+                {
+                    ujidx = i;
+                    break;
+                }
+            }
+            if (s1[i].Flag == "v" && s1[i].Word.Equals("购买"))
+            {
+                if (i + 1 < s1.Count && s1[i + 1].Flag != "uj")
+                {
+                    ujidx = i;
+                    break;
+                }
+            }
+        }
+        var after = "";
+        if (ujidx != -1)
+        {
+            for (int i = ujidx + 1; i < s1.Count(); i++)
+            {
+                after += s1[i].Word;
+            }
+        }
+        else
+        {
+            return OrgString;
+        }
+        Console.WriteLine("Before TrimUJ:" + OrgString);
+        Console.WriteLine("After TrimUJ:" + after);
+        return after;
+    }
+
+    private List<(string Target, string Company)> ExtractExtend(string[] ExplainKeys)
     {
         var targetRegular = new ExtractProperyBase.struRegularExpressFeature()
         {
             RegularExpress = RegularTool.PercentExpress,
             TrailingWordList = new string[] { "的股权", "股权", "的权益", "权益", "的股份", "股份" }.ToList()
         };
-        var Result = new List<(String, String)>();
+        var Result = new List<(string Target, string Comany)>();
         //可能性最大的排在最前
         foreach (var item in ExplainDict)
         {
-            var list = new List<(String, String)>();
+            var list = new List<(string Target, string Comany)>();
             var keys = item.Key.Split(Utility.SplitChar);
             var keys2 = item.Key.Split("/");
             if (keys.Length == 1 && keys2.Length > 1)
@@ -299,7 +352,7 @@ public class Reorganization : AnnouceDocument
     /// <param name="Target"></param>
     /// <param name="Comany"></param>
     /// <returns></returns>
-    private List<(string Target, string Comany)> ExtractFromExplainTable(List<struCompanyName> CompanyAtExplainTable, string[] ExplainKeys)
+    private List<(string Target, string Company)> ExtractFromExplainTable(List<struCompanyName> CompanyAtExplainTable, string[] ExplainKeys)
     {
         var AllCompanyName = new List<String>();
 
@@ -361,10 +414,10 @@ public class Reorganization : AnnouceDocument
                             //4.其他奇怪的问题
                             //5.资产和负债
                             //6.所拥有的，所持有的
-                            Console.WriteLine(Id + " 分割：");
-                            Console.WriteLine(Id + " 原词：" + targetRecordItem);
-                            Console.WriteLine(Id + " 分量1：" + SingleItemList[0]);
-                            Console.WriteLine(Id + " 分量2：" + SingleItemList[1]);
+                            //Console.WriteLine(Id + " 分割：");
+                            //Console.WriteLine(Id + " 原词：" + targetRecordItem);
+                            //Console.WriteLine(Id + " 分量1：" + SingleItemList[0]);
+                            //Console.WriteLine(Id + " 分量2：" + SingleItemList[1]);
                         }
                         foreach (var SingleItem in SingleItemList)
                         {
