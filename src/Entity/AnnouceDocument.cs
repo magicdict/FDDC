@@ -129,11 +129,11 @@ public abstract class AnnouceDocument
         {
             //18-2月-2017
             var numbers = RegularTool.GetNumberList(StockChange.PublishTime[Id]);
-            int year = int.Parse(numbers[2]);
+            int year = int.Parse(numbers[0]);
             int month = int.Parse(numbers[1]);
-            int day = int.Parse(numbers[0]);
+            int day = int.Parse(numbers[2]);
             AnnouceDate = new DateTime(year, month, day);
-            Console.WriteLine("AnnouceDate:" + AnnouceDate.ToString("yyyy-MM-dd"));
+            Console.WriteLine(Id + "  AnnouceDate:  " + AnnouceDate.ToString("yyyy-MM-dd"));
         }
         else
         {

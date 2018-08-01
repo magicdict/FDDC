@@ -30,6 +30,7 @@ public class StockChange : AnnouceDocument
                     var line = sr.ReadLine().Split(",");
                     PublishTime.Add(line[1], line[0]);
                 }
+                sr.Close();
             }
         }
     }

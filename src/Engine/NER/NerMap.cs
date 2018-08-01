@@ -81,7 +81,8 @@ public class NerMap
         }
         foreach (var item in doc.CustomerList)
         {
-            if (item.Loc == PosId) paragragh.NerList.Add(item);
+            if (item.Loc == PosId) paragragh.CustomerList.Add(item);    //加入CustomerList为了代码方便
+            if (item.Loc == PosId) paragragh.NerList.Add(item);         //加入NerList为了查找方法
         }
         foreach (var item in doc.quotationList)
         {

@@ -61,16 +61,19 @@ namespace FDDC
             //Evaluate.EvaluateReorganizationByFile(@"E:\WorkSpace2018\FDDC2018\FDDC_SRC\Result\chongzu_train.txt");
             //Score.Close();
             //Evaluator.Close();
-      
-
+            ReOrganizationTraning.EvaluateMethodList = new string[]{
+                "收益法","资产基础法","市场法","市场比较法","估值法","成本法","现金流折现法","现金流折现法",
+                "内含价值调整法","可比公司市净率法","重置成本法","收益现值法","基础资产法","假设清偿法",
+                "成本逼近法","单项资产加和法","成本加和法","基准地价修正法","收益还原法","现金流量法","单项资产加总法","折现现金流量法"
+            }.ToList();
             var t = new Reorganization();
-            t.Id = "12643";
-            t.HTMLFileName = ReorganizationPath_TRAIN + "/html/12643.html";
+            t.Id = "153866";
+            t.HTMLFileName = ReorganizationPath_TRAIN + "/html/67933.html";
             //t.TextFileName = ContractPath_TRAIN + "/txt/39498.txt";
             t.Init();
             var recs = t.Extract();
         }
-        static void Main(string[] args)
+        static void Main_TEST(string[] args)
         {
             if (Environment.OSVersion.Platform == System.PlatformID.Unix)
             {
@@ -86,7 +89,7 @@ namespace FDDC
             //结巴分词的地名修正词典
             PosNS.ImportNS("Resources" + Path.DirectorySeparatorChar + "ns.dict");
             CIRecord = new StreamWriter("CI.log");
-            //QuickTestArea(); return;
+            QuickTestArea(); return;
             //PDFToTXT.GetPdf2TxtBatchFile();
             //公司全称简称曾用名字典   
             CompanyNameLogic.LoadCompanyName("Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
@@ -104,7 +107,7 @@ namespace FDDC
         /// <summary>
         /// 最后用抽取
         /// </summary>
-        static void Main_FINAL(string[] args)
+        static void Main(string[] args)
         {
             Logger = new StreamWriter("Log.log");
             //实体属性器日志设定
@@ -121,21 +124,18 @@ namespace FDDC
             Console.WriteLine("Complete Extract Info Contract");
 
             Console.WriteLine("Start To Extract Info StockChange TRAIN");
-            Console.WriteLine("读取增减持信息：" + "/home/data/zengjianchi/zengjianchi_public.xlsx");
+            Console.WriteLine("读取增减持信息：" + "/home/data/zengjianchi/zengjianchi_public.csv");
 
-            var excel = new ExcelHelper("/home/data/zengjianchi/zengjianchi_public.xlsx");
-            var dt = excel.ExcelToDataTable("", true);
-            foreach (DataRow row in dt.Rows)
+            var sr = new StreamReader("/home/data/zengjianchi/zengjianchi_public.csv");
+            sr.ReadLine();  //Skip Header
+            while (!sr.EndOfStream)
             {
-                //日期 + ID
-                PublishTime.Add(row[1].ToString(), row[0].ToString());
-                var numbers = RegularTool.GetNumberList(row[0].ToString());
-                int year = int.Parse(numbers[2]);
-                int month = int.Parse(numbers[1]);
-                int day = int.Parse(numbers[0]);
-                Console.WriteLine("AnnouceDate:" + new DateTime(year, month, day).ToString("yyyy-MM-dd"));
+                var line = sr.ReadLine().Split(",");
+                PublishTime.Add(line[1], line[0]);
             }
+            sr.Close();
             Console.WriteLine("读取增减持信息：" + PublishTime.Count);
+
             ResultCSV = new StreamWriter(@"/home/118_4/submit/zengjianchi.txt", false, utf8WithoutBom);
             Run<StockChange>(@"/home/data/zengjianchi", @"/home/118_4/temp/zengjianchi", ResultCSV);
             Console.WriteLine("Complete Extract Info StockChange");

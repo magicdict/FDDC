@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using FDDC;
 using JiebaNet.Segmenter.PosSeg;
 using static CompanyNameLogic;
@@ -18,13 +19,35 @@ public class Reorganization : AnnouceDocument
         var targets = getTargetListFromReplaceTable();
         if (targets.Count == 0) return list;
         var TradeCompany = getTradeCompany(targets);
+
+        var EvaluateMethodLoc = LocateProperty.LocateCustomerWord(root, ReOrganizationTraning.EvaluateMethodList, "评估法");
+        this.CustomerList = EvaluateMethodLoc;
+        nermap.Anlayze(this);
+        foreach (var item in nermap.ParagraghlocateDict)
+        {
+            if (item.Value.CustomerList.Count != 0 && item.Value.moneylist.Count != 0)
+            {
+                Console.WriteLine("评估法出现次数" + item.Value.CustomerList.Count);
+                Console.WriteLine("金额出现次数" + item.Value.moneylist.Count);
+            }
+        }
+
         foreach (var item in targets)
         {
             var reorgRec = new ReorganizationRec();
             reorgRec.Id = this.Id;
             reorgRec.Target = item.Target;
-            reorgRec.TargetCompany = item.Comany;
-            if (reorgRec.TargetCompany == "本公司") continue;
+            reorgRec.TargetCompany = item.Comany.TrimEnd("合计".ToArray());
+            //<1>XXXX公司的的对应
+            Regex r = new Regex(@"\<(\d+)\>");
+            if (r.IsMatch(reorgRec.TargetCompany))
+            {
+                Console.WriteLine("Before Trim:" + reorgRec.TargetCompany);
+                reorgRec.TargetCompany = r.Replace(reorgRec.TargetCompany, "");
+                Console.WriteLine("After  Trim:" + reorgRec.TargetCompany);
+            }
+            if (reorgRec.TargetCompany.Equals("本公司")) continue;
+            if (reorgRec.TargetCompany.Equals("标的公司")) continue;
             foreach (var tc in TradeCompany)
             {
                 if (tc.TargetCompany == item.Comany)
@@ -68,8 +91,20 @@ public class Reorganization : AnnouceDocument
                 }
                 if (isHit) break;
             }
-
-            list.Add(reorgRec);
+            if (String.IsNullOrEmpty(reorgRec.TargetCompany) || String.IsNullOrEmpty(reorgRec.Target)) continue;
+            //相同记录合并
+            var UnionKey = reorgRec.TargetCompany + reorgRec.Target;
+            bool IsKeyExist = false;
+            foreach (ReorganizationRec exist in list)
+            {
+                var existKey = exist.TargetCompany + exist.Target;
+                if (UnionKey.Equals(existKey))
+                {
+                    IsKeyExist = true;
+                    break;
+                }
+            }
+            if (!IsKeyExist) list.Add(reorgRec);
         }
 
         //价格或者评估表中出现过的（以下代码这里只是检证）
@@ -442,7 +477,7 @@ public class Reorganization : AnnouceDocument
                                             if (targetAndcompany.Contains(ot))
                                             {
                                                 IsFullNameHit = true;
-                                                TargetAndCompanyList.Add((rc.secFullName, ot));
+                                                TargetAndCompanyList.Add((ot, rc.secFullName));
                                                 break;
                                             }
                                         }
@@ -457,7 +492,7 @@ public class Reorganization : AnnouceDocument
                                                 if (targetAndcompany.Contains(ot))
                                                 {
                                                     IsFullNameHit = true;
-                                                    TargetAndCompanyList.Add((rc.secShortName, ot));
+                                                    TargetAndCompanyList.Add((ot, rc.secFullName));
                                                     break;
                                                 }
                                             }
@@ -760,6 +795,7 @@ public class Reorganization : AnnouceDocument
         var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, false);
         foreach (var item in result)
         {
+            if (string.IsNullOrEmpty(rec.TargetCompany)) continue;
             if (item[0].RawData.Contains(rec.TargetCompany))
             {
                 if (PriceTable.Count == 0) PriceTable = result;
@@ -792,6 +828,7 @@ public class Reorganization : AnnouceDocument
         result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, false);
         foreach (var item in result)
         {
+            if (string.IsNullOrEmpty(rec.TargetCompany)) continue;
             if (item[0].RawData.Contains(rec.TargetCompany))
             {
                 if (PriceTable.Count == 0) PriceTable = result;
@@ -903,6 +940,7 @@ public class Reorganization : AnnouceDocument
         var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, false);
         foreach (var item in result)
         {
+            if (string.IsNullOrEmpty(rec.TargetCompany)) continue;
             if (item[0].RawData.Contains(rec.TargetCompany))
             {
                 if (EvaluateTable.Count == 0) EvaluateTable = result;
@@ -927,6 +965,7 @@ public class Reorganization : AnnouceDocument
         result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, false);
         foreach (var item in result)
         {
+            if (string.IsNullOrEmpty(rec.TargetCompany)) continue;
             if (item[0].RawData.Contains(rec.TargetCompany))
             {
                 if (EvaluateTable.Count == 0) EvaluateTable = result;
