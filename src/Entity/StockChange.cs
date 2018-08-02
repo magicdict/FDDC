@@ -122,12 +122,28 @@ public class StockChange : AnnouceDocument
                         ner.StartIdx > five.StartIdx &&
                         (ner.Value.Contains("简称") || ner.Value.Contains("下称")))
                     {
-                        var Content = root.GetContentByPosId(five.Loc);
+                        //注意这里需要过滤掉5%在书名号里面的情况
+                        var isInBookMark = false;
+                        foreach (var nerbookmark in nermap.ParagraghlocateDict[five.Loc].NerList)
+                        {
+                            if (nerbookmark.Description == "书名号")
+                            {
+                                if (nerbookmark.StartIdx <= five.StartIdx &&
+                                    (nerbookmark.StartIdx + nerbookmark.Value.Length) >= five.StartIdx)
+                                {
+                                    isInBookMark = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (isInBookMark) continue;
+                        var Content = root.GetContentByPosId(five.Loc).Replace(" ", ""); ;
                         if (String.IsNullOrEmpty(Content)) continue;
                         var startIdx = five.StartIdx + "5%以上股东".Length;
                         var length = ner.StartIdx - startIdx;
                         if (length <= 0) continue;
                         var CompanyFullName = Content.Substring(startIdx, length);
+                        if (CompanyFullName.StartsWith("--")) CompanyFullName = CompanyFullName.Substring(2);
                         var CompanyShortList = RegularTool.GetChineseQuotation(ner.Value);
                         if (CompanyShortList.Count > 0)
                         {

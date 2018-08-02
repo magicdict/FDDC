@@ -32,12 +32,12 @@ namespace FDDC
         /// <summary>
         /// 基本CentOS
         /// </summary>
-        //public static String DocBase = @"/home/118_4";
+        public static String DocBase = @"/home/118_4";
 
         /// <summary>
         /// 基本MAC
         /// </summary>
-        public static String DocBase = @"/Users/hu/Desktop/FDDC2018";
+        //public static String DocBase = @"/Users/hu/Desktop/FDDC2018";
 
 
         /// <summary>
@@ -71,9 +71,9 @@ namespace FDDC
                 "成本逼近法","单项资产加和法","成本加和法","基准地价修正法","收益还原法","现金流量法","单项资产加总法","折现现金流量法"
             }.ToList();
             var t = new StockChange();
-            t.Id = "12056580";
-            t.HTMLFileName = StockChangePath_TEST + "/html/12056580.html";
-            t.TextFileName = StockChangePath_TEST + "/txt/12056580.txt";
+            t.Id = "19217971";
+            t.HTMLFileName = StockChangePath_TRAIN + "/html/612938.html";
+            t.TextFileName = StockChangePath_TRAIN + "/txt/612938.txt";
             t.Init();
             var recs = t.Extract();
         }
@@ -190,7 +190,7 @@ namespace FDDC
         }
 
         //重大合同
-        public static bool IsRunContract = false;
+        public static bool IsRunContract = true;
         public static bool IsRunContract_TEST = false;
         public static string ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
         public static string ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
@@ -198,7 +198,7 @@ namespace FDDC
 
         //增减持
         public static bool IsRunStockChange = true;
-        public static bool IsRunStockChange_TEST = true;
+        public static bool IsRunStockChange_TEST = false;
         public static string StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
         public static string StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "增减持";
 

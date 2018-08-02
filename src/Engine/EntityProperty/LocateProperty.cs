@@ -93,7 +93,7 @@ public static class LocateProperty
         {
             foreach (var sentence in paragrah.Children)
             {
-                var OrgString = sentence.Content;
+                var OrgString = sentence.Content.Replace(" ", "");
                 var BracketList = RegularTool.GetChineseBrackets(OrgString);
                 Regex r = new Regex(@"\《.*?\》");
                 foreach (var item in r.Matches(OrgString).ToList())
