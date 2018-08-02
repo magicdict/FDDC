@@ -107,7 +107,7 @@ public class CompanyNameLogic
                         break;
                     }
                     //简称关键字
-                    if (words[JCIdx].Word.Equals("简称") || words[JCIdx].Word.Equals("称"))
+                    if (words[JCIdx].Word.Equals("简称") || words[JCIdx].Word.Equals("下称") || words[JCIdx].Word.Equals("称"))
                     {
                         var ShortNameStart = -1;
                         var ShortNameEnd = -1;
@@ -455,7 +455,7 @@ public class CompanyNameLogic
         if (FullName.Length <= 4) return string.Empty; //名称或者已经是简称的场合，退出
         var quotationList = LocateProperty.LocateQuotation(doc.root, false);
         var fullnamelist = LocateProperty.LocateCustomerWord(doc.root, new string[] { FullName }.ToList());
-        var jianchenglist = LocateProperty.LocateCustomerWord(doc.root, new string[] { "简称" }.ToList());
+        var jianchenglist = LocateProperty.LocateCustomerWord(doc.root, new string[] { "简称", "下称" }.ToList());
 
         foreach (var fn in fullnamelist)
         {

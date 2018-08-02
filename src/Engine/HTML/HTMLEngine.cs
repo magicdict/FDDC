@@ -42,6 +42,17 @@ public class HTMLEngine
         public Dictionary<int, List<String>> TableList;
         //内置列表内容
         public Dictionary<int, List<String>> DetailItemList;
+
+        public string GetContentByPosId(int PosId){
+            foreach (var p in Children)
+            {
+                foreach (var s in p.Children)
+                {
+                    if (s.PositionId == PosId) return s.Content;
+                }
+            }
+            return string.Empty;
+        }
     }
 
 
