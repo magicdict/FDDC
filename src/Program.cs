@@ -55,6 +55,10 @@ namespace FDDC
         /// </summary>
         private static void QuickTestArea()
         {
+            var s0 = "爱康科技向爱康实业、爱康国际、苏州度金、天地国际、钨业研究支付现金购买其合计持有爱康光电100%股权";    
+            var pos = new PosSegmenter();
+            var words = pos.Cut(s0);
+
             Evaluator = new StreamWriter("Evaluator.log");
             Score = new StreamWriter("Result" + Path.DirectorySeparatorChar + "Score" + Path.DirectorySeparatorChar + "score" + System.DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
             TraningDataset.InitReorganization();
@@ -67,13 +71,13 @@ namespace FDDC
                 "成本逼近法","单项资产加和法","成本加和法","基准地价修正法","收益还原法","现金流量法","单项资产加总法","折现现金流量法"
             }.ToList();
             var t = new Reorganization();
-            t.Id = "15498097";
-            t.HTMLFileName = ReorganizationPath_TRAIN + "/html/15498097.html";
+            t.Id = "14550973";
+            t.HTMLFileName = ReorganizationPath_TRAIN + "/html/14550973.html";
             //t.TextFileName = ContractPath_TRAIN + "/txt/39498.txt";
             t.Init();
             var recs = t.Extract();
         }
-        static void Main(string[] args)
+        static void Main_TEST(string[] args)
         {
             if (Environment.OSVersion.Platform == System.PlatformID.Unix)
             {
@@ -107,7 +111,7 @@ namespace FDDC
         /// <summary>
         /// 最后用抽取
         /// </summary>
-        static void Main_FINAL(string[] args)
+        static void Main(string[] args)
         {
             Logger = new StreamWriter("Log.log");
             //实体属性器日志设定

@@ -46,15 +46,58 @@ public class EvaluateItem
                 //存在标准值 存在测评值
                 if (IsOptional)
                 {
-                    //多个可选项用 | 分开，只要一个正确即可
-                    var EvaluateValueList = EvaluateValue.Split("|");
-                    foreach (var ev in EvaluateValueList)
+                    if (IsList)
                     {
-                        if (StardardValue.Equals(ev))
+                        //列表且可选的情况，暂时这里要么是列表，要么是可选
+                        if (EvaluateValue.Contains("|"))
                         {
-                            //COR:主键匹配 且 提交字段值=正确字段值 且 均不为空
-                            COR++;
-                            break;
+                            //可选
+                            //多个可选项用 | 分开，只要一个正确即可
+                            var EvaluateValueList = EvaluateValue.Split("|");
+                            foreach (var ev in EvaluateValueList)
+                            {
+                                if (StardardValue.Equals(ev))
+                                {
+                                    //COR:主键匹配 且 提交字段值=正确字段值 且 均不为空
+                                    COR++;
+                                    break;
+                                }
+                            }
+                        }
+                        if (EvaluateValue.Contains(Utility.SplitChar))
+                        {
+                            //多项的情况
+                            var StardardList = StardardValue.Split(Utility.SplitChar).ToList();
+                            var EvaluateList = EvaluateValue.Split(Utility.SplitChar).ToList();
+                            var IsOk = false;
+                            if (StardardList.Count == EvaluateList.Count)
+                            {
+                                IsOk = true;
+                                for (int i = 0; i < StardardList.Count; i++)
+                                {
+                                    if (StardardList[i].Equals(EvaluateList[i])) continue;
+                                    IsOk = false;
+                                    break;
+                                }
+                            }
+                            if (IsOk)
+                            {
+                                COR++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //多个可选项用 | 分开，只要一个正确即可
+                        var EvaluateValueList = EvaluateValue.Split("|");
+                        foreach (var ev in EvaluateValueList)
+                        {
+                            if (StardardValue.Equals(ev))
+                            {
+                                //COR:主键匹配 且 提交字段值=正确字段值 且 均不为空
+                                COR++;
+                                break;
+                            }
                         }
                     }
                 }
