@@ -27,8 +27,8 @@ public class Reorganization : AnnouceDocument
         {
             if (item.Value.CustomerList.Count != 0 && item.Value.moneylist.Count != 0)
             {
-                Console.WriteLine("评估法出现次数" + item.Value.CustomerList.Count);
-                Console.WriteLine("金额出现次数" + item.Value.moneylist.Count);
+                //Console.WriteLine("评估法出现次数" + item.Value.CustomerList.Count);
+                //Console.WriteLine("金额出现次数" + item.Value.moneylist.Count);
             }
         }
 
@@ -56,10 +56,6 @@ public class Reorganization : AnnouceDocument
                     break;
                 }
             }
-            var Price = GetPrice(reorgRec);
-            reorgRec.Price = MoneyUtility.Format(Price.MoneyAmount, String.Empty);
-            reorgRec.EvaluateMethod = getEvaluateMethod(reorgRec);
-
             //最后才能进行 多选配置！！！
             foreach (var dict in ExplainDict)
             {
@@ -83,14 +79,28 @@ public class Reorganization : AnnouceDocument
 
                         var tempvalue = dict.Value;
                         if (tempvalue.Contains("，")) tempvalue = Utility.GetStringBefore(tempvalue, "，");
-
-                        reorgRec.TargetCompany = tempKey + "|" + tempvalue;
+                        //reorgRec.TargetCompany = tempKey + "|" + tempvalue;
+                        reorgRec.TargetCompanyFullName = tempvalue;
+                        reorgRec.TargetCompanyShortName = tempKey;
                         isHit = true;
                         break;
                     }
                 }
                 if (isHit) break;
             }
+
+            var xTrade = getTradeCompanyByKeyWord(reorgRec);
+            if (!String.IsNullOrEmpty(xTrade)) reorgRec.TradeCompany = xTrade;
+            var Price = GetPrice(reorgRec);
+            reorgRec.Price = MoneyUtility.Format(Price.MoneyAmount, String.Empty);
+            reorgRec.EvaluateMethod = getEvaluateMethod(reorgRec);
+
+            if (!String.IsNullOrEmpty(reorgRec.TargetCompanyFullName) &&
+                !String.IsNullOrEmpty(reorgRec.TargetCompanyShortName))
+            {
+                reorgRec.TargetCompany = reorgRec.TargetCompanyFullName + "|" + reorgRec.TargetCompanyShortName;
+            }
+
             if (String.IsNullOrEmpty(reorgRec.TargetCompany) || String.IsNullOrEmpty(reorgRec.Target)) continue;
             //相同记录合并
             var UnionKey = reorgRec.TargetCompany + reorgRec.Target;
@@ -129,37 +139,8 @@ public class Reorganization : AnnouceDocument
 
             }
         }
-        return list;
-    }
 
-    /// <summary>
-    /// 获得别名
-    /// </summary>
-    /// <param name="CompanyName"></param>
-    /// <returns></returns>
-    public string GetAnOtherNameFromExplainTable(string CompanyName)
-    {
-        foreach (var dict in ExplainDict)
-        {
-            var keys = dict.Key.Split(Utility.SplitChar);
-            var keys2 = dict.Key.Split("/");
-            if (keys.Length == 1 && keys2.Length > 1)
-            {
-                keys = keys2;
-            }
-            foreach (var key in keys)
-            {
-                if (key.Contains("标的")) continue;
-                if (key.Contains("目标")) continue;
-                if (key.Equals("上市公司")) continue;
-                if (key.Equals("本公司")) continue;
-                if (dict.Key.Equals(CompanyName) || dict.Value.Equals(CompanyName))
-                {
-                    return key.Equals(CompanyName) ? dict.Value : key;
-                }
-            }
-        }
-        return string.Empty;
+        return list;
     }
 
 
@@ -702,6 +683,113 @@ public class Reorganization : AnnouceDocument
 
         return rtn;
     }
+
+
+    /// <summary>
+    /// 通过释义表里的关键字获得交易对手情况
+    /// </summary>
+    /// <param name="rec"></param>
+    /// <returns></returns>
+    public string getTradeCompanyByKeyWord(ReorganizationRec rec)
+    {
+        //在释义表中寻找 持有的，持有者就是交易对手
+        //广传媒持有的广报经营 100%股权、大洋传媒 100%股权及新媒体公司 100%股权
+        //并向国信集团非公开发行股份购买其持有的江苏信托81.49%的股权
+        //重庆百货向商社集团和新天域湖景发行股份购买其持有的新世纪百货61%和39%的股权
+        //检查一下交易标的公司的位置，持有的位置，持有之前公司的位置
+        foreach (var ExplainSentence in ExplainDict.Values)
+        {
+            var SingleSentenceList = new string[] { ExplainSentence };
+            if (ExplainSentence.Contains(",")) SingleSentenceList = ExplainSentence.Split(",");
+            if (ExplainSentence.Contains("，")) SingleSentenceList = ExplainSentence.Split("，");
+
+            foreach (var SingleSentence in SingleSentenceList)
+            {
+                var HoldVerbIdxPlus = SingleSentence.IndexOf("所持有");
+                var HoldVerbIdx = SingleSentence.IndexOf("持有");
+                if (HoldVerbIdx == -1) continue;
+                if (HoldVerbIdxPlus != -1) HoldVerbIdx = HoldVerbIdxPlus;
+                var targetIdx = -1;
+                if (!String.IsNullOrEmpty(rec.TargetCompanyShortName)) targetIdx = SingleSentence.IndexOf(rec.TargetCompanyFullName);
+                if (targetIdx == -1)
+                {
+                    if (!String.IsNullOrEmpty(rec.TargetCompanyShortName)) targetIdx = SingleSentence.IndexOf(rec.TargetCompanyShortName);
+                }
+                if (targetIdx == -1) continue;
+                var BuyIdx = SingleSentence.IndexOf("购买");
+
+                var BetweenBuyAndHoldString = "";
+                if (BuyIdx != -1 && BuyIdx < HoldVerbIdx)
+                {
+                    BetweenBuyAndHoldString = SingleSentence.Substring(BuyIdx + 2, HoldVerbIdx - BuyIdx - 2);
+                }
+                Console.WriteLine("公告ID：" + Id);
+                Console.WriteLine("原始句子：" + SingleSentence);
+                Console.WriteLine("持有的位置：" + HoldVerbIdx);
+                Console.WriteLine("标的公司全称：" + rec.TargetCompanyFullName);
+                Console.WriteLine("标的公司简称：" + rec.TargetCompanyShortName);
+                Console.WriteLine("标的公司位置：" + targetIdx);
+                if (!String.IsNullOrEmpty(BetweenBuyAndHoldString)) Console.WriteLine("购买的位置：" + BuyIdx);
+                if (!String.IsNullOrEmpty(BetweenBuyAndHoldString))
+                {
+                    //不为空
+                    if (!BetweenBuyAndHoldString.Contains("交易"))
+                    {
+                        //不是交易对方,交易对手等字
+                        Console.WriteLine("购买持有之间的内容：" + BetweenBuyAndHoldString);
+                        foreach (var item in companynamelist)
+                        {
+                            if (BetweenBuyAndHoldString.Equals(item.secFullName) || BetweenBuyAndHoldString.Equals(item.secShortName))
+                            {
+                                Console.WriteLine("交易对手公司:" + BetweenBuyAndHoldString);
+                                return BetweenBuyAndHoldString;
+                            }
+                        }
+                    }
+                }
+                //向海纳川发行股份及支付现金
+                var pos = new PosSegmenter();
+                var words = pos.Cut(SingleSentence);
+                var HasToWord = false;
+                foreach (var w in words)
+                {
+                    if (w.Word == "向")
+                    {
+                        //防止出现公司名字里面的向被误判，这里采用分词的手法
+                        HasToWord = true;
+                        break;
+                    }
+                }
+                var PublishStockAndPay = SingleSentence.IndexOf("发行股份及支付现金");
+                var ToIdx = SingleSentence.IndexOf("向");
+                if (HasToWord && PublishStockAndPay != -1)
+                {
+                    var ToTarget = SingleSentence.Substring(ToIdx + 1, PublishStockAndPay - ToIdx - 1);
+                    Console.WriteLine("发行股份及支付现金:" + ToTarget);
+                    foreach (var item in companynamelist)
+                    {
+                        if (ToTarget.Equals(item.secFullName) || ToTarget.Equals(item.secShortName))
+                        {
+                            Console.WriteLine("交易对手公司:" + ToTarget);
+                            return ToTarget;
+                        }
+                    }
+                }
+
+
+                if (!String.IsNullOrEmpty(BetweenBuyAndHoldString) && BetweenBuyAndHoldString.Equals("其"))
+                {
+
+                    Console.WriteLine("特殊指代：" + BetweenBuyAndHoldString);
+                }
+            }
+        }
+
+
+        return string.Empty;
+    }
+
+
     /// <summary>
     /// 标的作价
     /// </summary>
@@ -782,10 +870,9 @@ public class Reorganization : AnnouceDocument
         var FinallyPrice = new TableSearchTitleRule();
         FinallyPrice.Name = "作价";
         FinallyPrice.Title = new string[] {
-             "标的资产作价",
+             "标的资产作价","评估值",
              "评估结果","评估价值",
-             "交易价格",
-             "预估值","预估作价" }.ToList();
+             "交易价格" }.ToList();
         FinallyPrice.IsTitleEq = false;
         FinallyPrice.IsRequire = true;
 
@@ -796,21 +883,14 @@ public class Reorganization : AnnouceDocument
         foreach (var item in result)
         {
             if (string.IsNullOrEmpty(rec.TargetCompany)) continue;
-            if (item[0].RawData.Contains(rec.TargetCompany))
+            if (
+                (!String.IsNullOrEmpty(rec.TargetCompanyFullName) && item[0].RawData.Contains(rec.TargetCompanyFullName)) ||
+                (!String.IsNullOrEmpty(rec.TargetCompanyShortName) && item[0].RawData.Contains(rec.TargetCompanyShortName))
+            )
             {
                 if (PriceTable.Count == 0) PriceTable = result;
                 //Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
                 return (item[1].RawData, string.Empty);
-            }
-            var AnOtherName = GetAnOtherNameFromExplainTable(rec.TargetCompany);
-            if (!String.IsNullOrEmpty(AnOtherName))
-            {
-                if (item[0].RawData.Contains(AnOtherName))
-                {
-                    if (PriceTable.Count == 0) PriceTable = result;
-                    //Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
-                    return (item[1].RawData, string.Empty);
-                }
             }
         }
 
@@ -818,7 +898,8 @@ public class Reorganization : AnnouceDocument
         Price.Name = "作价";
         Price.Title = new string[] {
             "标的资产评估值",
-            "标的资产初步作价" }.ToList();
+            "标的资产初步作价",
+            "预估值","预估作价" }.ToList();
         Price.IsTitleEq = false;
         Price.IsRequire = true;
 
@@ -829,22 +910,15 @@ public class Reorganization : AnnouceDocument
         foreach (var item in result)
         {
             if (string.IsNullOrEmpty(rec.TargetCompany)) continue;
-            if (item[0].RawData.Contains(rec.TargetCompany))
+            if (
+                (!String.IsNullOrEmpty(rec.TargetCompanyFullName) && item[0].RawData.Contains(rec.TargetCompanyFullName)) ||
+                (!String.IsNullOrEmpty(rec.TargetCompanyShortName) && item[0].RawData.Contains(rec.TargetCompanyShortName))
+            )
             {
                 if (PriceTable.Count == 0) PriceTable = result;
                 //Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
                 return (item[1].RawData, string.Empty);
 
-            }
-            var AnOtherName = GetAnOtherNameFromExplainTable(rec.TargetCompany);
-            if (!String.IsNullOrEmpty(AnOtherName))
-            {
-                if (item[0].RawData.Contains(AnOtherName))
-                {
-                    if (PriceTable.Count == 0) PriceTable = result;
-                    //Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
-                    return (item[1].RawData, string.Empty);
-                }
             }
         }
         return (string.Empty, string.Empty);
@@ -941,21 +1015,14 @@ public class Reorganization : AnnouceDocument
         foreach (var item in result)
         {
             if (string.IsNullOrEmpty(rec.TargetCompany)) continue;
-            if (item[0].RawData.Contains(rec.TargetCompany))
+            if (
+                (!String.IsNullOrEmpty(rec.TargetCompanyFullName) && item[0].RawData.Contains(rec.TargetCompanyFullName)) ||
+                (!String.IsNullOrEmpty(rec.TargetCompanyShortName) && item[0].RawData.Contains(rec.TargetCompanyShortName))
+            )
             {
                 if (EvaluateTable.Count == 0) EvaluateTable = result;
                 //Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
                 return item[1].RawData;
-            }
-            var AnOtherName = GetAnOtherNameFromExplainTable(rec.TargetCompany);
-            if (!String.IsNullOrEmpty(AnOtherName))
-            {
-                if (item[0].RawData.Contains(AnOtherName))
-                {
-                    if (EvaluateTable.Count == 0) EvaluateTable = result;
-                    //Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
-                    return item[1].RawData;
-                }
             }
         }
 
@@ -966,21 +1033,14 @@ public class Reorganization : AnnouceDocument
         foreach (var item in result)
         {
             if (string.IsNullOrEmpty(rec.TargetCompany)) continue;
-            if (item[0].RawData.Contains(rec.TargetCompany))
+            if (
+                (!String.IsNullOrEmpty(rec.TargetCompanyFullName) && item[0].RawData.Contains(rec.TargetCompanyFullName)) ||
+                (!String.IsNullOrEmpty(rec.TargetCompanyShortName) && item[0].RawData.Contains(rec.TargetCompanyShortName))
+            )
             {
                 if (EvaluateTable.Count == 0) EvaluateTable = result;
                 //Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
                 return item[1].RawData;
-            }
-            var AnOtherName = GetAnOtherNameFromExplainTable(rec.TargetCompany);
-            if (!String.IsNullOrEmpty(AnOtherName))
-            {
-                if (item[0].RawData.Contains(AnOtherName))
-                {
-                    if (EvaluateTable.Count == 0) EvaluateTable = result;
-                    //Console.WriteLine(Id + ":" + item[1].RawData + " @ " + item[1].Title);
-                    return item[1].RawData;
-                }
             }
         }
         return string.Empty;

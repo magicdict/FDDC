@@ -128,11 +128,7 @@ public abstract class AnnouceDocument
         if (StockChange.PublishTime.ContainsKey(Id))
         {
             //18-2月-2017
-            var numbers = RegularTool.GetNumberList(StockChange.PublishTime[Id]);
-            int year = int.Parse(numbers[0]);
-            int month = int.Parse(numbers[1]);
-            int day = int.Parse(numbers[2]);
-            AnnouceDate = new DateTime(year, month, day);
+            AnnouceDate = StockChange.PublishTime[Id];
             Console.WriteLine(Id + "  AnnouceDate:  " + AnnouceDate.ToString("yyyy-MM-dd"));
         }
         else
@@ -556,13 +552,16 @@ public abstract class AnnouceDocument
                     //一般来说简称是3-6个字的
                     foreach (var value in values)
                     {
+                        var tempvalue = value;
                         var chineseName = Utility.TrimEnglish(value);
+                        //公司的情况，需要去掉括号的干扰
                         chineseName = chineseName.Replace("（", "").Replace("）", "").Replace("(", "").Replace(")", "").Replace(" ", "");
+                        //公司的情况，需要去掉逗号之后的干扰
+                        if (chineseName.Contains("，")) chineseName = Utility.GetStringBefore(chineseName, "，");
                         if (chineseName.EndsWith("公司") || chineseName.EndsWith("有限合伙") || chineseName.EndsWith("有限责任公司") ||
                             value.EndsWith("Co.,Ltd.") || chineseName.EndsWith("厂") || chineseName.EndsWith("研究所"))
                         {
                             //公司的情况，需要去掉逗号之后的干扰
-                            var tempvalue = value;
                             if (tempvalue.Contains("，")) tempvalue = Utility.GetStringBefore(tempvalue, "，");
                             if (tempvalue.Contains("及其前身"))
                             {

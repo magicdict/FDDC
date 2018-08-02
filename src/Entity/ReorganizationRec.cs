@@ -8,6 +8,16 @@ public class ReorganizationRec : RecordBase
     /// 标的公司
     /// </summary>
     public string TargetCompany;
+
+    /// <summary>
+    /// 标的公司全称（辅助用，不输出）
+    /// </summary>
+    public string TargetCompanyFullName;
+    /// <summary>
+    /// 标的公司简称（辅助用，不输出）
+    /// </summary>
+    public string TargetCompanyShortName;
+
     /// <summary>
     /// 交易对方
     /// </summary>

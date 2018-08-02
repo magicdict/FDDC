@@ -11,7 +11,7 @@ using static LocateProperty;
 
 public class StockChange : AnnouceDocument
 {
-    public static Dictionary<String, String> PublishTime = new Dictionary<String, String>();
+    public static Dictionary<String, DateTime> PublishTime = new Dictionary<String, DateTime>();
     public static void ImportPublishTime()
     {
         if (!System.IO.Directory.Exists(Program.DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_public_time_20180629"))
@@ -28,7 +28,12 @@ public class StockChange : AnnouceDocument
                 while (!sr.EndOfStream)
                 {
                     var line = sr.ReadLine().Split(",");
-                    PublishTime.Add(line[1], line[0]);
+                    var numbers = RegularTool.GetNumberList(line[0]);
+                    int year = int.Parse(numbers[0]);
+                    int month = int.Parse(numbers[1]);
+                    int day = int.Parse(numbers[2]);
+                    var AnnouceDate = new DateTime(year, month, day);
+                    PublishTime.Add(line[1], AnnouceDate);
                 }
                 sr.Close();
             }

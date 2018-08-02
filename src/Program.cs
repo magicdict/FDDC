@@ -68,12 +68,12 @@ namespace FDDC
             }.ToList();
             var t = new Reorganization();
             t.Id = "153866";
-            t.HTMLFileName = ReorganizationPath_TRAIN + "/html/67933.html";
+            t.HTMLFileName = ReorganizationPath_TRAIN + "/html/1503346.html";
             //t.TextFileName = ContractPath_TRAIN + "/txt/39498.txt";
             t.Init();
             var recs = t.Extract();
         }
-        static void Main_TEST(string[] args)
+        static void Main(string[] args)
         {
             if (Environment.OSVersion.Platform == System.PlatformID.Unix)
             {
@@ -89,7 +89,7 @@ namespace FDDC
             //结巴分词的地名修正词典
             PosNS.ImportNS("Resources" + Path.DirectorySeparatorChar + "ns.dict");
             CIRecord = new StreamWriter("CI.log");
-            QuickTestArea(); return;
+            //QuickTestArea(); return;
             //PDFToTXT.GetPdf2TxtBatchFile();
             //公司全称简称曾用名字典   
             CompanyNameLogic.LoadCompanyName("Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
@@ -107,7 +107,7 @@ namespace FDDC
         /// <summary>
         /// 最后用抽取
         /// </summary>
-        static void Main(string[] args)
+        static void Main_FINAL(string[] args)
         {
             Logger = new StreamWriter("Log.log");
             //实体属性器日志设定
@@ -131,7 +131,13 @@ namespace FDDC
             while (!sr.EndOfStream)
             {
                 var line = sr.ReadLine().Split(",");
-                PublishTime.Add(line[1], line[0]);
+                var numbers = RegularTool.GetNumberList(line[0]);
+                int year = int.Parse(numbers[0]);
+                int month = int.Parse(numbers[1]);
+                int day = int.Parse(numbers[2]);
+                var AnnouceDate = new DateTime(year, month, day);
+                PublishTime.Add(line[1], AnnouceDate);
+                Console.WriteLine("ID:" + line[1] + " Date:" + AnnouceDate.ToString("yyyy-MM-dd"));
             }
             sr.Close();
             Console.WriteLine("读取增减持信息：" + PublishTime.Count);
