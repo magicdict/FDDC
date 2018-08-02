@@ -133,6 +133,7 @@ public static class Evaluate
         F1_TargetCompany.IsOptional = true;
         var F1_TradeCompany = new EvaluateItem("交易对方");
         F1_TradeCompany.IsList = true;
+        F1_TradeCompany.IsOptional = true;
         var F1_Price = new EvaluateItem("交易标的作价");
         var F1_EvaluateMethod = new EvaluateItem("评估方法");
         F1_EvaluateMethod.IsList = true;
@@ -200,9 +201,9 @@ public static class Evaluate
                     F1_ID.PutItemData(reorg.Id, reorg_Result.Id);
                     F1_Target.PutItemData(reorg.Target, reorg_Result.Target);
                     F1_TargetCompany.PutItemData(reorg.TargetCompany, reorg_Result.TargetCompany);
-                    F1_TradeCompany.PutItemData(reorg.TradeCompany, reorg_Result.TradeCompany);
-                    F1_Price.PutItemData(reorg.Price, reorg_Result.Price);
-                    F1_EvaluateMethod.PutItemData(reorg.EvaluateMethod, reorg_Result.EvaluateMethod);
+                    F1_TradeCompany.PutItemData(reorg.TradeCompany, reorg_Result.TradeCompany, reorg.Id);
+                    F1_Price.PutItemData(reorg.Price, reorg_Result.Price, reorg.Id);
+                    F1_EvaluateMethod.PutItemData(reorg.EvaluateMethod, reorg_Result.EvaluateMethod, reorg.Id);
                     break; //防止测试集出现多条主键重复的记录
                 }
             }

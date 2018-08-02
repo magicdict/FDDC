@@ -67,8 +67,8 @@ namespace FDDC
                 "成本逼近法","单项资产加和法","成本加和法","基准地价修正法","收益还原法","现金流量法","单项资产加总法","折现现金流量法"
             }.ToList();
             var t = new Reorganization();
-            t.Id = "153866";
-            t.HTMLFileName = ReorganizationPath_TRAIN + "/html/1503346.html";
+            t.Id = "15498097";
+            t.HTMLFileName = ReorganizationPath_TRAIN + "/html/15498097.html";
             //t.TextFileName = ContractPath_TRAIN + "/txt/39498.txt";
             t.Init();
             var recs = t.Extract();

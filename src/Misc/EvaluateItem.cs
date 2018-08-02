@@ -78,24 +78,10 @@ public class EvaluateItem
             //存在标准值
             if (!String.IsNullOrEmpty(EvaluateValue))
             {
-                //存在标准值 存在测评值
-                if (IsList)
+                if (IsOptional)
                 {
-                    //多项的情况
-                    var StardardList = StardardValue.Split(Utility.SplitChar).ToList();
-                    var EvaluateList = EvaluateValue.Split(Utility.SplitChar).ToList();
-                    var IsOk = false;
-                    if (StardardList.Count == EvaluateList.Count)
-                    {
-                        IsOk = true;
-                        for (int i = 0; i < StardardList.Count; i++)
-                        {
-                            if (StardardList[i].Equals(EvaluateList[i])) continue;
-                            IsOk = false;
-                            break;
-                        }
-                    }
-                    if (IsOk)
+                    //单项的情况(暂时不考虑多项)
+                    if (StardardValue.NormalizeTextResult().Equals(EvaluateValue.NormalizeTextResult()))
                     {
                         CorrentCnt++;
                     }
@@ -111,20 +97,55 @@ public class EvaluateItem
                 }
                 else
                 {
-                    //单项的情况
-                    if (StardardValue.NormalizeTextResult().Equals(EvaluateValue.NormalizeTextResult()))
+                    //存在标准值 存在测评值
+                    if (IsList)
                     {
-                        CorrentCnt++;
+                        //多项的情况
+                        var StardardList = StardardValue.Split(Utility.SplitChar).ToList();
+                        var EvaluateList = EvaluateValue.Split(Utility.SplitChar).ToList();
+                        var IsOk = false;
+                        if (StardardList.Count == EvaluateList.Count)
+                        {
+                            IsOk = true;
+                            for (int i = 0; i < StardardList.Count; i++)
+                            {
+                                if (StardardList[i].Equals(EvaluateList[i])) continue;
+                                IsOk = false;
+                                break;
+                            }
+                        }
+                        if (IsOk)
+                        {
+                            CorrentCnt++;
+                        }
+                        else
+                        {
+                            if (!String.IsNullOrEmpty(Id))
+                            {
+                                Program.Evaluator.WriteLine(ItemName + " " + Id + ":【标准】" + StardardValue);
+                                Program.Evaluator.WriteLine(ItemName + " " + Id + ":【评估】" + EvaluateValue);
+                            }
+                            WrongCnt++;
+                        }
                     }
                     else
                     {
-                        if (!String.IsNullOrEmpty(Id))
+                        //单项的情况
+                        if (StardardValue.NormalizeTextResult().Equals(EvaluateValue.NormalizeTextResult()))
                         {
-                            Program.Evaluator.WriteLine(ItemName + " " + Id + ":【标准】" + StardardValue);
-                            Program.Evaluator.WriteLine(ItemName + " " + Id + ":【评估】" + EvaluateValue);
+                            CorrentCnt++;
                         }
-                        WrongCnt++;
+                        else
+                        {
+                            if (!String.IsNullOrEmpty(Id))
+                            {
+                                Program.Evaluator.WriteLine(ItemName + " " + Id + ":【标准】" + StardardValue);
+                                Program.Evaluator.WriteLine(ItemName + " " + Id + ":【评估】" + EvaluateValue);
+                            }
+                            WrongCnt++;
+                        }
                     }
+
                 }
             }
             else

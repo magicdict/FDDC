@@ -22,6 +22,17 @@ public class ReorganizationRec : RecordBase
     /// 交易对方
     /// </summary>
     public string TradeCompany;
+
+    /// <summary>
+    /// 标的公司全称（辅助用，不输出）
+    /// </summary>
+    public string TradeCompanyFullName;
+    /// <summary>
+    /// 标的公司简称（辅助用，不输出）
+    /// </summary>
+    public string TradeCompanyShortName;
+
+
     /// <summary>
     /// 交易标的作价
     /// </summary>

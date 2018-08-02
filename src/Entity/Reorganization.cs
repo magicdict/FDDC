@@ -56,7 +56,8 @@ public class Reorganization : AnnouceDocument
                     break;
                 }
             }
-            //最后才能进行 多选配置！！！
+
+            //标的公司的简称填补
             foreach (var dict in ExplainDict)
             {
                 var keys = dict.Key.Split(Utility.SplitChar);
@@ -79,7 +80,6 @@ public class Reorganization : AnnouceDocument
 
                         var tempvalue = dict.Value;
                         if (tempvalue.Contains("，")) tempvalue = Utility.GetStringBefore(tempvalue, "，");
-                        //reorgRec.TargetCompany = tempKey + "|" + tempvalue;
                         reorgRec.TargetCompanyFullName = tempvalue;
                         reorgRec.TargetCompanyShortName = tempKey;
                         isHit = true;
@@ -90,7 +90,47 @@ public class Reorganization : AnnouceDocument
             }
 
             var xTrade = getTradeCompanyByKeyWord(reorgRec);
-            if (!String.IsNullOrEmpty(xTrade)) reorgRec.TradeCompany = xTrade;
+            if (!String.IsNullOrEmpty(xTrade))
+            {
+                foreach (var dict in ExplainDict)
+                {
+                    var keys = dict.Key.Split(Utility.SplitChar);
+                    var keys2 = dict.Key.Split("/");
+                    var isHit = false;
+                    if (keys.Length == 1 && keys2.Length > 1)
+                    {
+                        keys = keys2;
+                    }
+                    foreach (var key in keys)
+                    {
+                        if (key.Contains("标的")) continue;
+                        if (key.Contains("目标")) continue;
+                        if (key.Equals("上市公司")) continue;
+                        if (key.Equals("本公司")) continue;
+                        if (key.Equals(xTrade) || dict.Value.Equals(xTrade))
+                        {
+                            var tempKey = key;
+                            if (tempKey.Contains("，")) tempKey = Utility.GetStringBefore(tempKey, "，");
+
+                            var tempvalue = dict.Value;
+                            if (tempvalue.Contains("，")) tempvalue = Utility.GetStringBefore(tempvalue, "，");
+                            reorgRec.TradeCompanyFullName = tempvalue;
+                            reorgRec.TradeCompanyShortName = tempKey;
+                            isHit = true;
+                            break;
+                        }
+                    }
+                    if (isHit) break;
+                }
+                reorgRec.TradeCompany = xTrade;
+                if (!String.IsNullOrEmpty(reorgRec.TradeCompanyFullName) &&
+                    !String.IsNullOrEmpty(reorgRec.TradeCompanyShortName))
+                {
+                    reorgRec.TradeCompany = reorgRec.TradeCompanyFullName + "|" + reorgRec.TradeCompanyShortName;
+                }
+            }
+
+
             var Price = GetPrice(reorgRec);
             reorgRec.Price = MoneyUtility.Format(Price.MoneyAmount, String.Empty);
             reorgRec.EvaluateMethod = getEvaluateMethod(reorgRec);
@@ -703,8 +743,11 @@ public class Reorganization : AnnouceDocument
             if (ExplainSentence.Contains(",")) SingleSentenceList = ExplainSentence.Split(",");
             if (ExplainSentence.Contains("，")) SingleSentenceList = ExplainSentence.Split("，");
 
-            foreach (var SingleSentence in SingleSentenceList)
+            foreach (var SingleSentenceItem in SingleSentenceList)
             {
+                //购买的 -> 购买
+                var SingleSentence = SingleSentenceItem;
+                SingleSentence = SingleSentence.Replace("购买的", "购买");
                 var HoldVerbIdxPlus = SingleSentence.IndexOf("所持有");
                 var HoldVerbIdx = SingleSentence.IndexOf("持有");
                 if (HoldVerbIdx == -1) continue;
@@ -748,24 +791,48 @@ public class Reorganization : AnnouceDocument
                     }
                 }
                 //向海纳川发行股份及支付现金
+                //上市公司因向众泰汽车股东购买其合计持有的众泰汽车100%股权而向其发行的股份
+                //三七互娱以发行股份及支付现金的方式向中汇影视全体股东购买其合计持有的中汇影视100％的股份、
+                //向杨东迈、谌维和网众投资购买其合计持有的墨鹍科技68.43％的股权
                 var pos = new PosSegmenter();
                 var words = pos.Cut(SingleSentence);
                 var HasToWord = false;
                 foreach (var w in words)
                 {
-                    if (w.Word == "向")
+                    if (w.Word == "向" || w.Word == "拟向")
                     {
                         //防止出现公司名字里面的向被误判，这里采用分词的手法
                         HasToWord = true;
                         break;
                     }
                 }
-                var PublishStockAndPay = SingleSentence.IndexOf("发行股份及支付现金");
-                var ToIdx = SingleSentence.IndexOf("向");
-                if (HasToWord && PublishStockAndPay != -1)
+                //注意字符串顺序！
+                var ToIdx = SingleSentence.IndexOf("向");   //这里拟向也是没有问题的
+                var BuyMethodList = new string[] { "发行股份及支付现金", "非公开发行股份", "定向发行股份", "发行股份", "支付现金", "发行A股股份" };
+                foreach (var BuyMethod in BuyMethodList)
                 {
-                    var ToTarget = SingleSentence.Substring(ToIdx + 1, PublishStockAndPay - ToIdx - 1);
-                    Console.WriteLine("发行股份及支付现金:" + ToTarget);
+                    var PublishStockAndPayCashIdx = SingleSentence.IndexOf(BuyMethod);
+                    if (HasToWord && PublishStockAndPayCashIdx != -1 && PublishStockAndPayCashIdx > ToIdx)
+                    {
+                        var ToTarget = SingleSentence.Substring(ToIdx + 1, PublishStockAndPayCashIdx - ToIdx - 1);
+                        if (ToTarget.EndsWith("股东")) ToTarget = ToTarget.Substring(0, ToTarget.Length - 2);
+                        Console.WriteLine("向...发行股份及支付现金:" + ToTarget);
+                        foreach (var item in companynamelist)
+                        {
+                            if (ToTarget.Equals(item.secFullName) || ToTarget.Equals(item.secShortName))
+                            {
+                                Console.WriteLine("交易对手公司:" + ToTarget);
+                                return ToTarget;
+                            }
+                        }
+                    }
+                }
+                //没有支付手段，直接购买的情况
+                if (ToIdx != -1 && BuyIdx != -1 && BuyIdx > ToIdx)
+                {
+                    var ToTarget = SingleSentence.Substring(ToIdx + 1, BuyIdx - ToIdx - 1);
+                    if (ToTarget.EndsWith("股东")) ToTarget = ToTarget.Substring(0, ToTarget.Length - 2);
+                    Console.WriteLine("向...购买:" + ToTarget);
                     foreach (var item in companynamelist)
                     {
                         if (ToTarget.Equals(item.secFullName) || ToTarget.Equals(item.secShortName))

@@ -129,7 +129,7 @@ public abstract class AnnouceDocument
         {
             //18-2月-2017
             AnnouceDate = StockChange.PublishTime[Id];
-            Console.WriteLine(Id + "  AnnouceDate:  " + AnnouceDate.ToString("yyyy-MM-dd"));
+            Console.WriteLine("Found AnnouceDate" + Id + "  AnnouceDate:  " + AnnouceDate.ToString("yyyy-MM-dd"));
         }
         else
         {
