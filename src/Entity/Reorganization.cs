@@ -11,12 +11,10 @@ public class Reorganization : AnnouceDocument
 {
     public override List<RecordBase> Extract()
     {
-        Program.Logger.WriteLine("ID:" + Id);
-        Program.Logger.Flush();
-
         InitTableRules();
+        GetPersonList();
         var list = new List<RecordBase>();
-        var targets = getTargetListFromReplaceTable();
+        var targets = getTargetListFromReplaceTable().Distinct().ToList();
         if (targets.Count == 0) return list;
         var TradeCompany = getTradeCompany(targets);
 
@@ -192,6 +190,46 @@ public class Reorganization : AnnouceDocument
         }
 
         return list;
+    }
+
+    /// <summary>
+    /// 人名列表
+    /// </summary>
+    /// <typeparam name="String"></typeparam>
+    /// <returns></returns>
+    List<String> PersonList = new List<String>();
+
+    void GetPersonList()
+    {
+        //交易对象
+        var rtn = new List<(string TargetCompany, string TradeCompany)>();
+        TradeCompany.IsRequire = true;
+        var Rules = new List<TableSearchTitleRule>();
+        Rules.Add(TradeCompany);
+        var opt = new HTMLTable.SearchOption();
+        opt.IsMeger = true;
+        opt.IsContainTotalRow = true;
+        var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, opt);
+        if (result.Count != 0)
+        {
+            //首页表格提取出交易者列表
+            var tableid = result[0][0].TableId;
+            //注意：由于表格检索的问题，这里只将第一个表格的内容作为依据
+            //交易对方是释义表的一个项目，这里被错误识别为表头
+            //TODO:这里交易对方应该只选取文章前部的表格！！
+            var TableTrades = result.Where(z => !ExplainTableId.Contains(z[0].TableId))
+                               .Select(x => x[0].RawData)
+                               .Where(y => !y.Contains("不超过")).ToList();
+            PersonList.AddRange(TableTrades);
+        }
+
+        foreach (var e in ExplainDict)
+        {
+            if (e.Key.Contains("自然人"))
+            {
+
+            }
+        }
     }
 
     /// <summary>
@@ -478,21 +516,7 @@ public class Reorganization : AnnouceDocument
                 {
                     foreach (var targetRecordItem in values)
                     {
-                        //DEBUG:
                         var SingleItemList = Utility.CutByPOSConection(targetRecordItem);
-                        if (SingleItemList.Count == 2)
-                        {
-                            //1.家和股份  和的问题
-                            //2.空格问题
-                            //3.置入和置出问题
-                            //4.其他奇怪的问题
-                            //5.资产和负债
-                            //6.所拥有的，所持有的
-                            //Console.WriteLine(Id + " 分割：");
-                            //Console.WriteLine(Id + " 原词：" + targetRecordItem);
-                            //Console.WriteLine(Id + " 分量1：" + SingleItemList[0]);
-                            //Console.WriteLine(Id + " 分量2：" + SingleItemList[1]);
-                        }
                         foreach (var SingleItem in SingleItemList)
                         {
                             var targetAndcompany = SingleItem.Trim().Replace(" ", "");
@@ -595,7 +619,9 @@ public class Reorganization : AnnouceDocument
         TradeCompany.IsRequire = true;
         var Rules = new List<TableSearchTitleRule>();
         Rules.Add(TradeCompany);
-        var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, true);
+        var opt = new HTMLTable.SearchOption();
+        opt.IsMeger = true;
+        var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, opt);
         if (result.Count == 0) return rtn;
         //首页表格提取出交易者列表
         var tableid = result[0][0].TableId;
@@ -608,7 +634,7 @@ public class Reorganization : AnnouceDocument
 
         TragetCompany.IsRequire = true;
         Rules.Add(TragetCompany);
-        result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, true);
+        result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, opt);
 
 
         //释义表
@@ -827,9 +853,6 @@ public class Reorganization : AnnouceDocument
                         if (Rtn.Count != 0) return Rtn;
                     }
                 }
-
-
-
                 //没有支付手段，直接购买的情况
                 if (ToIdx != -1 && BuyIdx != -1 && BuyIdx > ToIdx)
                 {
@@ -839,6 +862,21 @@ public class Reorganization : AnnouceDocument
                     Rtn = GetCompanys(ToTarget);
                     if (Rtn.Count != 0) return Rtn;
                 }
+
+                //合计持有，所持有，持有，这样的顺序去判定
+                var HoldWordList = new string[] { "合计持有", "所持有", "持有" };
+                foreach (var hw in HoldWordList)
+                {
+                    if (SingleSentence.IndexOf(hw) != -1)
+                    {
+                        var HoldTarget = Utility.GetStringBefore(SingleSentence, hw);
+                        Console.WriteLine("....持有:" + HoldTarget);
+                        Rtn = GetCompanys(HoldTarget);
+                        if (Rtn.Count != 0) return Rtn;
+                    }
+                }
+
+
                 if (!String.IsNullOrEmpty(BetweenBuyAndHoldString) && BetweenBuyAndHoldString.Equals("其"))
                 {
                     Console.WriteLine("特殊指代：" + BetweenBuyAndHoldString);
@@ -856,31 +894,58 @@ public class Reorganization : AnnouceDocument
         var Items = OrgString.Split(Utility.SplitChar);
         foreach (var SingleItem in Items)
         {
-            foreach (var cn in companynamelist)
+            if (IsCompanyOrPerson(SingleItem))
             {
-                if (SingleItem.Equals(cn.secFullName) || SingleItem.Equals(cn.secShortName))
+                Rtn.Add(SingleItem);
+            }
+            else
+            {
+                //这里可能出现一些 “和” 这样的文字，需要区分
+                var AndIdx = SingleItem.IndexOf("和");
+                if (AndIdx != -1 && AndIdx != 0 && AndIdx != (SingleItem.Length - 1))
                 {
-                    Rtn.Add(SingleItem);
+                    var FirstWord = SingleItem.Substring(0, AndIdx);
+                    var Secondword = SingleItem.Substring(AndIdx + 1);
+                    if (IsCompanyOrPerson(FirstWord) && IsCompanyOrPerson(Secondword))
+                    {
+                        Rtn.Add(FirstWord);
+                        Rtn.Add(Secondword);
+                    }
+                    else
+                    {
+                        Console.WriteLine("无法匹配任何公司或者自然人：" + FirstWord + "|" + Secondword);
+                        return new List<String>();
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("无法匹配任何公司或者自然人：" + SingleItem);
                 }
             }
         }
-        Rtn = Rtn.Distinct().ToList();
-
-        Console.WriteLine("输入参数：" + OrgString);
-        foreach (var SingleItem in Rtn)
+        Console.WriteLine("输入：" + OrgString);
+        foreach (var item in Rtn)
         {
-            Console.WriteLine("交易对手公司:" + SingleItem);
-        }
-        if (Items.Length == Rtn.Count)
-        {
-            Console.WriteLine("多项（单项）全部是公司");
-        }
-        else
-        {
-            //无法保证，暂时清空，稍后加入人名的判断
-            Rtn.Clear();
+            Console.WriteLine("输出：" + item);
         }
         return Rtn;
+    }
+
+    bool IsCompanyOrPerson(String SingleItem)
+    {
+        foreach (var cn in companynamelist)
+        {
+            if (SingleItem.Equals(cn.secFullName) || SingleItem.Equals(cn.secShortName))
+            {
+                return true;
+            }
+        }
+        //人物
+        if (PersonList.Contains(SingleItem))
+        {
+            return true;
+        }
+        return false;
     }
 
 
@@ -973,7 +1038,10 @@ public class Reorganization : AnnouceDocument
         var Rules = new List<TableSearchTitleRule>();
         Rules.Add(TragetCompany);
         Rules.Add(FinallyPrice);
-        var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, false);
+        var opt = new HTMLTable.SearchOption();
+        opt.IsMeger = false;
+
+        var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, opt);
         foreach (var item in result)
         {
             if (string.IsNullOrEmpty(rec.TargetCompany)) continue;
@@ -1000,7 +1068,8 @@ public class Reorganization : AnnouceDocument
         Rules.Clear();
         Rules.Add(TragetCompany);
         Rules.Add(Price);
-        result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, false);
+
+        result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, opt);
         foreach (var item in result)
         {
             if (string.IsNullOrEmpty(rec.TargetCompany)) continue;
@@ -1105,7 +1174,11 @@ public class Reorganization : AnnouceDocument
         var Rules = new List<TableSearchTitleRule>();
         Rules.Add(TragetCompany);
         Rules.Add(FinallyEvaluateMethod);
-        var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, false);
+
+        var opt = new HTMLTable.SearchOption();
+        opt.IsMeger = false;
+
+        var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, opt);
         foreach (var item in result)
         {
             if (string.IsNullOrEmpty(rec.TargetCompany)) continue;
@@ -1123,7 +1196,7 @@ public class Reorganization : AnnouceDocument
         Rules.Clear();
         Rules.Add(TragetCompany);
         Rules.Add(EvaluateMethod);
-        result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, false);
+        result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, opt);
         foreach (var item in result)
         {
             if (string.IsNullOrEmpty(rec.TargetCompany)) continue;

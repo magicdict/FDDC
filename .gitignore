@@ -13,3 +13,4 @@ Result.zip
 *.zip
 !dict.txt
 !ns.dict
+!Important.log

@@ -128,7 +128,9 @@ public partial class Contract : AnnouceDocument
         Rules.Add(ProjectName);
         Rules.Add(Money);
 
-        var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, false);
+        var opt = new SearchOption();
+        opt.IsMeger = false;
+        var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, opt);
 
         if (result.Count > 0)
         {

@@ -60,15 +60,33 @@ public partial class HTMLTable
     }
 
     /// <summary>
+    /// 表格检索选项
+    /// </summary>
+    public struct SearchOption
+    {
+        /// <summary>
+        /// 结果是否按照主键合并
+        /// </summary>
+        public bool IsMeger;
+        /// <summary>
+        /// 是否包含疑似合计行的记录
+        /// </summary>
+        public bool IsContainTotalRow;
+
+    }
+
+    /// <summary>
     /// 标题优先度
     /// </summary>
     /// <param name="root"></param>
     /// <param name="Rules"></param>
     /// <param name="IsMeger"></param>
     /// <returns></returns>
-    public static List<CellInfo[]> GetMultiInfoByTitleRules(HTMLEngine.MyRootHtmlNode root, List<TableSearchTitleRule> Rules, bool IsMeger)
+    public static List<CellInfo[]> GetMultiInfoByTitleRules(HTMLEngine.MyRootHtmlNode root,
+     List<TableSearchTitleRule> Rules, SearchOption opt)
     {
         var Container = new List<CellInfo[]>();
+        if (root.TableList == null) return Container;
         for (int tableIndex = 0; tableIndex < root.TableList.Count; tableIndex++)
         {
             var table = new HTMLTable(root.TableList[tableIndex + 1]);
@@ -107,7 +125,7 @@ public partial class HTMLTable
                             if (Rules[checkItemIdx].IsTitleEq)
                             {
                                 //相等模式
-                                if (!EvaluateTitle.Equals(HeaderRow[ColIndex].Replace(" ",""))) continue;
+                                if (!EvaluateTitle.Equals(HeaderRow[ColIndex].Replace(" ", ""))) continue;
                                 if (Rules[checkItemIdx].ExcludeTitle != null)
                                 {
                                     var isOK = true;
@@ -125,7 +143,7 @@ public partial class HTMLTable
                             else
                             {
                                 //包含模式
-                                if (!HeaderRow[ColIndex].Replace(" ","").Contains(EvaluateTitle)) continue;
+                                if (!HeaderRow[ColIndex].Replace(" ", "").Contains(EvaluateTitle)) continue;
                                 if (Rules[checkItemIdx].ExcludeTitle != null)
                                 {
                                     var isOK = true;
@@ -148,7 +166,7 @@ public partial class HTMLTable
                                 var IsFoundSuperTitle = false;
                                 for (int superRowNo = 1; superRowNo < TestRowHeader; superRowNo++)
                                 {
-                                    var value = table.CellValue(superRowNo, ColIndex + 1).Replace(" ","");
+                                    var value = table.CellValue(superRowNo, ColIndex + 1).Replace(" ", "");
                                     if (Rules[checkItemIdx].IsSuperTitleEq)
                                     {
                                         //等于
@@ -229,7 +247,7 @@ public partial class HTMLTable
             for (int RowNo = HeaderRowNo; RowNo <= table.RowCount; RowNo++)
             {
                 if (RowNo == HeaderRowNo) continue;
-                if (table.IsTotalRow(RowNo)) continue;          //非合计行
+                if (table.IsTotalRow(RowNo) && !opt.IsContainTotalRow) continue;          //非合计行
                 var target = table.CellValue(RowNo, checkResultColumnNo[0]);    //主字段非空
                 if (target == String.Empty || target == strRowSpanValue || target == strColSpanValue || target == strNullValue) continue;
                 if (Rules[0].Title.Contains(target)) continue;
@@ -264,7 +282,7 @@ public partial class HTMLTable
                 if (!HasSame) Container.Add(RowData);
             }
         }
-        if (IsMeger) Container = MergerMultiInfo(Container);
+        if (opt.IsMeger) Container = MergerMultiInfo(Container);
         return Container;
     }
 

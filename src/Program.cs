@@ -70,11 +70,11 @@ namespace FDDC
                 "内含价值调整法","可比公司市净率法","重置成本法","收益现值法","基础资产法","假设清偿法",
                 "成本逼近法","单项资产加和法","成本加和法","基准地价修正法","收益还原法","现金流量法","单项资产加总法","折现现金流量法"
             }.ToList();
-            var t = new StockChange();
-            t.Id = "12025230";
-            t.HTMLFileName = StockChangePath_TRAIN + "/html/20503943.html";
-            t.TextFileName = StockChangePath_TRAIN + "/txt/20503943.txt";
-            t.NerXMLFileName = StockChangePath_TRAIN + "/ner/20503943.xml";
+            var t = new Reorganization();
+            t.Id = "1023244";
+            t.HTMLFileName = ReorganizationPath_TRAIN + "/html/1023244.html";
+            //t.TextFileName = StockChangePath_TRAIN + "/txt/18833000.txt";
+            //t.NerXMLFileName = StockChangePath_TRAIN + "/ner/18833000.xml";
             t.Init();
             var recs = t.Extract();
             var s1 = recs[0].ConvertToString();
@@ -95,7 +95,7 @@ namespace FDDC
             //结巴分词的地名修正词典
             PosNS.ImportNS("Resources" + Path.DirectorySeparatorChar + "ns.dict");
             CIRecord = new StreamWriter("CI.log");
-            QuickTestArea(); return;
+            //QuickTestArea(); return;
             //PDFToTXT.GetPdf2TxtBatchFile();
             //公司全称简称曾用名字典   
             CompanyNameLogic.LoadCompanyName("Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
@@ -199,14 +199,14 @@ namespace FDDC
 
 
         //增减持
-        public static bool IsRunStockChange = true;
-        public static bool IsRunStockChange_TEST = true;
+        public static bool IsRunStockChange = false;
+        public static bool IsRunStockChange_TEST = false;
         public static string StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
         public static string StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "增减持";
 
 
         //资产重组
-        public static bool IsRunReorganization = false;
+        public static bool IsRunReorganization = true;
         public static bool IsRunReorganization_TEST = false;
 
 

@@ -8,7 +8,7 @@ using static CompanyNameLogic;
 
 public class IncreaseStock : AnnouceDocument
 {
-   public override List<RecordBase> Extract()
+    public override List<RecordBase> Extract()
     {
         //认购方式
         var buyMethod = getBuyMethod(root);
@@ -60,7 +60,10 @@ public class IncreaseStock : AnnouceDocument
         Rules.Add(IncreaseMoney);
         Rules.Add(FreezeYear);
         Rules.Add(BuyPrice);
-        var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, true);
+
+        var opt = new SearchOption();
+        opt.IsMeger = true;
+        var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, opt);
         var increaseStocklist = new List<RecordBase>();
         foreach (var item in result)
         {
