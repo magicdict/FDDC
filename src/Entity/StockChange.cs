@@ -52,8 +52,8 @@ public class StockChange : AnnouceDocument
         {
             companynamelist.Add(new struCompanyName()
             {
-                secFullName = Name.FullName,
-                secShortName = Name.ShortName
+                secFullName = Name.FullName.Trim(),
+                secShortName = Name.ShortName.Trim()
             });
         }
         list = ExtractFromTable();
@@ -149,7 +149,8 @@ public class StockChange : AnnouceDocument
                         {
                             var CompanyShortName = CompanyShortList.First();
                             CompanyShortName = CompanyShortName.Substring(1, CompanyShortName.Length - 2);
-                            companynamelist.Add(new struCompanyName()
+                            //第一优先顺位使用
+                            companynamelist.Insert(0, new struCompanyName()
                             {
                                 secFullName = CompanyFullName,
                                 secShortName = CompanyShortName
@@ -509,8 +510,18 @@ public class StockChange : AnnouceDocument
                 if (after.Name == last.HolderFullName || after.Name == last.HolderShortName)
                 {
                     stockchangelist.Remove(last);   //结构体，无法直接修改！！使用删除，增加的方法
-                    last.HoldNumberAfterChange = after.Count;
-                    last.HoldPercentAfterChange = after.Percent;
+                    last.HoldNumberAfterChange = after.TotalCount;
+                    last.HoldPercentAfterChange = after.TotalPercent;
+                    if (string.IsNullOrEmpty(last.HoldNumberAfterChange) || last.HoldNumberAfterChange.Equals("0"))
+                    {
+                        last.HoldNumberAfterChange = after.UnLimitCount;
+                        last.HoldPercentAfterChange = after.UnLimitPercent;
+                    }
+                    if (string.IsNullOrEmpty(last.HoldNumberAfterChange) || last.HoldNumberAfterChange.Equals("0"))
+                    {
+                        last.HoldNumberAfterChange = after.LimitCount;
+                        last.HoldPercentAfterChange = after.LimitPercent;
+                    }
                     newRec.Add(last);
                 }
             }
@@ -524,19 +535,25 @@ public class StockChange : AnnouceDocument
         stockchangelist.AddRange(newRec);
         return stockchangelist;
     }
-    struct struHoldAfter
+    class struHoldAfter
     {
-        public String Name;
+        public string Name;
 
-        public String Count;
+        public string TotalCount;
 
-        public string Percent;
+        public string TotalPercent;
 
-        public Boolean Used;
+        public string LimitCount;
+
+        public string LimitPercent;
+
+        public string UnLimitCount;
+
+        public string UnLimitPercent;
     }
     List<struHoldAfter> GetHolderAfter()
     {
-        var HoldList = new List<struHoldAfter>();
+        var HoldDict = new Dictionary<String, struHoldAfter>();
         foreach (var table in root.TableList)
         {
             var mt = new HTMLTable(table.Value);
@@ -544,21 +561,78 @@ public class StockChange : AnnouceDocument
             {
                 for (int ColIdx = 0; ColIdx < mt.ColumnCount; ColIdx++)
                 {
-                    if (mt.CellValue(RowIdx + 1, ColIdx + 1) == "合计持有股份" || mt.CellValue(RowIdx + 1, ColIdx + 1) == "合计持股")
+                    var Title = mt.CellValue(RowIdx + 1, ColIdx + 1).Replace(" ", "");
+                    if (Title == "合计持有股份" || Title == "合计持股" ||
+                        Title.Contains("无限售条件股份") || Title.Contains("有限售条件股份"))
                     {
                         var HolderName = mt.CellValue(RowIdx + 1, 1);
                         var strHolderCnt = mt.CellValue(RowIdx + 1, mt.ColumnCount - 1);
                         strHolderCnt = Normalizer.NormalizeNumberResult(strHolderCnt);
                         var title = mt.CellValue(2, 5);
                         string HolderCnt = getAfterstock(title, strHolderCnt);
-
                         var StrPercent = mt.CellValue(RowIdx + 1, mt.ColumnCount);
                         var HodlerPercent = getAfterpercent(StrPercent);
-                        HoldList.Add(new struHoldAfter() { Name = HolderName, Count = HolderCnt, Percent = HodlerPercent, Used = false });
+                        if (Title == "合计持有股份" ||
+                            Title == "合计持股")
+                        {
+                            if (HoldDict.ContainsKey(HolderName))
+                            {
+                                HoldDict[HolderName].Name = HolderName;
+                                HoldDict[HolderName].TotalCount = HolderCnt;
+                                HoldDict[HolderName].TotalPercent = HodlerPercent;
+                            }
+                            else
+                            {
+                                HoldDict.Add(HolderName, new struHoldAfter()
+                                {
+                                    Name = HolderName,
+                                    TotalCount = HolderCnt,
+                                    TotalPercent = HodlerPercent
+                                });
+                            }
+                        }
+                        if (Title.Contains("无限售条件股份"))
+                        {
+                            if (HoldDict.ContainsKey(HolderName))
+                            {
+                                HoldDict[HolderName].Name = HolderName;
+                                HoldDict[HolderName].UnLimitCount = HolderCnt;
+                                HoldDict[HolderName].UnLimitPercent = HodlerPercent;
+                            }
+                            else
+                            {
+                                HoldDict.Add(HolderName, new struHoldAfter()
+                                {
+                                    Name = HolderName,
+                                    UnLimitCount = HolderCnt,
+                                    UnLimitPercent = HodlerPercent
+                                });
+                            }
+                        }
+                        if (Title.Contains("有限售条件股份"))
+                        {
+                            if (HoldDict.ContainsKey(HolderName))
+                            {
+                                HoldDict[HolderName].Name = HolderName;
+                                HoldDict[HolderName].LimitCount = HolderCnt;
+                                HoldDict[HolderName].LimitPercent = HodlerPercent;
+                            }
+                            else
+                            {
+                                HoldDict.Add(HolderName, new struHoldAfter()
+                                {
+                                    Name = HolderName,
+                                    LimitCount = HolderCnt,
+                                    LimitPercent = HodlerPercent
+                                });
+                            }
+                        }
                     }
                 }
             }
         }
+
+        var HoldList = HoldDict.Values.ToList();
         if (HoldList.Count == 0)
         {
             HoldList = GetHolderAfter2ndStep();
@@ -658,9 +732,8 @@ public class StockChange : AnnouceDocument
                         HoldList.Add(new struHoldAfter()
                         {
                             Name = value1,
-                            Count = getAfterstock(Title4, value4),
-                            Percent = getAfterpercent(value5),
-                            Used = false
+                            TotalCount = getAfterstock(Title4, value4),
+                            TotalPercent = getAfterpercent(value5),
                         });
                         continue;
                     }
@@ -718,9 +791,8 @@ public class StockChange : AnnouceDocument
                 HoldList.Add(new struHoldAfter()
                 {
                     Name = HolderName,
-                    Count = HolderCnt,
-                    Percent = HodlerPercent,
-                    Used = false
+                    TotalCount = HolderCnt,
+                    TotalPercent = HodlerPercent,
                 });
             }
         }
@@ -751,9 +823,8 @@ public class StockChange : AnnouceDocument
                     HoldList.Add(new struHoldAfter()
                     {
                         Name = HolderName,
-                        Count = HolderCnt,
-                        Percent = HodlerPercent,
-                        Used = false
+                        TotalCount = HolderCnt,
+                        TotalPercent = HodlerPercent,
                     });
                 }
             }

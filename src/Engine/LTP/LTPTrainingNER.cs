@@ -117,6 +117,10 @@ public class LTPTrainingNER
                         break;
                     case "E-Ni":
                         ner += word.cont;
+                        if ((int)(ner.ToCharArray()[0]) == 61548)
+                        {
+                            ner = ner.Substring(1);
+                        }
                         NerList.Add(new struNerInfo()
                         {
                             RawData = ner.Replace("股东", ""),

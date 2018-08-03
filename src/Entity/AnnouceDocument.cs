@@ -129,7 +129,7 @@ public abstract class AnnouceDocument
         {
             //18-2月-2017
             AnnouceDate = StockChange.PublishTime[Id];
-            Console.WriteLine("Found AnnouceDate" + Id + "  AnnouceDate:  " + AnnouceDate.ToString("yyyy-MM-dd"));
+            //Console.WriteLine("Found AnnouceDate" + Id + "  AnnouceDate:  " + AnnouceDate.ToString("yyyy-MM-dd"));
         }
         else
         {
@@ -354,7 +354,7 @@ public abstract class AnnouceDocument
                                 var Q = strQ.Substring(1, strQ.Length - 2);
                                 if (Q == "公司" || Q == "本公司" || Q == "招标人" || Q == "发包人") continue;
                                 var Clone = new List<struCompanyName>();
-                                //使用NER表对于残缺公司名称的修补：
+                                //使用NER表对于残缺公司名称的修补：但是这里在某些情况下，不能保证肯定是全称，特别是机构的时候
                                 if (!companynamelist.Select(x => x.secFullName).Contains(Preview.Value))
                                 {
                                     companynamelist.Add(

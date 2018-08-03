@@ -232,10 +232,20 @@ public class CompanyNameLogic
                         var json = GetCompanyNameByFullName(FullName);
                         ShortName = json.secShortName;
                     }
+                    if (!String.IsNullOrEmpty(FullName))
+                    {
+                        var x = FullName.ToCharArray();
+                        if (x.Length > 0 && (int)(x.First()) == 61548)
+                        {
+                            //PDF转换问题
+                            FullName = FullName.Substring(1);
+                        }
+                    }
+
                     namelist.Add(new struCompanyName()
                     {
-                        secFullName = FullName,
-                        secShortName = ShortName,
+                        secFullName = FullName == null ? FullName : FullName.Trim(),
+                        secShortName = ShortName == null ? ShortName : ShortName.Trim(),
                         isSubCompany = IsSubCompany,
                         positionId = PositionId,
                         WordIdx = CompanyStartIdx,

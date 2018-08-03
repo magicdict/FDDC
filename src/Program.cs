@@ -26,13 +26,13 @@ namespace FDDC
         /// <summary>
         /// 基本Windows
         /// </summary>
-        //public static String DocBase = @"E:" + Path.DirectorySeparatorChar + "WorkSpace2018" + Path.DirectorySeparatorChar + "FDDC2018";
+        public static String DocBase = @"E:" + Path.DirectorySeparatorChar + "WorkSpace2018" + Path.DirectorySeparatorChar + "FDDC2018";
 
 
         /// <summary>
         /// 基本CentOS
         /// </summary>
-        public static String DocBase = @"/home/118_4";
+        //public static String DocBase = @"/home/118_4";
 
         /// <summary>
         /// 基本MAC
@@ -71,11 +71,13 @@ namespace FDDC
                 "成本逼近法","单项资产加和法","成本加和法","基准地价修正法","收益还原法","现金流量法","单项资产加总法","折现现金流量法"
             }.ToList();
             var t = new StockChange();
-            t.Id = "19217971";
-            t.HTMLFileName = StockChangePath_TRAIN + "/html/612938.html";
-            t.TextFileName = StockChangePath_TRAIN + "/txt/612938.txt";
+            t.Id = "12025230";
+            t.HTMLFileName = StockChangePath_TRAIN + "/html/20503943.html";
+            t.TextFileName = StockChangePath_TRAIN + "/txt/20503943.txt";
+            t.NerXMLFileName = StockChangePath_TRAIN + "/ner/20503943.xml";
             t.Init();
             var recs = t.Extract();
+            var s1 = recs[0].ConvertToString();
         }
         static void Main(string[] args)
         {
@@ -93,7 +95,7 @@ namespace FDDC
             //结巴分词的地名修正词典
             PosNS.ImportNS("Resources" + Path.DirectorySeparatorChar + "ns.dict");
             CIRecord = new StreamWriter("CI.log");
-            //QuickTestArea(); return;
+            QuickTestArea(); return;
             //PDFToTXT.GetPdf2TxtBatchFile();
             //公司全称简称曾用名字典   
             CompanyNameLogic.LoadCompanyName("Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
@@ -141,7 +143,7 @@ namespace FDDC
                 int day = int.Parse(numbers[2]);
                 var AnnouceDate = new DateTime(year, month, day);
                 PublishTime.Add(line[1], AnnouceDate);
-                Console.WriteLine("ID:" + line[1] + " Date:" + AnnouceDate.ToString("yyyy-MM-dd"));
+                //Console.WriteLine("ID:" + line[1] + " Date:" + AnnouceDate.ToString("yyyy-MM-dd"));
             }
             sr.Close();
             Console.WriteLine("读取增减持信息：" + PublishTime.Count);
@@ -190,7 +192,7 @@ namespace FDDC
         }
 
         //重大合同
-        public static bool IsRunContract = true;
+        public static bool IsRunContract = false;
         public static bool IsRunContract_TEST = false;
         public static string ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
         public static string ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
@@ -198,7 +200,7 @@ namespace FDDC
 
         //增减持
         public static bool IsRunStockChange = true;
-        public static bool IsRunStockChange_TEST = false;
+        public static bool IsRunStockChange_TEST = true;
         public static string StockChangePath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "增减持";
         public static string StockChangePath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "增减持";
 
