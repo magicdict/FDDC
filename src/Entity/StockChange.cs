@@ -40,12 +40,31 @@ public class StockChange : AnnouceDocument
             }
         }
     }
+    List<LocAndValue<(DateTime StartDate, DateTime EndDate)>> DateRange;
 
     public override List<RecordBase> Extract()
     {
+        (DateTime StartDate, DateTime EndDate) ChangeDateRange;
+        ChangeDateRange = (DateTime.MinValue, DateTime.MinValue);
+        DateRange = LocateDateRange(root);
+        var Reveiver = LocateCustomerWord(root, new string[] { "集中竞价交易", "竞价交易", "大宗交易", "约定式购回" }.ToList());
+        foreach (var rec in Reveiver)
+        {
+            foreach (var range in DateRange)
+            {
+                if (rec.Loc == range.Loc)
+                {
+                    ChangeDateRange = range.Value;
+                    Console.WriteLine(Id + ":" + range.Value.StartDate + " - " + range.Value.EndDate);
+                    break;
+                }
+            }
+            if (ChangeDateRange.StartDate != DateTime.MinValue) break;
+        }
+
+        MoneyManger();
         FivePercentStockHolder();
         SpecialFixTable();
-        var DateRange = LocateDateRange(root);
         var list = new List<RecordBase>();
         var Name = GetHolderName();
         if (!String.IsNullOrEmpty(Name.FullName) && !String.IsNullOrEmpty(Name.ShortName))
@@ -57,7 +76,25 @@ public class StockChange : AnnouceDocument
             });
         }
         list = ExtractFromTable();
-        //list = ExtractFromTableByContent();
+
+
+
+        if (ChangeDateRange.StartDate != DateTime.MinValue)
+        {
+            foreach (StockChangeRec item in list)
+            {
+                if (!String.IsNullOrEmpty(item.ChangeEndDate))
+                {
+                    var cd = DateTime.Parse(item.ChangeEndDate);
+                    if (cd < ChangeDateRange.StartDate || cd > ChangeDateRange.EndDate)
+                    {
+                        Console.WriteLine(Id + ":[ST]" + ChangeDateRange.StartDate.ToString("yyyy-MM-dd"));
+                        Console.WriteLine(Id + ":[ED]" + ChangeDateRange.EndDate.ToString("yyyy-MM-dd"));
+                        Console.WriteLine(Id + ":[CD]" + cd.ToString("yyyy-MM-dd"));
+                    }
+                }
+            }
+        }
         if (list.Count > 0) return list;    //如果这里直接返回，由于召回率等因素，可以细微提高成绩
 
         var stockchange = new StockChangeRec();
@@ -70,6 +107,7 @@ public class StockChange : AnnouceDocument
             stockchange.HolderFullName = String.Empty;
         }
         stockchange.HolderShortName = Name.ShortName;
+
         if (!String.IsNullOrEmpty(stockchange.HolderFullName))
         {
             stockchange.HolderFullName = stockchange.HolderFullName.NormalizeTextResult();
@@ -78,6 +116,42 @@ public class StockChange : AnnouceDocument
         {
             stockchange.HolderShortName = stockchange.HolderShortName.NormalizeTextResult();
             stockchange.HolderShortName = stockchange.HolderShortName.TrimEnd(")".ToCharArray());
+        }
+        if (MoneyMangerList.Count == 1)
+        {
+            stockchange.HolderFullName = MoneyMangerList[0];
+        }
+        if (MoneyMangerList.Count == 2)
+        {
+            //考虑全称，简称可能性
+            var MFull = "";
+            var MShort = "";
+            if (MoneyMangerList[0].Length > MoneyMangerList[1].Length)
+            {
+                MFull = MoneyMangerList[0];
+                MShort = MoneyMangerList[1];
+            }
+            else
+            {
+                MFull = MoneyMangerList[1];
+                MShort = MoneyMangerList[0];
+            }
+            //是否头尾一致？
+            var IsMatch = false;
+            if (MShort.Length >= 4)
+            {
+                var StartWord = MShort.Substring(0, 2);
+                IsMatch = MFull.StartsWith(StartWord);
+            }
+            if (MoneyMangerList[1] == "信托计划")
+            {
+                stockchange.HolderFullName = MoneyMangerList[0];
+            }
+            if (IsMatch)
+            {
+                stockchange.HolderFullName = MFull;
+                stockchange.HolderShortName = MShort;
+            }
         }
         stockchange.ChangeEndDate = GetChangeEndDate(root);
 
@@ -106,11 +180,39 @@ public class StockChange : AnnouceDocument
         return list;
     }
 
-    //5%以上股东
+    //资产管理计划的处理
+    List<String> MoneyMangerList = new List<String>();
+    public void MoneyManger()
+    {
+        foreach (var item in LocateProperty.LocateQuotation(root, false))
+        {
+            if (item.Description == "引号")
+            {
+                if (item.Value.EndsWith("信托计划"))
+                {
+                    MoneyMangerList.Add(item.Value);
+                }
+                var SplitCharArray = new Char[] { '－', '-' };
+                if (item.Value.Split(SplitCharArray).Length > 1)
+                {
+                    if (item.Value.Contains("银行") || item.Value.Contains("证券"))
+                    {
+                        MoneyMangerList.Add(item.Value);
+                    }
+                }
+            }
+        }
+        MoneyMangerList = MoneyMangerList.Distinct().ToList();
+    }
 
+    //5%以上股东
     public void FivePercentStockHolder()
     {
-        var FivePercent = LocateCustomerWord(root, new string[] { "5%以上股东" }.ToList());
+        var FivePercent = LocateCustomerWord(root, new string[] {
+                "5%以上股东",
+                "第一大股东",
+                "第二大股东",
+        }.ToList());
         foreach (var five in FivePercent)
         {
             if (nermap.ParagraghlocateDict.ContainsKey(five.Loc))
@@ -139,11 +241,14 @@ public class StockChange : AnnouceDocument
                         if (isInBookMark) continue;
                         var Content = root.GetContentByPosId(five.Loc).Replace(" ", ""); ;
                         if (String.IsNullOrEmpty(Content)) continue;
-                        var startIdx = five.StartIdx + "5%以上股东".Length;
+                        var startIdx = five.StartIdx + five.Value.Length;
                         var length = ner.StartIdx - startIdx;
                         if (length <= 0) continue;
                         var CompanyFullName = Content.Substring(startIdx, length);
-                        if (CompanyFullName.StartsWith("--")) CompanyFullName = CompanyFullName.Substring(2);
+                        if (CompanyFullName.StartsWith("——") || CompanyFullName.StartsWith("-—"))
+                        {
+                            CompanyFullName = CompanyFullName.Substring(2);
+                        }
                         var CompanyShortList = RegularTool.GetChineseQuotation(ner.Value);
                         if (CompanyShortList.Count > 0)
                         {
@@ -155,10 +260,22 @@ public class StockChange : AnnouceDocument
                                 secFullName = CompanyFullName,
                                 secShortName = CompanyShortName
                             });
-                            Console.WriteLine("ID:" + Id);
-                            Console.WriteLine("CompanyFullName:" + CompanyFullName);
-                            Console.WriteLine("CompanyShortName:" + CompanyShortName);
+                            //Console.WriteLine("ID:" + Id);
+                            //Console.WriteLine("CompanyFullName:" + CompanyFullName);
+                            //Console.WriteLine("CompanyShortName:" + CompanyShortName);
                             return;
+                        }
+                        else
+                        {
+                            if (ner.Value.StartsWith("以下简称："))
+                            {
+                                var CompanyShortName = ner.Value.Substring(5);
+                                companynamelist.Insert(0, new struCompanyName()
+                                {
+                                    secFullName = CompanyFullName,
+                                    secShortName = CompanyShortName
+                                });
+                            }
                         }
                     }
                 }
@@ -317,18 +434,24 @@ public class StockChange : AnnouceDocument
         var ChangeDateRule = new TableSearchTitleRule();
         ChangeDateRule.Name = "变动截止日期";
         ChangeDateRule.Title = new string[] { "买卖时间","日期","减持期间", "增持期间", "减持股份期间", "增持股份期间",
-                                             "减持时间", "增持时间", "减持股份时间", "增持股份时间","买入时间","卖出时间" }.ToList();
+                                              "减持时间", "增持时间", "减持股份时间", "增持股份时间","买入时间","卖出时间",
+                                              "减持期间","增持期间" }.ToList();
         ChangeDateRule.IsTitleEq = false;
         ChangeDateRule.Normalize = NormailizeEndChangeDate;
 
 
         var ChangePriceRule = new TableSearchTitleRule();
         ChangePriceRule.Name = "变动价格";
-        ChangePriceRule.Title = new string[] { "买入均价", "卖出均价", "成交均价", "减持价格", "增持价格", "减持股均价", "增持股均价", "减持均", "增持均", "价格区间" }.ToList();
+        ChangePriceRule.Title = new string[] { "买入均价", "卖出均价", "成交均价", "成交价格", "减持价格", "增持价格", "减持股均价", "增持股均价", "减持均", "增持均", "价格区间" }.ToList();
         ChangePriceRule.IsTitleEq = false;
         ChangePriceRule.Normalize = (x, y) =>
         {
-
+            if (x.Contains("*"))
+            {
+                Console.WriteLine(Id + ":* Before:" + x);
+                x = x.Trim("*".ToCharArray());
+                Console.WriteLine(Id + ":* After:" + x);
+            }
             var prices = RegularTool.GetRegular(x, RegularTool.MoneyExpress);
             if (prices.Count == 0)
             {
@@ -347,9 +470,26 @@ public class StockChange : AnnouceDocument
 
         var ChangeNumberRule = new TableSearchTitleRule();
         ChangeNumberRule.Name = "变动数量";
-        ChangeNumberRule.Title = new string[] { "成交数量", "减持股数", "增持股数", "减持数量", "增持数量", "买入股份数", "卖出股份数", "股数" }.ToList();
+        ChangeNumberRule.Title = new string[] { "成交量", "成交数量", "减持股数", "增持股数", "减持数量", "增持数量", "买入股份数", "卖出股份数", "股数" }.ToList();
         ChangeNumberRule.IsTitleEq = false;
         ChangeNumberRule.Normalize = NumberUtility.NormalizerStockNumber;
+
+        var ChangeMoneyRule = new TableSearchTitleRule();
+        ChangeMoneyRule.Name = "增持金额";
+        ChangeMoneyRule.Title = new string[] { "增持金额", "减持金额" }.ToList();
+        ChangeMoneyRule.IsTitleEq = false;
+        ChangeMoneyRule.Normalize = (x, y) =>
+        {
+            if (x.Contains("*"))
+            {
+                Console.WriteLine(Id + ":* Before:" + x);
+                x = x.Trim("*".ToCharArray());
+                Console.WriteLine(Id + ":* After:" + x);
+            }
+            var prices = x.NormalizeNumberResult();
+            return x;
+        };
+
 
 
         var Rules = new List<TableSearchTitleRule>();
@@ -357,6 +497,7 @@ public class StockChange : AnnouceDocument
         Rules.Add(ChangeDateRule);
         Rules.Add(ChangePriceRule);
         Rules.Add(ChangeNumberRule);
+        Rules.Add(ChangeMoneyRule);
         var opt = new HTMLTable.SearchOption();
         opt.IsMeger = false;
         var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, opt);
@@ -433,7 +574,62 @@ public class StockChange : AnnouceDocument
             var Name = CompanyNameLogic.NormalizeCompanyName(this, ModifyName);
             stockchange.HolderFullName = Name.FullName.NormalizeTextResult();
             stockchange.HolderShortName = Name.ShortName;
+            if (MoneyMangerList.Count == 1)
+            {
+                stockchange.HolderFullName = MoneyMangerList[0];
+            }
+            if (MoneyMangerList.Count == 2)
+            {
+                //考虑全称，简称可能性
+                var MFull = "";
+                var MShort = "";
+                if (MoneyMangerList[0].Length > MoneyMangerList[1].Length)
+                {
+                    MFull = MoneyMangerList[0];
+                    MShort = MoneyMangerList[1];
+                }
+                else
+                {
+                    MFull = MoneyMangerList[1];
+                    MShort = MoneyMangerList[0];
+                }
+                //是否头尾一致？
+                var IsMatch = false;
+                if (MShort.Length >= 4)
+                {
+                    var StartWord = MShort.Substring(0, 2);
+                    IsMatch = MFull.StartsWith(StartWord);
+                }
+                if (IsMatch)
+                {
+                    stockchange.HolderFullName = MFull;
+                    stockchange.HolderShortName = MShort;
+                }
+            }
+            if (MoneyMangerList.Count == 4)
+            {
+                //一般来说 全称 - 简称 
+                if (ModifyName.Equals(MoneyMangerList[3]))
+                {
+                    stockchange.HolderFullName = MoneyMangerList[2];
+                    stockchange.HolderShortName = MoneyMangerList[3];
+                }
+                if (ModifyName.Equals(MoneyMangerList[1]))
+                {
+                    stockchange.HolderFullName = MoneyMangerList[0];
+                    stockchange.HolderShortName = MoneyMangerList[1];
+                }
 
+            }
+            //资产管理特殊逻辑
+            var SplitCharArray = new Char[] { '－', '-' };
+            var m = stockchange.HolderFullName.Split(SplitCharArray);
+            if (m.Length == 4 && m[0].Contains("管理的"))
+            {
+                stockchange.HolderFullName = m[1] + "-" + m[2] + "-" + m[3];
+            }
+
+            if (stockchange.HolderShortName == "公司") stockchange.HolderShortName = string.Empty;
             if (stockchange.HolderFullName.Contains("简称"))
             {
                 stockchange.HolderShortName = Utility.GetStringAfter(stockchange.HolderFullName, "简称");
@@ -449,6 +645,15 @@ public class StockChange : AnnouceDocument
 
 
             stockchange.ChangeEndDate = rec[1].RawData;
+            if (stockchange.ChangeEndDate == null)
+            {
+                if (DateRange.Count == 1)
+                {
+                    //stockchange.ChangeEndDate = DateRange[0].Value.EndDate.ToString("yyyy-MM-dd");
+                    //Console.WriteLine(Id + " 表格截止日确认：" + DateRange[0].Value.EndDate.ToString("yyyy-MM-dd"));
+                }
+                //stockchange.ChangeEndDate = GetChangeEndDate(this.root);
+            }
 
             DateTime x;
             if (!DateTime.TryParse(stockchange.ChangeEndDate, out x))
@@ -469,6 +674,37 @@ public class StockChange : AnnouceDocument
                     stockchange.ChangePrice = rec[2].RawData.Replace(" ", String.Empty);
                     stockchange.ChangePrice = stockchange.ChangePrice.Replace("*", "");
                     stockchange.ChangePrice = stockchange.ChangePrice.NormalizeNumberResult();
+                }
+            }
+            else
+            {
+                if (rec.Length == 5 && !String.IsNullOrEmpty(rec[4].RawData) &&
+                    !String.IsNullOrEmpty(rec[3].RawData))
+                {
+                    double money;
+                    if (double.TryParse(rec[4].RawData, out money))
+                    {
+                        if (rec[4].Title.Contains("元") && rec[4].Title.Contains("股"))
+                        {
+                            if (money < 100){
+                                stockchange.ChangePrice = money.ToString();
+                                Console.WriteLine(Id + "计算出来的价格:" + stockchange.ChangePrice);
+                            }
+                        }
+                        else
+                        {
+                            double numer;
+                            if (double.TryParse(rec[3].RawData.NormalizeNumberResult(), out numer))
+                            {
+                                if (numer != 0 && money != 0)
+                                {
+                                    double price = Math.Round(money / numer, 2);
+                                    stockchange.ChangePrice = price.ToString();
+                                    Console.WriteLine(Id + "计算出来的价格:" + stockchange.ChangePrice);
+                                }
+                            }
+                        }
+                    }
                 }
             }
             if (!RegularTool.IsUnsign(stockchange.ChangePrice))
@@ -944,7 +1180,9 @@ public class StockChange : AnnouceDocument
                 if (HolderName.Contains("先生")) HolderName = Utility.GetStringBefore(HolderName, "先生");
                 if (HolderName.Contains("女士")) HolderName = Utility.GetStringBefore(HolderName, "女士");
                 if (HolderName.StartsWith("之一")) HolderName = Utility.GetStringAfter(HolderName, "之一");
-                return (HolderName, string.Empty);
+                //防止这里出现的是一个集合
+                var SplitArray = HolderName.Split(Utility.SplitChar);
+                if (SplitArray.Length == 1) return (HolderName, string.Empty);
             }
             var ClearWord = word.Value;
             if (word.Value.Contains("发来的"))
@@ -954,8 +1192,9 @@ public class StockChange : AnnouceDocument
             var FullName = CompanyNameLogic.AfterProcessFullName(ClearWord);
             var name = CompanyNameLogic.NormalizeCompanyName(this, FullName.secFullName);
             if (!String.IsNullOrEmpty(name.FullName) && !String.IsNullOrEmpty(name.ShortName))
-            {
-                return name;
+            {                //防止这里出现的是一个集合
+                var SplitArray = name.FullName.Split(Utility.SplitChar);
+                if (SplitArray.Length == 1) return name;
             }
         }
         return (String.Empty, String.Empty);

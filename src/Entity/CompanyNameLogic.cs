@@ -104,7 +104,22 @@ public class CompanyNameLogic
                         (words[JCIdx].Word == "有限" && JCIdx != words.Count - 1 && words[JCIdx + 1].Word == "合伙")
                     )
                     {
-                        break;
+                        //宁波凯数咨询有限合伙企业(有限合伙)(以下简称“凯数投资”)的补救
+                        if (
+                             words[JCIdx - 1].Word == "（" && words[JCIdx].Word == "有限" &&
+                            (JCIdx != words.Count - 1 && words[JCIdx + 1].Word == "合伙") &&
+                            (JCIdx != words.Count - 2 && words[JCIdx + 2].Word == "）")
+                             && baseInd == JCIdx - 4
+                            )
+                        {
+                            //合伙企业(有限合伙)
+                            Console.WriteLine("合伙企业(有限合伙)");
+                            baseInd += 4;
+                        }
+                        else
+                        {
+                            break;
+                        }
                     }
                     //简称关键字
                     if (words[JCIdx].Word.Equals("简称") || words[JCIdx].Word.Equals("下称") || words[JCIdx].Word.Equals("称"))

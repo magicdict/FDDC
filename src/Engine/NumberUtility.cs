@@ -106,6 +106,12 @@ public class NumberUtility
     {
         if (!String.IsNullOrEmpty(orgString))
         {
+            if (orgString.Contains("*"))
+            {
+                Console.WriteLine("* Before:" + orgString);
+                orgString = orgString.Trim("*".ToCharArray());
+                Console.WriteLine("* After:" + orgString);
+            }
             orgString = orgString.Trim().Replace(",", String.Empty);
             orgString = orgString.Trim().Replace("，", String.Empty);
         }
