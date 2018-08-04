@@ -10,7 +10,6 @@ using static LocateProperty;
 
 public partial class Contract : AnnouceDocument
 {
-
     public override List<RecordBase> Extract()
     {
         var ContractList = ExtractMulti();
@@ -414,20 +413,29 @@ public partial class Contract : AnnouceDocument
     /// <returns></returns>
     string GetProjectName()
     {
+
         var e = new EntityProperty();
         e.PropertyName = "工程名称";
         e.LeadingColonKeyWordList = new string[] { "项目名称：", "工程名称：", "中标项目：", "合同标的：", "工程内容：" };
         e.LeadingColonKeyWordCandidatePreprocess = TrimEndJianCheng;
-        e.QuotationTrailingWordList = new string[] { "工程", "标段", "标", "招标活动", "项目", "采购" };
+        e.QuotationTrailingWordList_IsSkipBracket = true;
+        e.QuotationTrailingWordList = new string[] { "工程", "标段", "标", "招标活动", "采购活动", "项目", "采购" };
         e.Extract(this);
         var prj = e.EvaluateCI();
         if (!String.IsNullOrEmpty(prj))
         {
-            return ExtendProjectName(prj);
+            Console.WriteLine("FromLeadingWord:" + prj);
+            return prj;
         }
 
-        
-        var ProjectNameList = ProjectNameLogic.GetProjectNameByCutWord(root);
+        var Stardard = TraningDataset.ContractList.Where(x => x.Id == this.Id).ToList();
+        if (Stardard.Count == 1)
+        {
+            Console.WriteLine("标准答案：" + Stardard[0].ProjectName);
+        }
+        var ProjectNameList = ProjectNameLogic.GetProjectNameByCutWord(this);
+        var ProjectNameListNER = ProjectNameLogic.GetProjectNameByNer(this);
+
         var StartArray = new string[] { "公司为", "参与了", "确定为" };
         var EndArray = new string[] { "的中标单位", "的公开招投标", "的中标人", "候选人" };
         e.ExternalStartEndStringFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
@@ -435,6 +443,7 @@ public partial class Contract : AnnouceDocument
         prj = e.EvaluateCI();
         if (!String.IsNullOrEmpty(prj))
         {
+            Console.WriteLine("FromLeadingTrailing:" + prj);
             return ExtendProjectName(prj);
         }
         foreach (var item in quotationList)
@@ -451,10 +460,10 @@ public partial class Contract : AnnouceDocument
     string ExtendProjectName(string Proj)
     {
         //尝试看一下是否有Proj + 项目的词语
-        var ExtendWords = new string[] { "项目","活动" };
+        var ExtendWords = new string[] { "项目", "活动" };
         foreach (var word in ExtendWords)
         {
-            if (LocateCustomerWord(root, new string[] { Proj.Replace(" ","") + word }.ToList()).Count > 0) return Proj + word;
+            if (LocateCustomerWord(root, new string[] { Proj.Replace(" ", "") + word }.ToList()).Count > 0) return Proj + word;
         }
         return Proj;
     }
@@ -473,7 +482,7 @@ public partial class Contract : AnnouceDocument
         e.MinLength = 4;
         e.LeadingColonKeyWordList = new string[] { "合同名称：" };
         e.QuotationTrailingWordList = new string[] { "协议书", "合同书", "确认书", "合同", "协议" };
-        e.QuotationTrailingWordList_IsSkipBracket = true;   //暂时只能选True
+        e.QuotationTrailingWordList_IsSkipBracket = false;
         var KeyList = new List<ExtractPropertyByDP.DPKeyWord>();
         KeyList.Add(new ExtractPropertyByDP.DPKeyWord()
         {
@@ -526,7 +535,7 @@ public partial class Contract : AnnouceDocument
         var ExtendWords = new string[] { "补充协议" };
         foreach (var word in ExtendWords)
         {
-            if (LocateCustomerWord(root, new string[] { contract.Replace(" ","") + word }.ToList()).Count > 0) return contract + word;
+            if (LocateCustomerWord(root, new string[] { contract.Replace(" ", "") + word }.ToList()).Count > 0) return contract + word;
         }
         return contract;
     }

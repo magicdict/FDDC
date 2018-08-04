@@ -75,12 +75,13 @@ public class EntityProperty
     /// </summary>
     public string[] QuotationTrailingWordList;
 
-    /// <summary>
-    /// 从引号或者书名号里提取某个关键字结尾的词语
-    /// </summary>
-    public bool QuotationTrailingWordList_IsSkipBracket = true;
 
-    public Func<String,string> QuotationTrailingPreprocess;
+    /// <summary>
+    /// 从引号或者书名号里提取某个关键字结尾的词语,不提取括号里面的词语
+    /// </summary>
+    public bool QuotationTrailingWordList_IsSkipBracket = false;
+
+    public Func<String, string> QuotationTrailingPreprocess;
 
     /// <summary>
     /// 书名号和引号候选词
@@ -182,10 +183,15 @@ public class EntityProperty
             //接下来《》，“” 优先
             foreach (var bracket in doc.quotationList)
             {
+                if (QuotationTrailingWordList_IsSkipBracket)
+                {
+                    if (bracket.Description == "中文小括号") continue;
+                }
                 foreach (var trailingword in QuotationTrailingWordList)
                 {
                     var EvaluateWord = bracket.Value;
-                    if (QuotationTrailingPreprocess != null) {
+                    if (QuotationTrailingPreprocess != null)
+                    {
                         EvaluateWord = QuotationTrailingPreprocess(EvaluateWord);
                     }
                     if (EvaluateWord.EndsWith(trailingword))

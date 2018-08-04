@@ -786,105 +786,108 @@ public class Reorganization : AnnouceDocument
         //检查一下交易标的公司的位置，持有的位置，持有之前公司的位置
         foreach (var ExplainSentence in ExplainDict.Values)
         {
-            var SingleSentenceList = new string[] { ExplainSentence };
-            if (ExplainSentence.Contains(",")) SingleSentenceList = ExplainSentence.Split(",");
-            if (ExplainSentence.Contains("，")) SingleSentenceList = ExplainSentence.Split("，");
-
-            foreach (var SingleSentenceItem in SingleSentenceList)
+            var DetailList = ExplainSentence.Split("；");
+            foreach (var DetailItem in DetailList)
             {
-                //购买的 -> 购买
-                var SingleSentence = SingleSentenceItem;
-                SingleSentence = SingleSentence.Replace("购买的", "购买");
-                var HoldVerbIdxPlus = SingleSentence.IndexOf("所持有");
-                var HoldVerbIdx = SingleSentence.IndexOf("持有");
-                if (HoldVerbIdx == -1) continue;
-                if (HoldVerbIdxPlus != -1) HoldVerbIdx = HoldVerbIdxPlus;
-                var targetIdx = -1;
-                if (!String.IsNullOrEmpty(rec.TargetCompanyShortName)) targetIdx = SingleSentence.IndexOf(rec.TargetCompanyFullName);
-                if (targetIdx == -1)
+                var SingleSentenceList = new string[] { DetailItem };
+                if (DetailItem.Contains(",")) SingleSentenceList = DetailItem.Split(",");
+                if (DetailItem.Contains("，")) SingleSentenceList = DetailItem.Split("，");
+                foreach (var SingleSentenceItem in SingleSentenceList)
                 {
-                    if (!String.IsNullOrEmpty(rec.TargetCompanyShortName)) targetIdx = SingleSentence.IndexOf(rec.TargetCompanyShortName);
-                }
-                if (targetIdx == -1) continue;
-                var BuyIdx = SingleSentence.IndexOf("购买");
-
-                var BetweenBuyAndHoldString = "";
-                if (BuyIdx != -1 && BuyIdx < HoldVerbIdx)
-                {
-                    BetweenBuyAndHoldString = SingleSentence.Substring(BuyIdx + 2, HoldVerbIdx - BuyIdx - 2);
-                }
-                Console.WriteLine("公告ID：" + Id);
-                Console.WriteLine("原始句子：" + SingleSentence);
-                Console.WriteLine("持有的位置：" + HoldVerbIdx);
-                Console.WriteLine("标的公司全称：" + rec.TargetCompanyFullName);
-                Console.WriteLine("标的公司简称：" + rec.TargetCompanyShortName);
-                Console.WriteLine("标的公司位置：" + targetIdx);
-                if (!String.IsNullOrEmpty(BetweenBuyAndHoldString)) Console.WriteLine("购买的位置：" + BuyIdx);
-                if (!String.IsNullOrEmpty(BetweenBuyAndHoldString))
-                {
-                    //不为空
-                    if (!BetweenBuyAndHoldString.Contains("交易"))
+                    //购买的 -> 购买
+                    var SingleSentence = SingleSentenceItem;
+                    SingleSentence = SingleSentence.Replace("购买的", "购买");
+                    var HoldVerbIdxPlus = SingleSentence.IndexOf("所持有");
+                    var HoldVerbIdx = SingleSentence.IndexOf("持有");
+                    if (HoldVerbIdx == -1) continue;
+                    if (HoldVerbIdxPlus != -1) HoldVerbIdx = HoldVerbIdxPlus;
+                    var targetIdx = -1;
+                    if (!String.IsNullOrEmpty(rec.TargetCompanyShortName)) targetIdx = SingleSentence.IndexOf(rec.TargetCompanyFullName);
+                    if (targetIdx == -1)
                     {
-                        //不是交易对方,交易对手等字
-                        Console.WriteLine("购买持有之间的内容：" + BetweenBuyAndHoldString);
-                        Rtn = GetCompanys(BetweenBuyAndHoldString);
-                        if (Rtn.Count != 0) return Rtn;
+                        if (!String.IsNullOrEmpty(rec.TargetCompanyShortName)) targetIdx = SingleSentence.IndexOf(rec.TargetCompanyShortName);
                     }
-                }
+                    if (targetIdx == -1) continue;
+                    var BuyIdx = SingleSentence.IndexOf("购买");
 
-
-                //向海纳川发行股份及支付现金
-                //上市公司因向众泰汽车股东购买其合计持有的众泰汽车100%股权而向其发行的股份
-                //三七互娱以发行股份及支付现金的方式向中汇影视全体股东购买其合计持有的中汇影视100％的股份、
-                //向杨东迈、谌维和网众投资购买其合计持有的墨鹍科技68.43％的股权
-
-                //注意字符串顺序！
-                var ToIdx = SingleSentence.IndexOf("向");   //这里拟向也是没有问题的
-                var BuyMethodList = new string[] { "发行股份及支付现金", "非公开发行股份", "定向发行股份", "发行股份", "支付现金", "发行A股股份" };
-                foreach (var BuyMethod in BuyMethodList)
-                {
-                    var PublishStockAndPayCashIdx = SingleSentence.IndexOf(BuyMethod);
-                    if (ToIdx != -1 && PublishStockAndPayCashIdx != -1 && PublishStockAndPayCashIdx > ToIdx)
+                    var BetweenBuyAndHoldString = "";
+                    if (BuyIdx != -1 && BuyIdx < HoldVerbIdx)
                     {
-                        var ToTarget = SingleSentence.Substring(ToIdx + 1, PublishStockAndPayCashIdx - ToIdx - 1);
+                        BetweenBuyAndHoldString = SingleSentence.Substring(BuyIdx + 2, HoldVerbIdx - BuyIdx - 2);
+                    }
+                    Console.WriteLine("公告ID：" + Id);
+                    Console.WriteLine("原始句子：" + SingleSentence);
+                    Console.WriteLine("持有的位置：" + HoldVerbIdx);
+                    Console.WriteLine("标的公司全称：" + rec.TargetCompanyFullName);
+                    Console.WriteLine("标的公司简称：" + rec.TargetCompanyShortName);
+                    Console.WriteLine("标的公司位置：" + targetIdx);
+                    if (!String.IsNullOrEmpty(BetweenBuyAndHoldString)) Console.WriteLine("购买的位置：" + BuyIdx);
+                    if (!String.IsNullOrEmpty(BetweenBuyAndHoldString))
+                    {
+                        //不为空
+                        if (!BetweenBuyAndHoldString.Contains("交易"))
+                        {
+                            //不是交易对方,交易对手等字
+                            Console.WriteLine("购买持有之间的内容：" + BetweenBuyAndHoldString);
+                            Rtn = GetCompanys(BetweenBuyAndHoldString);
+                            if (Rtn.Count != 0) return Rtn;
+                        }
+                    }
+
+
+                    //向海纳川发行股份及支付现金
+                    //上市公司因向众泰汽车股东购买其合计持有的众泰汽车100%股权而向其发行的股份
+                    //三七互娱以发行股份及支付现金的方式向中汇影视全体股东购买其合计持有的中汇影视100％的股份、
+                    //向杨东迈、谌维和网众投资购买其合计持有的墨鹍科技68.43％的股权
+
+                    //注意字符串顺序！
+                    var ToIdx = SingleSentence.IndexOf("向");   //这里拟向也是没有问题的
+                    var BuyMethodList = new string[] { "发行股份及支付现金", "非公开发行股份", "定向发行股份", "发行股份", "支付现金", "发行A股股份" };
+                    foreach (var BuyMethod in BuyMethodList)
+                    {
+                        var PublishStockAndPayCashIdx = SingleSentence.IndexOf(BuyMethod);
+                        if (ToIdx != -1 && PublishStockAndPayCashIdx != -1 && PublishStockAndPayCashIdx > ToIdx)
+                        {
+                            var ToTarget = SingleSentence.Substring(ToIdx + 1, PublishStockAndPayCashIdx - ToIdx - 1);
+                            if (ToTarget.EndsWith("全体股东")) ToTarget = ToTarget.Substring(0, ToTarget.Length - 4);
+                            if (ToTarget.EndsWith("股东")) ToTarget = ToTarget.Substring(0, ToTarget.Length - 2);
+                            Console.WriteLine("向...发行股份及支付现金:" + ToTarget);
+                            Rtn = GetCompanys(ToTarget);
+                            if (Rtn.Count != 0) return Rtn;
+                        }
+                    }
+                    //没有支付手段，直接购买的情况
+                    if (ToIdx != -1 && BuyIdx != -1 && BuyIdx > ToIdx)
+                    {
+                        var ToTarget = SingleSentence.Substring(ToIdx + 1, BuyIdx - ToIdx - 1);
+                        if (ToTarget.EndsWith("全体股东")) ToTarget = ToTarget.Substring(0, ToTarget.Length - 4);
                         if (ToTarget.EndsWith("股东")) ToTarget = ToTarget.Substring(0, ToTarget.Length - 2);
-                        Console.WriteLine("向...发行股份及支付现金:" + ToTarget);
+                        Console.WriteLine("向...购买:" + ToTarget);
                         Rtn = GetCompanys(ToTarget);
                         if (Rtn.Count != 0) return Rtn;
                     }
-                }
-                //没有支付手段，直接购买的情况
-                if (ToIdx != -1 && BuyIdx != -1 && BuyIdx > ToIdx)
-                {
-                    var ToTarget = SingleSentence.Substring(ToIdx + 1, BuyIdx - ToIdx - 1);
-                    if (ToTarget.EndsWith("股东")) ToTarget = ToTarget.Substring(0, ToTarget.Length - 2);
-                    Console.WriteLine("向...购买:" + ToTarget);
-                    Rtn = GetCompanys(ToTarget);
-                    if (Rtn.Count != 0) return Rtn;
-                }
 
-                //合计持有，所持有，持有，这样的顺序去判定
-                var HoldWordList = new string[] { "合计持有", "所持有", "持有" };
-                foreach (var hw in HoldWordList)
-                {
-                    if (SingleSentence.IndexOf(hw) != -1)
+                    //合计持有，所持有，持有，这样的顺序去判定
+                    var HoldWordList = new string[] { "合计持有", "所持有", "持有" };
+                    foreach (var hw in HoldWordList)
                     {
-                        var HoldTarget = Utility.GetStringBefore(SingleSentence, hw);
-                        Console.WriteLine("....持有:" + HoldTarget);
-                        Rtn = GetCompanys(HoldTarget);
-                        if (Rtn.Count != 0) return Rtn;
+                        if (SingleSentence.IndexOf(hw) != -1)
+                        {
+                            var HoldTarget = Utility.GetStringBefore(SingleSentence, hw);
+                            Console.WriteLine("....持有:" + HoldTarget);
+                            Rtn = GetCompanys(HoldTarget);
+                            if (Rtn.Count != 0) return Rtn;
+                        }
                     }
-                }
 
 
-                if (!String.IsNullOrEmpty(BetweenBuyAndHoldString) && BetweenBuyAndHoldString.Equals("其"))
-                {
-                    Console.WriteLine("特殊指代：" + BetweenBuyAndHoldString);
+                    if (!String.IsNullOrEmpty(BetweenBuyAndHoldString) && BetweenBuyAndHoldString.Equals("其"))
+                    {
+                        Console.WriteLine("特殊指代：" + BetweenBuyAndHoldString);
+                    }
                 }
             }
         }
-
-
         return Rtn;
     }
 
