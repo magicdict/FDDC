@@ -340,6 +340,7 @@ public abstract class AnnouceDocument
             {
                 if (!nermap.ParagraghlocateDict.ContainsKey(s.PositionId)) continue;
                 var nerlist = nermap.ParagraghlocateDict[s.PositionId].NerList;
+                if (nerlist == null) continue;                
                 for (int nerIdx = 0; nerIdx < nerlist.Count; nerIdx++)
                 {
                     if (nerlist[nerIdx].Description == "中文小括号" && nerlist[nerIdx].Value.Contains("简称"))

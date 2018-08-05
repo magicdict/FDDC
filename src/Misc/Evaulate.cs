@@ -95,7 +95,7 @@ public static class Evaluate
                     F1_ContractName.PutItemData(contract.ContractName, contract_Result.ContractName, contract.Id);
                     F1_ContractMoneyUpLimit.PutItemData(contract.ContractMoneyUpLimit, contract_Result.ContractMoneyUpLimit);
                     F1_ContractMoneyDownLimit.PutItemData(contract.ContractMoneyDownLimit, contract_Result.ContractMoneyDownLimit);
-                    F1_UnionMember.PutItemData(contract.UnionMember, contract_Result.UnionMember);
+                    F1_UnionMember.PutItemData(contract.UnionMember, contract_Result.UnionMember, contract.Id);
                     break;
                 }
             }

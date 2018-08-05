@@ -419,7 +419,11 @@ public partial class Contract : AnnouceDocument
         e.LeadingColonKeyWordList = new string[] { "项目名称：", "工程名称：", "中标项目：", "合同标的：", "工程内容：" };
         e.LeadingColonKeyWordCandidatePreprocess = TrimEndJianCheng;
         e.QuotationTrailingWordList_IsSkipBracket = true;
-        e.QuotationTrailingWordList = new string[] { "工程", "标段", "标", "招标活动", "采购活动", "项目", "采购" };
+        e.QuotationTrailingWordList = new string[] { 
+            "工程项目","标段工程", 
+            "招标活动", "采购活动",
+            "项目", "采购",
+            "工程", "标段", "标", };
         e.Extract(this);
         var prj = e.EvaluateCI();
         if (!String.IsNullOrEmpty(prj))
@@ -433,8 +437,8 @@ public partial class Contract : AnnouceDocument
         {
             Console.WriteLine("标准答案：" + Stardard[0].ProjectName);
         }
-        var ProjectNameList = ProjectNameLogic.GetProjectNameByCutWord(this);
-        var ProjectNameListNER = ProjectNameLogic.GetProjectNameByNer(this);
+        //var ProjectNameList = ProjectNameLogic.GetProjectNameByCutWord(this);
+        //var ProjectNameListNER = ProjectNameLogic.GetProjectNameByNer(this);
 
         var StartArray = new string[] { "公司为", "参与了", "确定为" };
         var EndArray = new string[] { "的中标单位", "的公开招投标", "的中标人", "候选人" };
