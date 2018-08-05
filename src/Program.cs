@@ -41,7 +41,7 @@ namespace FDDC
 
         //重大合同
         public static bool IsRunContract = true;
-        public static bool IsRunContract_TEST = false;
+        public static bool IsRunContract_TEST = true;
         public static string ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
         public static string ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
 
@@ -90,11 +90,11 @@ namespace FDDC
                 "内含价值调整法","可比公司市净率法","重置成本法","收益现值法","基础资产法","假设清偿法",
                 "成本逼近法","单项资产加和法","成本加和法","基准地价修正法","收益还原法","现金流量法","单项资产加总法","折现现金流量法"
             }.ToList();
-            var t = new Reorganization();
-            t.Id = "573905";
-            t.HTMLFileName = ReorganizationPath_TEST + "/html/1164807.html";
-            //t.TextFileName = StockChangePath_TRAIN + "/txt/602118.txt";
-            //t.NerXMLFileName = StockChangePath_TRAIN + "/ner/602118.xml";
+            var t = new Contract();
+            t.Id = "128869";
+            t.HTMLFileName = ContractPath_TEST + "/html/128869.html";
+            t.TextFileName = ContractPath_TEST + "/txt/128869.txt";
+            t.NerXMLFileName = ContractPath_TEST + "/ner/128869.xml";
             t.Init();
             var recs = t.Extract();
             var s1 = recs[0].ConvertToString();
@@ -115,7 +115,7 @@ namespace FDDC
             //结巴分词的地名修正词典
             PosNS.ImportNS("Resources" + Path.DirectorySeparatorChar + "ns.dict");
             CIRecord = new StreamWriter("CI.log");
-            //QuickTestArea(); return;
+            QuickTestArea(); return;
             //PDFToTXT.GetPdf2TxtBatchFile();
             //公司全称简称曾用名字典   
             CompanyNameLogic.LoadCompanyName("Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");

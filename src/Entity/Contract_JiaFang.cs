@@ -47,14 +47,15 @@ public partial class Contract : AnnouceDocument
         if (e.LeadingColonKeyWordCandidate.Count > 0) return e.LeadingColonKeyWordCandidate[0];
 
         var ner = SearchJiaFang();
+        var NerJia = String.Empty;
         if (!String.IsNullOrEmpty(ner))
         {
             foreach (var cn in companynamelist)
             {
                 if (cn.secShortName == ner) ner = cn.secFullName;
             }
-            if (String.IsNullOrEmpty(YiFang)) return ner;
-            if (!YiFang.Equals(ner)) return ner;
+            if (String.IsNullOrEmpty(YiFang)) NerJia = ner;
+            if (!YiFang.Equals(ner)) NerJia = ner;
         }
 
         //招标
@@ -92,7 +93,21 @@ public partial class Contract : AnnouceDocument
             if (!Program.IsMultiThreadMode) Program.Logger.WriteLine("甲方候补词(合同)：[" + JiaFang.secFullName + "]");
             CandidateWord.Add(JiaFang.secFullName);
         }
-        return CompanyNameLogic.MostLikeCompanyName(CandidateWord);
+        if (!String.IsNullOrEmpty(NerJia))
+        {
+            //原则上，有NER中提取的甲方，则使用甲方
+            foreach (var c in CandidateWord)
+            {
+                //但是，这里有可能是正确的解答，例如
+                //NER：(集团)有限公司 实际上应该是 XXXX(集团)有限公司
+                if (c.EndsWith(NerJia)) return c;
+            }
+            return NerJia;
+        }
+        else
+        {
+            return CompanyNameLogic.MostLikeCompanyName(CandidateWord);
+        }
     }
 
     /// <summary>
@@ -117,10 +132,10 @@ public partial class Contract : AnnouceDocument
         var result = NerSearch.Search(this, SearchRule);
         if (result.Count > 0) return result.First().Value;
 
-        this.CustomerList = LocateCustomerWord(root,new string[] { "招标单位", "业主", "收到", "接到"  }.ToList(),"关键字");
+        this.CustomerList = LocateCustomerWord(root, new string[] { "招标单位", "业主", "收到", "接到" }.ToList(), "关键字");
         nermap.Anlayze(this);
         BaseWord = new NerSearch.WordRule();
-        BaseWord.Word = new string[] { "招标单位", "业主", "收到", "接到"  }.ToList();
+        BaseWord.Word = new string[] { "招标单位", "业主", "收到", "接到" }.ToList();
         BaseWord.Description = new List<String>();
 
         TargetWord = new NerSearch.WordRule();

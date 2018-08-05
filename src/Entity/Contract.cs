@@ -300,6 +300,10 @@ public partial class Contract : AnnouceDocument
         if (contract.JiaFang.Contains("本公司")) contract.JiaFang = string.Empty;
         contract.JiaFang = CompanyNameLogic.AfterProcessFullName(contract.JiaFang).secFullName;
         contract.JiaFang = contract.JiaFang.NormalizeTextResult();
+        if (contract.JiaFang.Contains("简称"))
+        {
+            contract.JiaFang = Utility.GetStringBefore(contract.JiaFang, "(");
+        }
         //机构列表
         if (Nerlist != null)
         {
@@ -311,6 +315,7 @@ public partial class Contract : AnnouceDocument
         }
         //项目
         contract.ProjectName = GetProjectName();
+        contract.ProjectName = contract.ProjectName.NormalizeTextResult();
         if (contract.ProjectName.StartsWith("“") && contract.ProjectName.EndsWith("”"))
         {
             contract.ProjectName = contract.ProjectName.TrimStart("“".ToCharArray()).TrimEnd("”".ToCharArray());
@@ -319,11 +324,25 @@ public partial class Contract : AnnouceDocument
         {
             contract.ProjectName = Utility.GetStringAfter(contract.ProjectName, "，签约双方");
         }
-        if (contract.ProjectName.Contains("（以下简称"))
+        if (contract.ProjectName.Contains("(以下简称"))
         {
-            contract.ProjectName = Utility.GetStringAfter(contract.ProjectName, "（以下简称");
+            contract.ProjectName = Utility.GetStringAfter(contract.ProjectName, "(以下简称");
         }
-        contract.ProjectName = contract.ProjectName.NormalizeTextResult();
+        if (contract.ProjectName.EndsWith(")"))
+        {
+            if (contract.ProjectName.Contains("(招标编号"))
+            {
+                contract.ProjectName = Utility.GetStringBefore(contract.ProjectName, "(招标编号");
+            }
+            if (contract.ProjectName.Contains("(合同编号"))
+            {
+                contract.ProjectName = Utility.GetStringBefore(contract.ProjectName, "(合同编号");
+            }
+        }
+        contract.ProjectName = contract.ProjectName.Replace("的推荐中标", "");
+        //特殊处理
+        contract.ProjectName = contract.ProjectName.Replace("<1>", "1、");
+        contract.ProjectName = contract.ProjectName.Trim("\"".ToCharArray());
 
         //合同名
         contract.ContractName = GetContractName();
@@ -333,11 +352,11 @@ public partial class Contract : AnnouceDocument
         }
         //去掉书名号
         contract.ContractName = contract.ContractName.Replace("《", String.Empty).Replace("》", String.Empty);
-        if (contract.ContractName.Contains("（以下简称"))
-        {
-            contract.ContractName = Utility.GetStringAfter(contract.ContractName, "（以下简称");
-        }
         contract.ContractName = contract.ContractName.NormalizeTextResult();
+        if (contract.ContractName.Contains("(以下简称"))
+        {
+            contract.ContractName = Utility.GetStringAfter(contract.ContractName, "(以下简称");
+        }
         contract.ContractName = ExtendContractName(contract.ContractName);
 
         //如果是采购协议，则工程名清空
@@ -365,6 +384,8 @@ public partial class Contract : AnnouceDocument
         contract.UnionMember = RegularTool.TrimBrackets(contract.UnionMember);
         return contract;
     }
+
+
 
     /// <summary>
     /// 去除尾部的简称
@@ -419,10 +440,13 @@ public partial class Contract : AnnouceDocument
         e.LeadingColonKeyWordList = new string[] { "项目名称：", "工程名称：", "中标项目：", "合同标的：", "工程内容：" };
         e.LeadingColonKeyWordCandidatePreprocess = TrimEndJianCheng;
         e.QuotationTrailingWordList_IsSkipBracket = true;
-        e.QuotationTrailingWordList = new string[] { 
-            "工程项目","标段工程", 
-            "招标活动", "采购活动",
-            "项目", "采购",
+        e.QuotationTrailingWordList = new string[] {
+            "标段施工项目","标段土建工程","标段施工总承包","标段的工程","标段工程","标段施工总价承包",
+            "标段施工总承包工程","标段施工工程","标段土建工程建设项目","标段站前工程","标段工程(施工)",
+            "工程施工工程","项目施工工程","施工工程",
+            "工程项目", "工程标段","标段的施工项目","标段项目","标段施工",
+            "招标采购项目","招标活动", "采购活动","招标项目",
+            "项目", "采购","总承包",
             "工程", "标段", "标", };
         e.Extract(this);
         var prj = e.EvaluateCI();
@@ -432,11 +456,12 @@ public partial class Contract : AnnouceDocument
             return prj;
         }
 
-        var Stardard = TraningDataset.ContractList.Where(x => x.Id == this.Id).ToList();
-        if (Stardard.Count == 1)
-        {
-            Console.WriteLine("标准答案：" + Stardard[0].ProjectName);
-        }
+        //var Stardard = TraningDataset.ContractList.Where(x => x.Id == this.Id).ToList();
+        //if (Stardard.Count == 1)
+        //{
+        //Console.WriteLine("标准答案：" + Stardard[0].ProjectName);
+        //}
+
         //var ProjectNameList = ProjectNameLogic.GetProjectNameByCutWord(this);
         //var ProjectNameListNER = ProjectNameLogic.GetProjectNameByNer(this);
 
@@ -447,30 +472,24 @@ public partial class Contract : AnnouceDocument
         prj = e.EvaluateCI();
         if (!String.IsNullOrEmpty(prj))
         {
-            Console.WriteLine("FromLeadingTrailing:" + prj);
-            return ExtendProjectName(prj);
+            if (ExtractPropertyByHTML.FindWordCnt(prj + "项目", root).Count >= 1)
+            {
+                return prj + "项目";
+            }
+            return prj;
         }
+
         foreach (var item in quotationList)
         {
             if (item.Value.Contains("推荐的中标候选人公示"))
             {
                 prj = Utility.GetStringBefore(item.Value, "推荐的中标候选人公示");
-                return ExtendProjectName(prj);
+                return prj;
             }
         }
         return string.Empty;
     }
 
-    string ExtendProjectName(string Proj)
-    {
-        //尝试看一下是否有Proj + 项目的词语
-        var ExtendWords = new string[] { "项目", "活动" };
-        foreach (var word in ExtendWords)
-        {
-            if (LocateCustomerWord(root, new string[] { Proj.Replace(" ", "") + word }.ToList()).Count > 0) return Proj + word;
-        }
-        return Proj;
-    }
 
 
     /// <summary>
@@ -485,18 +504,11 @@ public partial class Contract : AnnouceDocument
         e.MaxLength = 200;
         e.MinLength = 4;
         e.LeadingColonKeyWordList = new string[] { "合同名称：" };
-        e.QuotationTrailingWordList = new string[] { "协议书", "合同书", "确认书", "合同", "协议" };
+        e.QuotationTrailingWordList = new string[] {
+            "商务合同补充协议","承包合同补充协议","补充协议","经营合同补充协议",
+            "协议书", "合同书", "确认书", "合同", "协议"
+        };
         e.QuotationTrailingWordList_IsSkipBracket = false;
-        var KeyList = new List<ExtractPropertyByDP.DPKeyWord>();
-        KeyList.Add(new ExtractPropertyByDP.DPKeyWord()
-        {
-            StartWord = new string[] { "签署", "签订" },    //通过SRL训练获得
-            StartDPValue = new string[] { LTPTrainingDP.核心关系, LTPTrainingDP.定中关系, LTPTrainingDP.并列关系 },
-            EndWord = new string[] { "补充协议", "合同书", "合同", "协议书", "协议", },
-            EndDPValue = new string[] { LTPTrainingDP.核心关系, LTPTrainingDP.定中关系, LTPTrainingDP.并列关系, LTPTrainingDP.动宾关系, LTPTrainingDP.主谓关系 }
-        });
-        e.DpKeyWordList = KeyList;
-
         var StartArray = new string[] { "签署了", "签订了" };   //通过语境训练获得
         var EndArray = new string[] { "合同" };
         e.ExternalStartEndStringFeature = Utility.GetStartEndStringArray(StartArray, EndArray);
@@ -530,7 +542,8 @@ public partial class Contract : AnnouceDocument
         e.ExcludeEqualsWordList = new string[] { "若干项重大合同", "中标合同", "正式合同", "合同", "重大合同", "项目合同", "终止协议", "经营合同", "特别重大合同", "相关项目合同" };
         e.Extract(this);
         //冒号优先
-        return e.EvaluateCI();
+        var contractname = e.EvaluateCI();
+        return contractname;
     }
 
     string ExtendContractName(string contract)
