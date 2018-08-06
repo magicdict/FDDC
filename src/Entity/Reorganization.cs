@@ -1138,12 +1138,12 @@ public class Reorganization : AnnouceDocument
     {
 
         CustomerList = LocateProperty.LocateCustomerWord(root, new string[] { rec.TargetCompanyFullName, rec.TargetCompanyShortName }.ToList(), "标的");
-        CustomerList.AddRange(LocateProperty.LocateCustomerWord(root, new string[] { "最终" }.ToList(), "评估"));
+        CustomerList.AddRange(LocateProperty.LocateCustomerWord(root, new string[] { "最终", "最后", "确定" }.ToList(), "评估"));
         CustomerList.AddRange(LocateProperty.LocateCustomerWord(root, ReOrganizationTraning.EvaluateMethodList, "评估方法"));
         nermap.Anlayze(this);
         foreach (var nerlist in nermap.ParagraghlocateDict.Values)
         {
-            //标的 作价 价格  这样的文字检索12643
+            //标的 作价 价格  这样的文字检索
             int TargetIdx = -1;
             int EvaluateIdx = -1;
             int MethodIdx = -1;
@@ -1175,8 +1175,29 @@ public class Reorganization : AnnouceDocument
                 }
             }
         }
+        //词频统计
+        var MethodRank = new Dictionary<string, int>();
+        foreach (var item in CustomerList)
+        {
+            if (item.Description == "评估方法")
+            {
+                if (MethodRank.ContainsKey(item.Value))
+                {
+                    MethodRank[item.Value]++;
+                }
+                else
+                {
+                    MethodRank.Add(item.Value, 1);
+                }
+            }
+        }
+        if (MethodRank.Count > 0 && IsSingleTarget)
+        {
+            //出现次数最多的胜出
+            return Utility.FindTop(1, MethodRank).First().Value;
+        }
 
-        //表格法优先
+        //表格法
         var tableEvaluateMethod = getEvaluateMethodByTable(rec);
         if (!String.IsNullOrEmpty(tableEvaluateMethod))
         {
