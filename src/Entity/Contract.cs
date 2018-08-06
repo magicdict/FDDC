@@ -295,6 +295,8 @@ public partial class Contract : AnnouceDocument
         //按照规定除去括号
         contract.YiFang = RegularTool.TrimBrackets(contract.YiFang);
 
+
+
         //甲方
         contract.JiaFang = GetJiaFang(contract.YiFang);
         if (contract.JiaFang.Contains("本公司")) contract.JiaFang = string.Empty;
@@ -378,10 +380,18 @@ public partial class Contract : AnnouceDocument
         contract.ContractMoneyDownLimit = contract.ContractMoneyUpLimit;
 
         //联合体
-        contract.UnionMember = GetUnionMember(contract.JiaFang, contract.YiFang);
+        contract.UnionMember = GetUnionMember(contract);
         contract.UnionMember = contract.UnionMember.NormalizeTextResult();
         //按照规定除去括号
         contract.UnionMember = RegularTool.TrimBrackets(contract.UnionMember);
+
+        var YiFangArray = contract.YiFang.Split(Utility.SplitChar);
+        if (YiFangArray.Length > 1)
+        {
+            contract.UnionMember = Utility.GetStringAfter(contract.YiFang, Utility.SplitChar);
+            contract.YiFang = YiFangArray[0];
+            Console.WriteLine("联合体：" + contract.UnionMember);
+        }
         return contract;
     }
 
@@ -450,11 +460,7 @@ public partial class Contract : AnnouceDocument
             "工程", "标段", "标", };
         e.Extract(this);
         var prj = e.EvaluateCI();
-        if (!String.IsNullOrEmpty(prj))
-        {
-            Console.WriteLine("FromLeadingWord:" + prj);
-            return prj;
-        }
+        if (!String.IsNullOrEmpty(prj)) return prj;
 
         //var Stardard = TraningDataset.ContractList.Where(x => x.Id == this.Id).ToList();
         //if (Stardard.Count == 1)
@@ -645,7 +651,7 @@ public partial class Contract : AnnouceDocument
     /// <param name="JiaFang">甲方</param>
     /// <param name="YiFang">乙方</param>
     /// <returns></returns>
-    string GetUnionMember(String JiaFang, String YiFang)
+    string GetUnionMember(ContractRec contract)
     {
         var Extractor = new ExtractPropertyByText();
         Extractor.LeadingColonKeyWordListInChineseBrackets = new string[] { "联合体成员：" };
@@ -663,9 +669,34 @@ public partial class Contract : AnnouceDocument
         "中标人：","中标单位：","中标人：","乙方（供方）：",
         "承包人：","承包方：","中标方：","供应商名称：","中标人名称：" };
         Extractor.ExtractFromTextFile(this.TextFileName);
-
         foreach (var union in Extractor.CandidateWord)
         {
+            //联合体牵头方——博天环境集团股份有限公司，联合体成员——广西木盛投资管理有限公司。
+            if (union.Value.Contains("联合体牵头方"))
+            {
+                var UnionArray = union.Value.Split(',', '、');
+                if (UnionArray.Length == 2)
+                {
+                    contract.YiFang = UnionArray[0];
+                    contract.YiFang = contract.YiFang.Replace("联合体牵头方", "");
+                    contract.YiFang = contract.YiFang.Replace("—", "");
+                    contract.YiFang = contract.YiFang.Replace("（", "");
+                    contract.YiFang = contract.YiFang.Replace("）", "");
+                    contract.YiFang = contract.YiFang.NormalizeTextResult();
+
+                    contract.UnionMember = UnionArray[1];
+                    contract.UnionMember = contract.UnionMember.Replace("联合体成员", "");
+                    contract.UnionMember = contract.UnionMember.Replace("—", "");
+                    contract.UnionMember = contract.UnionMember.Replace("（", "");
+                    contract.UnionMember = contract.UnionMember.Replace("）", "");
+                    contract.UnionMember = contract.UnionMember.NormalizeTextResult();
+                    Console.WriteLine("联合体牵头方:" + contract.YiFang);
+                    Console.WriteLine("联合体成员:" + contract.UnionMember);
+                    return contract.UnionMember;
+                }
+            }
+
+
             var foundCompanys = new List<string>();
             foreach (var comp in companynamelist)
             {
@@ -675,7 +706,7 @@ public partial class Contract : AnnouceDocument
                     foundCompanys.Add(comp.secFullName);
                     //如果这里的A和B是父子关系，可能会出问题。
                     //可以考虑追加一个Flag，是否检查父子关系
-                    var IsJiaYiFang = IsUnionEqualJiaYiFang(JiaFang, YiFang, comp.secFullName, false);
+                    var IsJiaYiFang = IsUnionEqualJiaYiFang(contract.JiaFang, contract.YiFang, comp.secFullName, false);
                     if (!IsJiaYiFang)
                     {
                         Union.Add(comp.secFullName);
@@ -707,7 +738,7 @@ public partial class Contract : AnnouceDocument
                     var union = item.Value.Replace("通知", "");
                     if (!Union.Contains(union))
                     {
-                        var IsJiaYiFang = IsUnionEqualJiaYiFang(JiaFang, YiFang, union);
+                        var IsJiaYiFang = IsUnionEqualJiaYiFang(contract.JiaFang, contract.YiFang, union);
                         if (!IsJiaYiFang)
                         {
                             //联合体一般在公司名之前
@@ -718,6 +749,8 @@ public partial class Contract : AnnouceDocument
                     }
                 }
             }
+            //第一次即可，之后的可能出现干扰项
+            if (Union.Count != 0) break;
         }
         Union = Union.Distinct().ToList();
         return String.Join(Utility.SplitChar, Union);
@@ -726,6 +759,13 @@ public partial class Contract : AnnouceDocument
     private bool IsUnionEqualJiaYiFang(string JiaFang, string YiFang, string union, bool isCheckSubCompany = true)
     {
         bool IsJiaYiFang = false;
+
+        foreach (var org in LTPTrainingNER.OrgniazationList)
+        {
+            //政府一般不是联合体或者乙方
+            if (union.EndsWith(org)) return true;
+        }
+
         //乙方的去括号问题
         if (!String.IsNullOrEmpty(YiFang) && RegularTool.TrimBrackets(union.NormalizeTextResult()).Equals(YiFang))
         {

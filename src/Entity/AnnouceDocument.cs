@@ -49,7 +49,7 @@ public abstract class AnnouceDocument
     /// 自定义
     /// </summary>
     /// <returns></returns>
-    public List<LocAndValue<String>> CustomerList =  new List<LocAndValue<String>>();
+    public List<LocAndValue<String>> CustomerList = new List<LocAndValue<String>>();
 
     /// <summary>
     /// NER列表(机构)
@@ -300,7 +300,12 @@ public abstract class AnnouceDocument
                                 }
                             }
                         }
+                        //董事会之前，也可能是日期
                         AnnouceCompanyName = Lines[lineidx - 1];
+                        if (AnnouceCompanyName.Contains("年") && AnnouceCompanyName.Contains("月"))
+                        {
+                            if (Lines[lineidx - 2].EndsWith("有限公司")) AnnouceCompanyName = Lines[lineidx - 2];
+                        }
                     }
                     else
                     {
@@ -340,7 +345,7 @@ public abstract class AnnouceDocument
             {
                 if (!nermap.ParagraghlocateDict.ContainsKey(s.PositionId)) continue;
                 var nerlist = nermap.ParagraghlocateDict[s.PositionId].NerList;
-                if (nerlist == null) continue;                
+                if (nerlist == null) continue;
                 for (int nerIdx = 0; nerIdx < nerlist.Count; nerIdx++)
                 {
                     if (nerlist[nerIdx].Description == "中文小括号" && nerlist[nerIdx].Value.Contains("简称"))

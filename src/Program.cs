@@ -26,7 +26,7 @@ namespace FDDC
         /// <summary>
         /// 基本Windows
         /// </summary>
-        //public static String DocBase = @"E:" + Path.DirectorySeparatorChar + "WorkSpace2018" + Path.DirectorySeparatorChar + "FDDC2018";
+        public static String DocBase = @"E:" + Path.DirectorySeparatorChar + "WorkSpace2018" + Path.DirectorySeparatorChar + "FDDC2018";
 
 
         /// <summary>
@@ -37,11 +37,11 @@ namespace FDDC
         /// <summary>
         /// 基本MAC
         /// </summary>
-        public static String DocBase = @"/Users/hu/Desktop/FDDC2018";
+        //public static String DocBase = @"/Users/hu/Desktop/FDDC2018";
 
         //重大合同
-        public static bool IsRunContract = true;
-        public static bool IsRunContract_TEST = true;
+        public static bool IsRunContract = false;
+        public static bool IsRunContract_TEST = false;
         public static string ContractPath_TRAIN = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_train_20180518" + Path.DirectorySeparatorChar + "重大合同";
         public static string ContractPath_TEST = DocBase + Path.DirectorySeparatorChar + "FDDC_announcements_round1_test_b_20180708" + Path.DirectorySeparatorChar + "重大合同";
 
@@ -54,7 +54,7 @@ namespace FDDC
 
 
         //资产重组
-        public static bool IsRunReorganization = false;
+        public static bool IsRunReorganization = true;
         public static bool IsRunReorganization_TEST = false;
         public static string ReorganizationPath_TRAIN = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型训练数据-20180712" + Path.DirectorySeparatorChar + "资产重组";
         public static string ReorganizationPath_TEST = DocBase + Path.DirectorySeparatorChar + @"复赛新增类型测试数据-20180712" + Path.DirectorySeparatorChar + "资产重组";
@@ -74,7 +74,7 @@ namespace FDDC
         /// </summary>
         private static void QuickTestArea()
         {
-            var s0 = "爱康科技向爱康实业、爱康国际、苏州度金、天地国际、钨业研究支付现金购买其合计持有爱康光电100%股权";    
+            var s0 = "爱康科技向爱康实业、爱康国际、苏州度金、天地国际、钨业研究支付现金购买其合计持有爱康光电100%股权";
             var pos = new PosSegmenter();
             var words = pos.Cut(s0);
 
@@ -90,11 +90,11 @@ namespace FDDC
                 "内含价值调整法","可比公司市净率法","重置成本法","收益现值法","基础资产法","假设清偿法",
                 "成本逼近法","单项资产加和法","成本加和法","基准地价修正法","收益还原法","现金流量法","单项资产加总法","折现现金流量法"
             }.ToList();
-            var t = new Contract();
-            t.Id = "128869";
-            t.HTMLFileName = ContractPath_TEST + "/html/128869.html";
-            t.TextFileName = ContractPath_TEST + "/txt/128869.txt";
-            t.NerXMLFileName = ContractPath_TEST + "/ner/128869.xml";
+            var t = new Reorganization();
+            t.Id = "15555670";
+            t.HTMLFileName = ReorganizationPath_TRAIN + "/html/12643.html";
+            //t.TextFileName = ContractPath_TRAIN + "/txt/15555670.txt";
+            //t.NerXMLFileName = ContractPath_TRAIN + "/ner/15555670.xml";
             t.Init();
             var recs = t.Extract();
             var s1 = recs[0].ConvertToString();
@@ -211,7 +211,7 @@ namespace FDDC
             PDFToTXT.GetLTPXMLBatchFile();
         }
 
- 
+
         private static void Extract()
         {
             if (IsRunContract)

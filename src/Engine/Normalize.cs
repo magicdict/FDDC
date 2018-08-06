@@ -39,7 +39,7 @@ public static class Normalizer
             orgString = orgString.Replace("&gt;", ">");
         }
         orgString = ClearTrailing(orgString);
-        orgString = orgString.ToLower();    
+        orgString = orgString.ToLower();
         //new CultureInfo("zh-cn") 也无法将中文括号变成普通括号
         orgString = orgString.Replace("（", "(");
         orgString = orgString.Replace("）", ")");
@@ -55,6 +55,7 @@ public static class Normalizer
         orgString = orgString.TrimEnd("，".ToCharArray());
         orgString = orgString.TrimEnd("。".ToCharArray());
         orgString = orgString.TrimEnd("；".ToCharArray());
+        if (orgString.Contains("。")) orgString = Utility.GetStringBefore(orgString, "。");
         return orgString;
     }
 

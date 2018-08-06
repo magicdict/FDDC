@@ -72,7 +72,7 @@ public class LTPTrainingNER
         /// <summary>
         /// 地名
         /// </summary>
-        Ns
+        Ns,
     }
 
     public struct struNerInfo
@@ -81,6 +81,13 @@ public class LTPTrainingNER
 
         public enmNerType Type;
     }
+
+    //扩大机构的规模
+    public static string[] OrgniazationList = new string[]{
+            "政府","委员会","办公室","信息化局","水务局",
+            "建设局","管理局","医院","交通厅","建设司","保护局","储备局",
+            "保护司","执法局","教育局","民航局","通关司","中心"
+    };
 
     public static List<struNerInfo> AnlayzeNER(string xmlfilename)
     {
@@ -163,6 +170,54 @@ public class LTPTrainingNER
         }
         if (wl != null) pl.Add(wl);
         sr.Close();
+
+
+        foreach (var p in pl)
+        {
+            for (int KeyWordIdx = 0; KeyWordIdx < p.Count; KeyWordIdx++)
+            {
+                if (LTPTrainingNER.OrgniazationList.Contains(p[KeyWordIdx].cont))
+                {
+                    if (p[KeyWordIdx].cont == "中心")
+                    {
+                        if (KeyWordIdx == 0) continue;
+                        var preWord = p[KeyWordIdx - 1].cont;
+                        var CenterList = new string[]{
+                            "监测","储备","指导","管理","采购","信息",
+                            "发展","开发","计量","交易","控制","服务",
+                            "建设","促进","发行",
+                        };
+                        if (!CenterList.Contains(preWord)) continue;
+                    }
+                    //在10个单词之内，寻找到B-Ns，S-Ns
+                    var ScanBegin = KeyWordIdx - 10;
+                    if (ScanBegin < 0) ScanBegin = 0;
+                    for (int ScanIdx = KeyWordIdx; ScanIdx >= ScanBegin; ScanIdx--)
+                    {
+                        if (p[ScanIdx].ne == "S-Ns" || p[ScanIdx].ne == "B-Ns")
+                        {
+                            var NewNer = String.Empty;
+                            for (int WordIdx = ScanIdx; WordIdx <= KeyWordIdx; WordIdx++)
+                            {
+                                NewNer += p[WordIdx].cont;
+                            }
+                            if (NewNer.Contains("，")) continue;
+                            if (NewNer.Contains(Utility.SplitChar)) continue;
+                            NerList.Add(new struNerInfo()
+                            {
+                                RawData = NewNer,
+                                Type = enmNerType.Ni
+                            });
+                            Console.WriteLine("新机构：" + NewNer);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+
+
         return NerList;
     }
 }

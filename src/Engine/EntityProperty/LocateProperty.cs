@@ -333,12 +333,17 @@ public static class LocateProperty
                 var Money = MoneyUtility.SeekMoney(OrgString);
                 foreach (var money in Money)
                 {
+                    var Idx = OrgString.Replace(",", "").IndexOf(money.MoneyAmount.Replace(",", ""));
+                    if (Idx == -1)
+                    {
+
+                    }
                     list.Add(new LocAndValue<(String MoneyAmount, String MoneyCurrency)>
                     {
                         Loc = sentence.PositionId,
                         Description = "金额",
                         Value = money,
-                        StartIdx = OrgString.IndexOf(money.MoneyAmount)
+                        StartIdx = Idx
                     });
                 }
             }
