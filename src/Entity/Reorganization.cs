@@ -936,6 +936,11 @@ public partial class Reorganization : AnnouceDocument
                 }
             }
         }
+
+
+
+
+
         //词频统计
         var MethodRank = new Dictionary<string, int>();
         foreach (var item in CustomerList)
@@ -964,6 +969,35 @@ public partial class Reorganization : AnnouceDocument
         {
             return tableEvaluateMethod;
         }
+
+        //无标的评估
+        foreach (var nerlist in nermap.ParagraghlocateDict.Values)
+        {
+            //标的 作价 价格  这样的文字检索
+            int TargetIdx = -1;
+            int MethodIdx = -1;
+            nerlist.CustomerList.Sort((x, y) => { return x.StartIdx.CompareTo(y.StartIdx); });
+            if (IsSingleTarget) TargetIdx = 0;
+            var Method = String.Empty;
+            foreach (var ner in nerlist.CustomerList)
+            {
+                if (ner.Description == "标的")
+                {
+                    TargetIdx = ner.StartIdx;
+                }
+                if (ner.Description == "评估方法" && TargetIdx != -1)
+                {
+                    MethodIdx = ner.StartIdx;
+                    Method = ner.Value;
+                }
+            }
+            if (!String.IsNullOrEmpty(Method))
+            {
+                Console.WriteLine("评估方法：" + Method);
+                return Method;
+            }
+        }
+
         return string.Empty;
     }
 

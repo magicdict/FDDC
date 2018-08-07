@@ -91,7 +91,7 @@ namespace FDDC
             }.ToList();
             var t = new Reorganization();
             t.Id = "276878";
-            t.HTMLFileName = ReorganizationPath_TEST + "/html/276878.html";
+            t.HTMLFileName = ReorganizationPath_TRAIN + "/html/15555639.html";
             //t.TextFileName = ContractPath_TRAIN + "/txt/15555670.txt";
             //t.NerXMLFileName = ContractPath_TRAIN + "/ner/15555670.xml";
             t.Init();
