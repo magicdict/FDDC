@@ -540,7 +540,7 @@ public abstract class AnnouceDocument
         foreach (var item in ExplainDict)
         {
             var keys = item.Key.Split(Utility.SplitChar);
-            var keys2 = item.Key.Split("/");
+            var keys2 = item.Key.Split(new char[] { '／', '/' });
             if (keys.Length == 1 && keys2.Length > 1)
             {
                 keys = keys2;

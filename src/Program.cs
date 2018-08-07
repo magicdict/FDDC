@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using static Contract;
 using static IncreaseStock;
 using static StockChange;
-using NPOI.ReadExcel;
 using System.Data;
 
 namespace FDDC
@@ -91,8 +90,8 @@ namespace FDDC
                 "成本逼近法","单项资产加和法","成本加和法","基准地价修正法","收益还原法","现金流量法","单项资产加总法","折现现金流量法"
             }.ToList();
             var t = new Reorganization();
-            t.Id = "15555670";
-            t.HTMLFileName = ReorganizationPath_TRAIN + "/html/12643.html";
+            t.Id = "276878";
+            t.HTMLFileName = ReorganizationPath_TEST + "/html/276878.html";
             //t.TextFileName = ContractPath_TRAIN + "/txt/15555670.txt";
             //t.NerXMLFileName = ContractPath_TRAIN + "/ner/15555670.xml";
             t.Init();
@@ -299,12 +298,11 @@ namespace FDDC
                 var Bag = new ConcurrentBag<RecordBase>();    //线程安全版本
                 Parallel.ForEach(System.IO.Directory.GetFiles(DataPath + Path.DirectorySeparatorChar + "html" + Path.DirectorySeparatorChar), (filename) =>
                 {
-                    var announce = new T();
-                    var fi = new System.IO.FileInfo(filename);
-                    announce.Id = fi.Name.Replace(".html", String.Empty);
-                    //以下一定要删除！！
-                    //if ((int.Parse(announce.Id) % 2) != 1)
+                    try
                     {
+                        var announce = new T();
+                        var fi = new System.IO.FileInfo(filename);
+                        announce.Id = fi.Name.Replace(".html", String.Empty);
                         announce.HTMLFileName = filename;
                         if (!String.IsNullOrEmpty(TmpPath))
                         {
@@ -324,6 +322,10 @@ namespace FDDC
                         {
                             Bag.Add(item);
                         }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Console.WriteLine(ex);
                     }
                 });
                 Announce_Result = Bag.ToList();

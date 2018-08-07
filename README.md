@@ -517,7 +517,7 @@ EntityProperty对象属性如下：
         foreach (var item in ReplacementDict)
         {
             var keys = item.Key.Split(Utility.SplitChar);
-            var keys2 = item.Key.Split("/");
+            var keys2 = item.Key.Split(new char[] { '／', '/' });
             if (keys.Length == 1 && keys2.Length > 1)
             {
                 keys = keys2;

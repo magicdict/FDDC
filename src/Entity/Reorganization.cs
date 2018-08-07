@@ -7,7 +7,7 @@ using JiebaNet.Segmenter.PosSeg;
 using static CompanyNameLogic;
 using static HTMLTable;
 
-public class Reorganization : AnnouceDocument
+public partial class Reorganization : AnnouceDocument
 {
     public override List<RecordBase> Extract()
     {
@@ -17,7 +17,7 @@ public class Reorganization : AnnouceDocument
         foreach (var item in ExplainDict)
         {
             var keys = item.Key.Split(Utility.SplitChar);
-            var keys2 = item.Key.Split("/");
+            var keys2 = item.Key.Split(new char[] { '／', '/' });
             if (keys.Length == 1 && keys2.Length > 1)
             {
                 keys = keys2;
@@ -35,7 +35,7 @@ public class Reorganization : AnnouceDocument
         }
 
         var list = new List<RecordBase>();
-        var targets = getTargetListFromReplaceTable().Distinct().ToList();
+        var targets = getTargetListFromExplainTable().Distinct().ToList();
         if (targets.Count == 0) return list;
         var EvaluateMethodLoc = LocateProperty.LocateCustomerWord(root, ReOrganizationTraning.EvaluateMethodList, "评估法");
         this.CustomerList = EvaluateMethodLoc;
@@ -69,7 +69,7 @@ public class Reorganization : AnnouceDocument
             foreach (var dict in ExplainDict)
             {
                 var keys = dict.Key.Split(Utility.SplitChar);
-                var keys2 = dict.Key.Split("/");
+                var keys2 = dict.Key.Split(new char[] { '／', '/' });
                 var isHit = false;
                 if (keys.Length == 1 && keys2.Length > 1)
                 {
@@ -99,10 +99,7 @@ public class Reorganization : AnnouceDocument
 
             var TradeCompany = getTradeCompany(reorgRec);
             reorgRec.TradeCompany = String.Join(Utility.SplitChar, TradeCompany);
-
-
-            var xTradeListExplain = getTradeCompanyByExplain(reorgRec);
-
+            //根据各种模板规则获得的交易对手
             var xTradeList = getTradeCompanyByKeyWord(reorgRec);
             if (xTradeList.Count == 1)
             {
@@ -114,7 +111,7 @@ public class Reorganization : AnnouceDocument
                     foreach (var dict in ExplainDict)
                     {
                         var keys = dict.Key.Split(Utility.SplitChar);
-                        var keys2 = dict.Key.Split("/");
+                        var keys2 = dict.Key.Split(new char[] { '／', '/' });
                         var isHit = false;
                         if (keys.Length == 1 && keys2.Length > 1)
                         {
@@ -156,7 +153,92 @@ public class Reorganization : AnnouceDocument
                 reorgRec.TradeCompany = String.Join(Utility.SplitChar, xTradeList);
             }
 
-            var Price = GetPrice(reorgRec);
+            //释义表中获得的交易对手，进行必要的订正
+            if (string.IsNullOrEmpty(reorgRec.TradeCompany))
+            {
+                var xTradeListExplain = getTradeCompanyByExplain(reorgRec);
+                foreach (var tradeItem in xTradeListExplain)
+                {
+                    //交易公司的简称填补
+                    foreach (var dict in ExplainDict)
+                    {
+                        var keys = dict.Key.Split(Utility.SplitChar);
+                        var keys2 = dict.Key.Split(new char[] { '／', '/' });
+                        var isHit = false;
+                        if (keys.Length == 1 && keys2.Length > 1)
+                        {
+                            keys = keys2;
+                        }
+                        foreach (var key in keys)
+                        {
+                            if (key.Contains("标的")) continue;
+                            if (key.Contains("目标")) continue;
+                            if (key.Equals("上市公司")) continue;
+                            if (key.Equals("本公司")) continue;
+                            if (key.Equals(tradeItem.Value) || dict.Value.Equals(tradeItem.Value))
+                            {
+                                var tempKey = key;
+                                if (tempKey.Contains("，")) tempKey = Utility.GetStringBefore(tempKey, "，");
+
+                                var tempvalue = dict.Value;
+                                if (tempvalue.Contains("，")) tempvalue = Utility.GetStringBefore(tempvalue, "，");
+                                reorgRec.TradeCompanyFullName = tempvalue;
+                                if (!tempKey.Equals("交易对方") && !tempKey.Equals("发行对象"))
+                                {
+                                    reorgRec.TradeCompanyShortName = tempKey;
+                                }
+                                isHit = true;
+                                break;
+                            }
+                        }
+                        if (isHit) break;
+                    }
+                    reorgRec.TradeCompany = tradeItem.Value;
+                    if (!String.IsNullOrEmpty(reorgRec.TradeCompanyFullName) &&
+                        !String.IsNullOrEmpty(reorgRec.TradeCompanyShortName))
+                    {
+                        reorgRec.TradeCompany = reorgRec.TradeCompanyFullName + "|" + reorgRec.TradeCompanyShortName;
+                    }
+                    else
+                    {
+                        //中建六局及中建八局
+                        var tradeArray = tradeItem.Value.Split(Utility.SplitChar).ToList();
+                        var last = tradeArray.Last();
+                        if (last.Contains("以及"))
+                        {
+                            tradeArray.RemoveAt(tradeArray.Count - 1);
+                            tradeArray.Add(Utility.GetStringBefore(last, "以及"));
+                            tradeArray.Add(Utility.GetStringAfter(last, "以及"));
+                            reorgRec.TradeCompany = String.Join(Utility.SplitChar, tradeArray);
+                        }
+                        else
+                        {
+                            if (last.Contains("及"))
+                            {
+                                tradeArray.RemoveAt(tradeArray.Count - 1);
+                                tradeArray.Add(Utility.GetStringBefore(last, "及"));
+                                tradeArray.Add(Utility.GetStringAfter(last, "及"));
+                                reorgRec.TradeCompany = String.Join(Utility.SplitChar, tradeArray);
+                            }
+                            if (last.Contains("和"))
+                            {
+                                tradeArray.RemoveAt(tradeArray.Count - 1);
+                                tradeArray.Add(Utility.GetStringBefore(last, "和"));
+                                tradeArray.Add(Utility.GetStringAfter(last, "和"));
+                                reorgRec.TradeCompany = String.Join(Utility.SplitChar, tradeArray);
+                            }
+                        }
+
+                    }
+                    Console.WriteLine("使用释义表的交易对手：" + tradeItem.Key + ":" + reorgRec.TradeCompany);
+                    break;
+                }
+            }
+
+            //交易对手最后整型
+            NormalizeTradeCompany(reorgRec);
+
+            var Price = GetPrice(reorgRec, targets.Count == 1);
             reorgRec.Price = MoneyUtility.Format(Price.MoneyAmount, String.Empty);
             reorgRec.EvaluateMethod = getEvaluateMethod(reorgRec, targets.Count == 1);
 
@@ -208,45 +290,7 @@ public class Reorganization : AnnouceDocument
         return list;
     }
 
-    /// <summary>
-    /// 人名列表
-    /// </summary>
-    /// <typeparam name="String"></typeparam>
-    /// <returns></returns>
-    List<String> PersonList = new List<String>();
 
-    void GetPersonList()
-    {
-        //交易对象
-        var rtn = new List<(string TargetCompany, string TradeCompany)>();
-        TradeCompany.IsRequire = true;
-        var Rules = new List<TableSearchTitleRule>();
-        Rules.Add(TradeCompany);
-        var opt = new HTMLTable.SearchOption();
-        opt.IsMeger = true;
-        opt.IsContainTotalRow = true;
-        var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, opt);
-        if (result.Count != 0)
-        {
-            //首页表格提取出交易者列表
-            var tableid = result[0][0].TableId;
-            //注意：由于表格检索的问题，这里只将第一个表格的内容作为依据
-            //交易对方是释义表的一个项目，这里被错误识别为表头
-            //TODO:这里交易对方应该只选取文章前部的表格！！
-            var TableTrades = result.Where(z => !ExplainTableId.Contains(z[0].TableId))
-                               .Select(x => x[0].RawData)
-                               .Where(y => !y.Contains("不超过")).ToList();
-            PersonList.AddRange(TableTrades);
-        }
-
-        foreach (var e in ExplainDict)
-        {
-            if (e.Key.Contains("自然人"))
-            {
-
-            }
-        }
-    }
 
     /// <summary>
     /// 标的公司
@@ -284,7 +328,7 @@ public class Reorganization : AnnouceDocument
     /// 从释义表格中抽取
     /// </summary>
     /// <returns></returns>
-    List<(string Target, string Comany)> getTargetListFromReplaceTable()
+    List<(string Target, string Comany)> getTargetListFromExplainTable()
     {
 
         var CompanyAtExplainTable = new List<struCompanyName>();
@@ -302,6 +346,7 @@ public class Reorganization : AnnouceDocument
         {
             "交易标的",        //09%	00303
             "标的资产",        //15%	00464
+            "标的公司",        //15%	00464
             "本次交易",        //12%	00369
             "本次重组",        //09%	00297
             "拟购买资产",      //07%	00221
@@ -330,7 +375,7 @@ public class Reorganization : AnnouceDocument
             foreach (var item in ExplainDict)
             {
                 var keys = item.Key.Split(Utility.SplitChar);
-                var keys2 = item.Key.Split("/");
+                var keys2 = item.Key.Split(new char[] { '／', '/' });
                 if (keys.Length == 1 && keys2.Length > 1)
                 {
                     keys = keys2;
@@ -352,9 +397,9 @@ public class Reorganization : AnnouceDocument
                 }
             }
         }
-        var ReplaceIn = ExtractFromExplainTable(CompanyAtExplainTable, ExplainInKeys);
-        var ReplaceOut = ExtractFromExplainTable(CompanyAtExplainTable, ExplainOutKeys);
-        var Target = ExtractFromExplainTable(CompanyAtExplainTable, ExplainKeys);
+        var ReplaceIn = ExtractTargetFromExplainTable(CompanyAtExplainTable, ExplainInKeys);
+        var ReplaceOut = ExtractTargetFromExplainTable(CompanyAtExplainTable, ExplainOutKeys);
+        var Target = ExtractTargetFromExplainTable(CompanyAtExplainTable, ExplainKeys);
         var TargetWithOutCompanyName = ExtractExtend(ExplainKeys);
         if (HasReplaceIn) Target.AddRange(ReplaceIn);
         if (HasReplaceOut) Target.AddRange(ReplaceOut);
@@ -427,7 +472,7 @@ public class Reorganization : AnnouceDocument
         {
             var list = new List<(string Target, string Comany)>();
             var keys = item.Key.Split(Utility.SplitChar);
-            var keys2 = item.Key.Split("/");
+            var keys2 = item.Key.Split(new char[] { '／', '/' });
             if (keys.Length == 1 && keys2.Length > 1)
             {
                 keys = keys2;
@@ -480,7 +525,7 @@ public class Reorganization : AnnouceDocument
     /// <param name="Target"></param>
     /// <param name="Comany"></param>
     /// <returns></returns>
-    private List<(string Target, string Company)> ExtractFromExplainTable(List<struCompanyName> CompanyAtExplainTable, string[] ExplainKeys)
+    private List<(string Target, string Company)> ExtractTargetFromExplainTable(List<struCompanyName> CompanyAtExplainTable, string[] ExplainKeys)
     {
         var AllCompanyName = new List<String>();
 
@@ -510,16 +555,16 @@ public class Reorganization : AnnouceDocument
         foreach (var Rplkey in ExplainKeys)
         {
             //可能性最大的排在最前
-            foreach (var item in ExplainDict)
+            foreach (var ExplainDictItem in ExplainDict)
             {
-                var keys = item.Key.Split(Utility.SplitChar);
-                var keys2 = item.Key.Split("/");
+                var keys = ExplainDictItem.Key.Split(Utility.SplitChar);
+                var keys2 = ExplainDictItem.Key.Split(new char[] { '／', '/' });
                 if (keys.Length == 1 && keys2.Length > 1)
                 {
                     keys = keys2;
                 }
-                var values = item.Value.Split(Utility.SplitChar);
-                var values2 = item.Value.Split("；");
+                var values = ExplainDictItem.Value.Split(Utility.SplitChar);
+                var values2 = ExplainDictItem.Value.Split("；");
                 if (values.Length == 1 && values2.Length > 1)
                 {
                     values = values2;
@@ -530,6 +575,20 @@ public class Reorganization : AnnouceDocument
                 SearchKey = SearchKey.Select(x => x.Trim()).ToArray();
                 if (SearchKey.Contains(Rplkey))
                 {
+                    if (Rplkey.Equals("交易标的") || Rplkey.Equals("标的资产") || Rplkey.Equals("标的公司"))
+                    {
+                        foreach (var cn in companynamelist)
+                        {
+                            if (ExplainDictItem.Value.Equals(cn.secFullName) ||
+                                ExplainDictItem.Value.Equals(cn.secShortName))
+                            {
+                                var extra = ("100%股权", ExplainDictItem.Value);
+                                TargetAndCompanyList.Add(extra);
+                                Console.WriteLine(Id + ":100%股权" + ExplainDictItem.Value);
+                                return TargetAndCompanyList;
+                            }
+                        }
+                    }
                     foreach (var targetRecordItem in values)
                     {
                         var SingleItemList = Utility.CutByPOSConection(targetRecordItem);
@@ -645,7 +704,7 @@ public class Reorganization : AnnouceDocument
         foreach (var item in ExplainDict)
         {
             var keys = item.Key.Split(Utility.SplitChar);
-            var keys2 = item.Key.Split("/");
+            var keys2 = item.Key.Split(new char[] { '／', '/' });
             if (keys.Length == 1 && keys2.Length > 1)
             {
                 keys = keys2;
@@ -672,337 +731,17 @@ public class Reorganization : AnnouceDocument
         return string.Empty;
     }
 
-    /// <summary>
-    /// 交易对方
-    /// </summary>
-    /// <returns></returns>
-    public List<string> getTradeCompany(ReorganizationRec target)
-    {
-        var rtn = new List<string>();
-        TradeCompany.IsRequire = true;
-        var Rules = new List<TableSearchTitleRule>();
-        Rules.Add(TradeCompany);
-        var opt = new HTMLTable.SearchOption();
-        opt.IsMeger = true;
-        var result = HTMLTable.GetMultiInfoByTitleRules(root, Rules, opt);
-        if (result.Count == 0) return rtn;
-        //首页表格提取出交易者列表
-        var tableid = result[0][0].TableId;
-        //注意：由于表格检索的问题，这里只将第一个表格的内容作为依据
-        //交易对方是释义表的一个项目，这里被错误识别为表头
-        //TODO:这里交易对方应该只选取文章前部的表格！！
-        var TableTrades = result.Where(z => !ExplainTableId.Contains(z[0].TableId))
-                           .Select(x => x[0].RawData)
-                           .Where(y => !y.Contains("不超过")).ToList();
-        var TargetLoc = LocateProperty.LocateCustomerWord(root, new string[] { target.TargetCompanyFullName, target.TargetCompanyShortName }.ToList(), "标的");
-        var HolderLoc = LocateProperty.LocateCustomerWord(root, new string[] { "持有", "所持" }.ToList(), "持有");
-        var OwnerLoc = LocateProperty.LocateCustomerWord(root, TableTrades.ToList(), "交易对手");
-        CustomerList.AddRange(TargetLoc);
-        CustomerList.AddRange(HolderLoc);
-        CustomerList.AddRange(OwnerLoc);
-        nermap.Anlayze(this);
-        foreach (var nerlist in nermap.ParagraghlocateDict.Values)
-        {
-            //交易对手 持有 标的 这样的文字检索
-            int OwnerIdx = -1;
-            int HolderIdx = -1;
-            int TargetIdx = -1;
-            nerlist.CustomerList.Sort((x, y) => { return x.StartIdx.CompareTo(y.StartIdx); });
-            var OwnerName = string.Empty;
-            foreach (var ner in nerlist.CustomerList)
-            {
-                if (ner.Description == "交易对手")
-                {
-                    OwnerIdx = ner.StartIdx;
-                    OwnerName = ner.Value;
-                }
-                if (ner.Description == "持有" && OwnerIdx != -1)
-                {
-                    HolderIdx = ner.StartIdx;
-                }
-                if (ner.Description == "标的" && OwnerIdx != -1 && HolderIdx != -1)
-                {
-                    TargetIdx = ner.StartIdx;
-                }
-                if (OwnerIdx != -1 && HolderIdx != -1 && TargetIdx != -1)
-                {
-                    if (TargetIdx - OwnerIdx < 20)
-                    {
-                        rtn.Add(OwnerName);
-                    }
-                    OwnerIdx = -1;
-                    HolderIdx = -1;
-                    TargetIdx = -1;
-                }
-
-            }
-        }
-        return rtn.Distinct().ToList();
-    }
-    /// <summary>
-    /// 通过释义表里的关键字获得交易对手情况
-    /// </summary>
-    /// <param name="rec"></param>
-    /// <returns></returns>
-    public List<String> getTradeCompanyByExplain(ReorganizationRec rec)
-    {
-        //释义表
-        var ExplainTrades = new List<String>();
-        foreach (var item in ExplainDict)
-        {
-            var keys = item.Key.Split(Utility.SplitChar);
-            var keys2 = item.Key.Split("/");
-            if (keys.Length == 1 && keys2.Length > 1)
-            {
-                keys = keys2;
-            }
-            var values = item.Value.Split(Utility.SplitChar);
-            var values2 = item.Value.Split("；");
-            if (values.Length == 1 && values2.Length > 1)
-            {
-                values = values2;
-            }
-            var ReplacementKeys = new string[]
-            {
-                rec.TargetCompany + "交易对方","交易对方"
-            };
-            foreach (var key in keys)
-            {
-                if (ReplacementKeys.Contains(key))
-                {
-                    Console.WriteLine("释义表中的交易对手：" + item.Value);
-                }
-            }
-        }
-        return ExplainTrades;
-    }
-
-
-    public List<String> getTradeCompanyByKeyWord(ReorganizationRec rec)
-    {
-
-        var Rtn = new List<String>();
-
-        //在释义表中寻找 持有的，持有者就是交易对手
-        //广传媒持有的广报经营 100%股权、大洋传媒 100%股权及新媒体公司 100%股权
-        //并向国信集团非公开发行股份购买其持有的江苏信托81.49%的股权
-        //重庆百货向商社集团和新天域湖景发行股份购买其持有的新世纪百货61%和39%的股权
-        //检查一下交易标的公司的位置，持有的位置，持有之前公司的位置
-        foreach (var ExplainSentence in ExplainDict.Values)
-        {
-            var DetailList = ExplainSentence.Split("；");
-            foreach (var DetailItem in DetailList)
-            {
-                var SingleSentenceList = new string[] { DetailItem };
-                if (DetailItem.Contains(",")) SingleSentenceList = DetailItem.Split(",");
-                if (DetailItem.Contains("，")) SingleSentenceList = DetailItem.Split("，");
-                foreach (var SingleSentenceItem in SingleSentenceList)
-                {
-                    //购买的 -> 购买
-                    var SingleSentence = SingleSentenceItem;
-                    SingleSentence = SingleSentence.Replace("购买的", "购买");
-                    var HoldVerbIdxPlus = SingleSentence.IndexOf("所持有");
-                    var HoldVerbIdx = SingleSentence.IndexOf("持有");
-                    if (HoldVerbIdx == -1) continue;
-                    if (HoldVerbIdxPlus != -1) HoldVerbIdx = HoldVerbIdxPlus;
-                    var targetIdx = -1;
-                    if (!String.IsNullOrEmpty(rec.TargetCompanyShortName)) targetIdx = SingleSentence.IndexOf(rec.TargetCompanyFullName);
-                    if (targetIdx == -1)
-                    {
-                        if (!String.IsNullOrEmpty(rec.TargetCompanyShortName)) targetIdx = SingleSentence.IndexOf(rec.TargetCompanyShortName);
-                    }
-                    if (targetIdx == -1) continue;
-                    var BuyIdx = SingleSentence.IndexOf("购买");
-
-                    var BetweenBuyAndHoldString = "";
-                    if (BuyIdx != -1 && BuyIdx < HoldVerbIdx)
-                    {
-                        BetweenBuyAndHoldString = SingleSentence.Substring(BuyIdx + 2, HoldVerbIdx - BuyIdx - 2);
-                    }
-                    Console.WriteLine("公告ID：" + Id);
-                    Console.WriteLine("原始句子：" + SingleSentence);
-                    Console.WriteLine("持有的位置：" + HoldVerbIdx);
-                    Console.WriteLine("标的公司全称：" + rec.TargetCompanyFullName);
-                    Console.WriteLine("标的公司简称：" + rec.TargetCompanyShortName);
-                    Console.WriteLine("标的公司位置：" + targetIdx);
-                    if (!String.IsNullOrEmpty(BetweenBuyAndHoldString)) Console.WriteLine("购买的位置：" + BuyIdx);
-                    if (!String.IsNullOrEmpty(BetweenBuyAndHoldString))
-                    {
-                        //不为空
-                        if (!BetweenBuyAndHoldString.Contains("交易"))
-                        {
-                            Console.WriteLine("购买...持有之间的内容：" + BetweenBuyAndHoldString);
-                            //不是交易对方,交易对手等字
-                            if (BetweenBuyAndHoldString.EndsWith("全体股东")) BetweenBuyAndHoldString = BetweenBuyAndHoldString.Substring(0, BetweenBuyAndHoldString.Length - 4);
-                            if (BetweenBuyAndHoldString.EndsWith("股东")) BetweenBuyAndHoldString = BetweenBuyAndHoldString.Substring(0, BetweenBuyAndHoldString.Length - 2);
-                            Rtn = GetCompanys(BetweenBuyAndHoldString);
-                            if (Rtn.Count != 0) return Rtn;
-                        }
-                    }
-
-
-                    //向海纳川发行股份及支付现金
-                    //上市公司因向众泰汽车股东购买其合计持有的众泰汽车100%股权而向其发行的股份
-                    //三七互娱以发行股份及支付现金的方式向中汇影视全体股东购买其合计持有的中汇影视100％的股份、
-                    //向杨东迈、谌维和网众投资购买其合计持有的墨鹍科技68.43％的股权
-
-                    //注意字符串顺序！
-                    //立思辰拟以向特定对象发行股份的方式
-                    //向自然人张敏、陈勇、朱卫、潘凤岩、施劲松购买其所持有的友网科技合计100%股权
-                    //这里必须要能够正确断句，且尽可能减少错误
-                    var ToIdx = SingleSentence.IndexOf("向");   //这里拟向也是没有问题的
-                    var ToIdx2nd = -1;
-                    if (ToIdx != -1 && (ToIdx + 1) != SingleSentence.Length)
-                    {
-                        ToIdx2nd = SingleSentence.IndexOf("向", ToIdx + 1);
-                    }
-                    if (ToIdx2nd != -1)
-                    {
-                        //是否需要将ToIdx2nd变为ToIdx
-                        var k = SingleSentence.IndexOf("发行");
-                        if (k > ToIdx && k < ToIdx2nd) ToIdx = ToIdx2nd;
-                    }
-
-                    var BuyMethodList = new string[] { "发行股份及支付现金", "非公开发行股份", "定向发行股份", "发行股份", "支付现金", "发行A股股份" };
-                    foreach (var BuyMethod in BuyMethodList)
-                    {
-                        var PublishStockAndPayCashIdx = SingleSentence.IndexOf(BuyMethod);
-                        if (ToIdx != -1 && PublishStockAndPayCashIdx != -1 && PublishStockAndPayCashIdx > ToIdx)
-                        {
-                            var ToTarget = SingleSentence.Substring(ToIdx + 1, PublishStockAndPayCashIdx - ToIdx - 1);
-                            if (ToTarget.EndsWith("全体股东")) ToTarget = ToTarget.Substring(0, ToTarget.Length - 4);
-                            if (ToTarget.EndsWith("股东")) ToTarget = ToTarget.Substring(0, ToTarget.Length - 2);
-                            //以...方式
-                            if (ToTarget.EndsWith("以") && SingleSentence.Contains("方式")) ToTarget = ToTarget.Substring(0, ToTarget.Length - 1);
-                            Console.WriteLine("向...发行股份及支付现金:" + ToTarget);
-                            Rtn = GetCompanys(ToTarget);
-                            if (Rtn.Count != 0) return Rtn;
-                        }
-                    }
-                    //没有支付手段，直接购买的情况
-                    if (ToIdx != -1 && BuyIdx != -1 && BuyIdx > ToIdx)
-                    {
-                        var ToTarget = SingleSentence.Substring(ToIdx + 1, BuyIdx - ToIdx - 1);
-                        if (ToTarget.EndsWith("全体股东")) ToTarget = ToTarget.Substring(0, ToTarget.Length - 4);
-                        if (ToTarget.EndsWith("股东")) ToTarget = ToTarget.Substring(0, ToTarget.Length - 2);
-                        Console.WriteLine("向...购买:" + ToTarget);
-                        Rtn = GetCompanys(ToTarget);
-                        if (Rtn.Count != 0) return Rtn;
-                    }
-
-                    //与王悦等11名交易对方持有的恺英网络100%股权中的等值部分进行资产置换
-                    //持有的句型可能嵌套在与...置换之间
-                    var WithIdx = SingleSentence.IndexOf("与");
-                    var ReplaceIdx = SingleSentence.IndexOf("置换");
-                    if (WithIdx != -1 && ReplaceIdx != -1)
-                    {
-                        SingleSentence = SingleSentence.Substring(WithIdx + 1);
-                    }
-
-                    //合计持有，所持有，持有，这样的顺序去判定
-                    var HoldWordList = new string[] { "共计持有", "合计持有", "以其持有", "所持有", "持有" };
-                    foreach (var hw in HoldWordList)
-                    {
-                        if (SingleSentence.IndexOf(hw) != -1)
-                        {
-                            var HoldTarget = Utility.GetStringBefore(SingleSentence, hw);
-                            Console.WriteLine("....持有:" + HoldTarget);
-                            Rtn = GetCompanys(HoldTarget);
-                            if (Rtn.Count != 0) return Rtn;
-                        }
-                    }
-
-
-                    if (!String.IsNullOrEmpty(BetweenBuyAndHoldString) && BetweenBuyAndHoldString.Equals("其"))
-                    {
-                        Console.WriteLine("特殊指代：" + BetweenBuyAndHoldString);
-                    }
-                }
-            }
-        }
-        return Rtn;
-    }
-
-    public List<String> GetCompanys(string OrgString)
-    {
-        var Rtn = new List<String>();
-        if (String.IsNullOrEmpty(OrgString)) return Rtn;
-        OrgString = OrgString.Replace("自然人", "");
-        var Items = OrgString.Split(Utility.SplitChar);
-        if (Items.Length > 3 && Items.Last().EndsWith("等"))
-        {
-            Items[Items.Length - 1] = Items[Items.Length - 1].Substring(0, Items[Items.Length - 1].Length - 1);
-        }
-        foreach (var SingleItem in Items)
-        {
-            if (SingleItem.Equals("交易对方")) continue;
-            if (IsCompanyOrPerson(SingleItem))
-            {
-                Rtn.Add(SingleItem);
-            }
-            else
-            {
-                //这里可能出现一些 “和” ，“及” 这样的文字，需要区分
-                var AndIdx = SingleItem.IndexOf("和");
-                if (AndIdx == -1) AndIdx = SingleItem.IndexOf("及");
-                if (AndIdx != -1 && AndIdx != 0 && AndIdx != (SingleItem.Length - 1))
-                {
-                    var FirstWord = SingleItem.Substring(0, AndIdx);
-                    var Secondword = SingleItem.Substring(AndIdx + 1);
-                    if (IsCompanyOrPerson(FirstWord) && IsCompanyOrPerson(Secondword))
-                    {
-                        Rtn.Add(FirstWord);
-                        Rtn.Add(Secondword);
-                    }
-                    else
-                    {
-                        Console.WriteLine("无法匹配任何公司或者自然人：" + FirstWord + "|" + Secondword);
-                        return new List<String>();
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("无法匹配任何公司或者自然人：" + SingleItem);
-                    return new List<String>();
-                }
-            }
-        }
-        Console.WriteLine("输入：" + OrgString);
-        foreach (var item in Rtn)
-        {
-            Console.WriteLine("输出：" + item);
-        }
-        return Rtn;
-    }
-
-    bool IsCompanyOrPerson(String SingleItem)
-    {
-        foreach (var cn in companynamelist)
-        {
-            if (SingleItem.Equals(cn.secFullName) || SingleItem.Equals(cn.secShortName))
-            {
-                return true;
-            }
-        }
-        //人物
-        if (PersonList.Contains(SingleItem))
-        {
-            return true;
-        }
-        return false;
-    }
-
 
     /// <summary>
     /// 标的作价
     /// </summary>
     /// <param name="rec"></param>
     /// <returns></returns>
-    (String MoneyAmount, String MoneyCurrency) GetPrice(ReorganizationRec rec)
+    (String MoneyAmount, String MoneyCurrency) GetPrice(ReorganizationRec rec, Boolean IsSingleTarget)
     {
         CustomerList = LocateProperty.LocateCustomerWord(root, new string[] { rec.TargetCompanyFullName, rec.TargetCompanyShortName }.ToList(), "标的");
         CustomerList.AddRange(LocateProperty.LocateCustomerWord(root, new string[] {
-            "股权交易价格","作价","最终评估价"
+            "作价","最终评估价","交易价格"
         }.ToList(), "作价"));
         nermap.Anlayze(this);
         foreach (var nerlist in nermap.ParagraghlocateDict.Values)
@@ -1054,6 +793,28 @@ public class Reorganization : AnnouceDocument
             return tablePrice;
         }
 
+        if (!IsSingleTarget) return ("", "");
+        //无标的关键字
+        foreach (var nerlist in nermap.ParagraghlocateDict.Values)
+        {
+            //标的 作价 价格  这样的文字检索
+            nerlist.CustomerList.Sort((x, y) => { return x.StartIdx.CompareTo(y.StartIdx); });
+            foreach (var ner in nerlist.CustomerList)
+            {
+                if (ner.Description == "作价")
+                {
+                    int PriceIdx = ner.StartIdx;
+                    foreach (var item in nerlist.moneylist)
+                    {
+                        if (item.StartIdx > PriceIdx)
+                        {
+                            Console.WriteLine(Id + ":作价" + item.Value.MoneyAmount);
+                            return item.Value;
+                        }
+                    }
+                }
+            }
+        }
         return ("", "");
     }
 
