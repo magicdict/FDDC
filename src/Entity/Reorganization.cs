@@ -40,17 +40,16 @@ public partial class Reorganization : AnnouceDocument
         var EvaluateMethodLoc = LocateProperty.LocateCustomerWord(root, ReOrganizationTraning.EvaluateMethodList, "评估法");
         this.CustomerList = EvaluateMethodLoc;
         nermap.Anlayze(this);
-        foreach (var item in nermap.ParagraghlocateDict)
-        {
-            if (item.Value.CustomerList.Count != 0 && item.Value.moneylist.Count != 0)
-            {
-                //Console.WriteLine("评估法出现次数" + item.Value.CustomerList.Count);
-                //Console.WriteLine("金额出现次数" + item.Value.moneylist.Count);
-            }
-        }
-
         foreach (var item in targets)
         {
+            if (item.Target.Contains("发行")) continue;
+            if (item.Target.Contains("置换")) continue;
+            if (item.Target.Contains("置出")) continue;
+            if (item.Target.Contains("置入")) continue;
+            if (item.Target.Contains("本次")) continue;
+            if (item.Target.Contains("出售")) continue;
+            if (item.Target.Contains("购买")) continue;
+
             var reorgRec = new ReorganizationRec();
             reorgRec.Id = this.Id;
             reorgRec.Target = item.Target;
@@ -961,6 +960,15 @@ public partial class Reorganization : AnnouceDocument
         {
             //出现次数最多的胜出
             return Utility.FindTop(1, MethodRank).First().Value;
+        }
+        else
+        {
+            if (MethodRank.Count != 0 && MethodRank.Sum(x => x.Value) <= 5)
+            {
+                //少数派
+                Console.WriteLine("少数派:" + Id);
+                return Utility.FindTop(1, MethodRank).First().Value;
+            }
         }
 
         //表格法

@@ -443,7 +443,8 @@ public partial class Reorganization : AnnouceDocument
     public void NormalizeTradeCompany(ReorganizationRec reorgRec)
     {
         var TrimLeadingWords = new string[]{
-            "交易对方包括","交易对方，具体指","本次交易的对方，","交易对方",
+            "交易对方包括","交易对方，具体指",
+            "本次交易的对方，","交易对方","交易对方，即",
             "全体股东，包括","全体股东，即","全部股东，包括","全部股东，即",
             "自然人股东：","资金认购方"
         };

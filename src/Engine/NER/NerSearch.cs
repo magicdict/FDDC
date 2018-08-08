@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using static LocateProperty;
 using static NerMap;
 
@@ -44,6 +45,12 @@ public class NerSearch
     public static List<LocAndValue<String>> Search(AnnouceDocument doc, SearchRule rule)
     {
         var rtn = new List<LocAndValue<String>>();
+        if (rule.BaseWord.Description.Count == 0)
+        {
+            //关键字，没有任何描述
+            doc.CustomerList = LocateCustomerWord(doc.root, rule.BaseWord.Word, "关键字");
+            doc.nermap.Anlayze(doc);
+        }
         foreach (var paragragh in doc.nermap.ParagraghlocateDict.Values)
         {
             for (int baseIdx = 0; baseIdx < paragragh.NerList.Count; baseIdx++)
@@ -102,8 +109,6 @@ public class NerSearch
 
             }
         }
-
-
         return rtn;
     }
 

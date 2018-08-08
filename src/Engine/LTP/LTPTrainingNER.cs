@@ -86,7 +86,7 @@ public class LTPTrainingNER
     public static string[] OrgniazationList = new string[]{
             "政府","委员会","办公室","信息化局","水务局",
             "建设局","管理局","医院","交通厅","建设司","保护局","储备局",
-            "保护司","执法局","教育局","民航局","通关司","中心"
+            "保护司","执法局","教育局","民航局","通关司","中心","指挥部"
     };
 
     public static List<struNerInfo> AnlayzeNER(string xmlfilename)

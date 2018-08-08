@@ -294,7 +294,7 @@ public partial class Contract : AnnouceDocument
         contract.YiFang = contract.YiFang.NormalizeTextResult();
         //按照规定除去括号
         contract.YiFang = RegularTool.TrimBrackets(contract.YiFang);
-
+        if(contract.YiFang.Length <3) contract.YiFang = string.Empty;
 
 
         //甲方
@@ -344,7 +344,8 @@ public partial class Contract : AnnouceDocument
         contract.ProjectName = contract.ProjectName.Replace("的推荐中标", "");
         //特殊处理
         contract.ProjectName = contract.ProjectName.Replace("<1>", "1、");
-        contract.ProjectName = contract.ProjectName.Trim("\"".ToCharArray());
+        contract.ProjectName = contract.ProjectName.Replace("“","");
+        contract.ProjectName = contract.ProjectName.Replace("”","");
 
         //合同名
         contract.ContractName = GetContractName();

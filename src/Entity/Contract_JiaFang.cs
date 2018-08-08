@@ -129,13 +129,15 @@ public partial class Contract : AnnouceDocument
         SearchRule.SearchForward = false;   //向前检索
         SearchRule.Validator = JiaFangValidator;
 
-        var result = NerSearch.Search(this, SearchRule);
-        if (result.Count > 0) return result.First().Value;
-
-        this.CustomerList = LocateCustomerWord(root, new string[] { "招标单位", "业主", "收到", "接到" }.ToList(), "关键字");
-        nermap.Anlayze(this);
+        var SuccessResult = NerSearch.Search(this, SearchRule);
+        if (SuccessResult.Count == 1) return SuccessResult.First().Value;
         BaseWord = new NerSearch.WordRule();
-        BaseWord.Word = new string[] { "招标单位", "业主", "收到", "接到" }.ToList();
+        BaseWord.Word = new string[] { "甲方","合同买方",
+            "发包人","发包单位","发包方","发包机构","发包人名称",
+            "招标人","招标单位","招标方","招标机构","项目招标人",
+            "业主"  ,"业主单位" ,"业主方", "业主机构",
+            "采购单位","采购人","采购方",
+            "收到", "接到" }.ToList();
         BaseWord.Description = new List<String>();
 
         TargetWord = new NerSearch.WordRule();
@@ -146,11 +148,23 @@ public partial class Contract : AnnouceDocument
         SearchRule.Target = TargetWord;
         SearchRule.SearchForward = true;   //向后检索
         SearchRule.Validator = JiaFangValidator;
+        var ReceiverResult = NerSearch.Search(this, SearchRule);
 
-        result = NerSearch.Search(this, SearchRule);
-        if (result.Count > 0) return result.First().Value;
+        if (SuccessResult.Count > 1 && ReceiverResult.Count > 0)
+        {
+            foreach (var SuccessItem in SuccessResult)
+            {
+                foreach (var ReceiveItem in ReceiverResult)
+                {
+                    if (SuccessItem.Value == ReceiveItem.Value)
+                    {
+                        return ReceiveItem.Value;
+                    }
+                }
+            }
+        }
 
-
+        if (ReceiverResult.Count > 0) return ReceiverResult.First().Value;
         return string.Empty;
     }
 
