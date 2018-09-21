@@ -14,3 +14,5 @@ Result.zip
 !dict.txt
 !ns.dict
 !Important.log
+*.pyc
+*.pkl
