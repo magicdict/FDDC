@@ -36,14 +36,17 @@ public abstract class AnnouceDocument
     /// <param name="MoneyAmount"></param>
     /// <param name="MoneyCurrency"></param>
     public List<LocAndValue<(String MoneyAmount, String MoneyCurrency)>> moneylist;
-
     /// <summary>
     /// 引号
     /// </summary>
     public List<LocAndValue<String>> quotationList;
-
+    /// <summary>
+    /// 百分比
+    /// </summary>
     public List<LocAndValue<String>> percentList;
-
+    /// <summary>
+    /// 股票数
+    /// </summary>
     public List<LocAndValue<String>> StockNumberList;
     /// <summary>
     /// 自定义
@@ -60,7 +63,9 @@ public abstract class AnnouceDocument
     /// NER列表（人名）
     /// </summary>
     public List<String> PersonNamelist;
-
+    /// <summary>
+    /// 实体地图
+    /// </summary>
     public NerMap nermap;
 
     /// <summary>

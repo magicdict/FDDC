@@ -4,6 +4,10 @@ using System.Linq;
 using static LocateProperty;
 using static NerMap;
 
+
+/// <summary>
+/// 根据周围词语来定位实体
+/// </summary>
 public class NerSearch
 {
     public struct WordRule

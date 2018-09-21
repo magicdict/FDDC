@@ -6,27 +6,113 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using FDDC;
 using JiebaNet.Segmenter.PosSeg;
+using static LTPTrainingNER;
 
 public class CompanyNameLogic
 {
+    /// <summary>
+    /// 公司结构体
+    /// </summary>
     public struct struCompanyName
     {
+        /// <summary>
+        /// 简称
+        /// </summary>
         public string secShortName;
+        /// <summary>
+        /// 全称
+        /// </summary>
         public string secFullName;
+        /// <summary>
+        /// 曾用名
+        /// </summary>
         public string secShortNameChg;
-        //是否为子公司
+        /// <summary>
+        /// 是否为子公司
+        /// </summary>
         public bool isSubCompany;
         /// <summary>
         /// 母公司
         /// </summary>
         public string FatherName;
-        //段落编号
+        /// <summary>
+        /// 段落编号
+        /// </summary>
         public int positionId;
-        //词位置
+        /// <summary>
+        /// 词位置
+        /// </summary>
         public int WordIdx;
-        //可信度评分
+        /// <summary>
+        /// 可信度评分
+        /// </summary>
         public int Score;
     }
+
+    /// <summary>
+    /// 使用NerInfo抽取
+    /// </summary>
+    public static void GetCompanyNameByNerInfo(List<List<struWordNER>> paragragh)
+    {
+        var Rule1 = new NerExtract.NerExtractRule();
+        Rule1.MaxWordLength = 10;
+        Rule1.StartWord = new List<struWordNER>();
+        //首词NER属性
+        var word = new struWordNER();
+        word.pos = LTPTrainingNER.地名;  //只设定类型
+        Rule1.StartWord.Add(word);
+        //结束词NER属性
+        Rule1.EndWord = new List<struWordNER>();
+        word = new struWordNER();
+        word.cont = "有限公司";  //只设定词语
+        Rule1.EndWord.Add(word);
+
+        var Rule2 = new NerExtract.NerExtractRule();
+        Rule2.MaxWordLength = 10;
+        Rule2.StartWord = new List<struWordNER>();
+        //首词NER属性
+        word = new struWordNER();
+        word.pos = LTPTrainingNER.地名;  //只设定类型
+        Rule2.StartWord.Add(word);
+        //结束词NER属性
+        Rule2.EndWord = new List<struWordNER>();
+        word = new struWordNER();
+        word.cont = "有限";  //只设定词语
+        Rule2.EndWord.Add(word);
+        word = new struWordNER();
+        word.cont = "责任";  //只设定词语
+        Rule2.EndWord.Add(word);
+        word = new struWordNER();
+        word.cont = "公司";  //只设定词语
+        Rule2.EndWord.Add(word);
+
+        var Rule3 = new NerExtract.NerExtractRule();
+        Rule3.MaxWordLength = 10;
+        Rule3.StartWord = new List<struWordNER>();
+        //首词NER属性
+        word = new struWordNER();
+        word.pos = LTPTrainingNER.地名;  //只设定类型
+        Rule3.StartWord.Add(word);
+        //结束词NER属性
+        Rule3.EndWord = new List<struWordNER>();
+        word = new struWordNER();
+        word.cont = "（";  //只设定词语
+        Rule3.EndWord.Add(word);
+        word = new struWordNER();
+        word.cont = "有限";  //只设定词语
+        Rule3.EndWord.Add(word);
+        word = new struWordNER();
+        word.cont = "合伙";  //只设定词语
+        Rule3.EndWord.Add(word);
+        word = new struWordNER();
+        word.cont = "）";  //只设定词语
+        Rule3.EndWord.Add(word);
+
+        var company1 = NerExtract.Extract(Rule1, paragragh);
+        var company2 = NerExtract.Extract(Rule2, paragragh);
+        var company3 = NerExtract.Extract(Rule3, paragragh);
+    }
+
     public static List<struCompanyName> GetCompanyNameByCutWordFromTextFile(string TextFileName)
     {
         var posSeg = new PosSegmenter();

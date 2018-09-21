@@ -72,7 +72,7 @@ public class LTPTrainingNER
         /// <summary>
         /// 地名
         /// </summary>
-        Ns,
+        Ns
     }
 
     public struct struNerInfo
@@ -82,38 +82,44 @@ public class LTPTrainingNER
         public enmNerType Type;
     }
 
-    //扩大机构的规模
-    public static string[] OrgniazationList = new string[]{
-            "政府","委员会","办公室","信息化局","水务局",
-            "建设局","管理局","医院","交通厅","建设司","保护局","储备局",
-            "保护司","执法局","教育局","民航局","通关司","中心","指挥部"
-    };
-
-    public static List<struNerInfo> AnlayzeNER(string xmlfilename)
+    public static List<List<struWordNER>> GetParagraghList(string xmlfilename)
     {
+        var paragrapghList = new List<List<struWordNER>>();
         //由于结果是多个XML构成的
         //1.掉所有的<?xml version="1.0" encoding="utf-8" ?>
         //2.加入<sentence></sentence> root节点    
-        var NerList = new List<struNerInfo>();
-        if (!File.Exists(xmlfilename)) return NerList;
-
+        if (!File.Exists(xmlfilename)) return paragrapghList;
+        List<struWordNER> wordList = null;
         var sr = new StreamReader(xmlfilename);
-        List<struWordNER> wl = null;
-        var pl = new List<List<struWordNER>>();
-        var ner = String.Empty;
         while (!sr.EndOfStream)
         {
             var line = sr.ReadLine().Trim();
             if (line.StartsWith("<sent"))
             {
-                if (wl != null) pl.Add(wl);
+                if (wordList != null) paragrapghList.Add(wordList);
                 //一个新的句子
-                wl = new List<struWordNER>();
+                wordList = new List<struWordNER>();
             }
             if (line.StartsWith("<word"))
             {
                 var word = new struWordNER(line);
-                wl.Add(word);
+                wordList.Add(word);
+            }
+        }
+        if (wordList != null) paragrapghList.Add(wordList);
+        sr.Close();
+        return paragrapghList;
+    }
+
+    public static List<struNerInfo> AnlayzeNER(string xmlfilename)
+    {
+        var NerList = new List<struNerInfo>();
+        var paragrapghList = GetParagraghList(xmlfilename);
+        var ner = String.Empty;
+        foreach (var p in paragrapghList)
+        {
+            foreach (var word in p)
+            {
                 switch (word.ne)
                 {
                     case "B-Ni":
@@ -124,15 +130,7 @@ public class LTPTrainingNER
                         break;
                     case "E-Ni":
                         ner += word.cont;
-                        if ((int)(ner.ToCharArray()[0]) == 61548)
-                        {
-                            ner = ner.Substring(1);
-                        }
-                        NerList.Add(new struNerInfo()
-                        {
-                            RawData = ner.Replace("股东", ""),
-                            Type = enmNerType.Ni
-                        });
+                        NerList.Add(new struNerInfo() { RawData = ner, Type = enmNerType.Ni });
                         break;
                     case "B-Ns":
                         ner = word.cont;
@@ -144,7 +142,6 @@ public class LTPTrainingNER
                         ner += word.cont;
                         NerList.Add(new struNerInfo() { RawData = ner, Type = enmNerType.Ns });
                         break;
-
                     case "B-Nh":
                         ner = word.cont;
                         break;
@@ -155,7 +152,6 @@ public class LTPTrainingNER
                         ner += word.cont;
                         NerList.Add(new struNerInfo() { RawData = ner, Type = enmNerType.Nh });
                         break;
-
                     case "S-Nh":
                         NerList.Add(new struNerInfo() { RawData = word.cont, Type = enmNerType.Nh });
                         break;
@@ -168,11 +164,42 @@ public class LTPTrainingNER
                 }
             }
         }
-        if (wl != null) pl.Add(wl);
-        sr.Close();
+        NerExtendOrgnization(NerList, paragrapghList);
+        return NerList;
+    }
 
+    /// <summary>
+    /// 修复程序
+    /// </summary>
+    /// <param name="ner"></param>
+    /// <returns></returns>
+    private static string FixNer(string ner)
+    {
+        //PDFMiner的奇诡字符的去除
+        if ((int)(ner.ToCharArray()[0]) == 61548)
+        {
+            ner = ner.Substring(1);
+        }
+        return ner;
+    }
 
-        foreach (var p in pl)
+    /// <summary>
+    /// 扩大机构的规模字符列表
+    /// </summary>
+    /// <value></value>
+    public static string[] OrgniazationList = new string[]{
+            "政府","委员会","办公室","信息化局","水务局",
+            "建设局","管理局","医院","交通厅","建设司","保护局","储备局",
+            "保护司","执法局","教育局","民航局","通关司","中心","指挥部"
+    };
+    /// <summary>
+    /// 扩大机构的规模
+    /// </summary>
+    /// <param name="NerList"></param>
+    /// <param name="paragrapghList"></param>
+    private static void NerExtendOrgnization(List<struNerInfo> NerList, List<List<struWordNER>> paragrapghList)
+    {
+        foreach (var p in paragrapghList)
         {
             for (int KeyWordIdx = 0; KeyWordIdx < p.Count; KeyWordIdx++)
             {
@@ -215,9 +242,5 @@ public class LTPTrainingNER
                 }
             }
         }
-
-
-
-        return NerList;
     }
 }

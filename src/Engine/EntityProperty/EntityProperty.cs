@@ -28,6 +28,7 @@ public class EntityProperty
         Date,       //日期
         Time,       //时间
         NER,        //人名、机构名、地名
+        Customer    //自定义
     }
 
     /// <summary>

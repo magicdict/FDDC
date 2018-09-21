@@ -73,6 +73,10 @@ namespace FDDC
         /// </summary>
         private static void QuickTestArea()
         {
+            
+            var plst = LTPTrainingNER.GetParagraghList(StockChangePath_TEST + "/ner/18877033.xml");
+            CompanyNameLogic.GetCompanyNameByNerInfo(plst);            
+            return;
             var s0 = "爱康科技向爱康实业、爱康国际、苏州度金、天地国际、钨业研究支付现金购买其合计持有爱康光电100%股权";
             var pos = new PosSegmenter();
             var words = pos.Cut(s0);
@@ -114,7 +118,7 @@ namespace FDDC
             //结巴分词的地名修正词典
             PosNS.ImportNS("Resources" + Path.DirectorySeparatorChar + "ns.dict");
             CIRecord = new StreamWriter("CI.log");
-            //QuickTestArea(); return;
+            QuickTestArea(); return;
             //PDFToTXT.GetPdf2TxtBatchFile();
             //公司全称简称曾用名字典   
             CompanyNameLogic.LoadCompanyName("Resources" + Path.DirectorySeparatorChar + "FDDC_announcements_company_name_20180531.json");
