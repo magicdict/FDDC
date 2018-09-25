@@ -13,7 +13,7 @@ def get_query_prediction_value(query_prediction, title):
     diff = 0.0
     for k, v in dict.items():
         diff = diff + float(v) * utility.levenshtein(k, title)
-    print(title + ":" + str(diff))
+    #print(title + ":" + str(diff))
     return diff
 
 def importcsvdata(filename):

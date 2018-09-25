@@ -13,10 +13,11 @@ def get_keras_cnn_model(x_train,y_train):
     dim = x_train.shape[1]
     model.add(Dense(64, input_dim=dim, activation='relu'))
     #Drop防止过拟合的数据处理方式
-    model.add(Dropout(0.5))
+    #model.add(Dropout(0.1))
     model.add(Dense(64, activation='relu'))
-    model.add(Dropout(0.5))
+    #model.add(Dropout(0.1))
     model.add(Dense(1, activation='sigmoid'))
+    #model.add(Dense(1, activation='softmax'))
     #编译模型，定义损失函数、优化函数、绩效评估函数
     model.compile(loss='binary_crossentropy',
                 optimizer='rmsprop',
