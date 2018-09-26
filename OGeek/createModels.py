@@ -1,9 +1,37 @@
 import numpy as np
+import keras
+import pickle  #pickle模块
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
-import pickle  #pickle模块
 from sklearn.svm import SVC  #SVM分类器
+from keras.callbacks import Callback
+from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score
 import config
+
+class Metrics(Callback):
+    '''自定义每个周期结束后的动作'''
+    def on_train_begin(self, logs={}):
+        self.val_f1s = []
+        self.val_recalls = []
+        self.val_precisions = []
+        self.validation_data = []
+
+    def on_epoch_end(self, epoch, logs={}):
+        val_predict = (np.asarray(self.model.predict(self.validation_data[0]))).round()
+        val_targ = self.validation_data[1]
+        _val_f1 = f1_score(val_targ, val_predict)
+        _val_recall = recall_score(val_targ, val_predict)
+        _val_precision = precision_score(val_targ, val_predict)
+        self.val_f1s.append(_val_f1)
+        self.val_recalls.append(_val_recall)
+        self.val_precisions.append(_val_precision)
+        print ("— val_f1: " + str(_val_f1) + " — val_precision: " + str(_val_precision) + " — val_recall: " + str(_val_recall)) 
+        return
+
+
+def load_keras_cnn_model():
+    model = keras.models.load_model(config.keras_model_file)
+    return model
 
 def get_keras_cnn_model(x_train,y_train):
     #设计模型，通过add的方式叠起来
@@ -23,19 +51,28 @@ def get_keras_cnn_model(x_train,y_train):
                 optimizer='rmsprop',
                 metrics=['accuracy'])
     #导入数据进行训练
+    metrics = Metrics()
     model.fit(x_train, y_train,
+            callbacks=[metrics],
+            validation_data=(x_train, y_train),
             epochs=20,
             batch_size=128)
     #模型评估
     #score = model.evaluate(x_test, y_test, batch_size=128)
     #print(score) 
-    with open(config.keras_model_file, 'wb') as f:
-        pickle.dump(model, f)
+    model.save(config.keras_model_file)
+    #with open(config.keras_model_file, 'wb') as f:
+    #    pickle.dump(model, f)
+    return model
+
+def load_svc_model():
+    with open(config.svc_model_file, 'rb') as f:
+        model = pickle.load(f)
     return model
 
 def get_svc_model(x_train,y_train):
     model = SVC(kernel='rbf')
-    model.fit(x_train, y_train.astype("int"))  
+    model.fit(x_train, y_train.astype("int"))
     with open(config.svc_model_file, 'wb') as f:
         pickle.dump(model, f)
     return model     
