@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def levenshtein(s, t):
     ''' From Wikipedia article; Iterative with two matrix rows. '''
     if s == t: return 0
@@ -19,6 +20,7 @@ def levenshtein(s, t):
 
     return v1[len(t)]
 
+
 def calc_ent(x):
     """
         calculate shanno ent of x
@@ -32,6 +34,7 @@ def calc_ent(x):
         ent -= p * logp
 
     return ent
+
 
 def calc_condition_ent(x, y):
     """
@@ -48,7 +51,8 @@ def calc_condition_ent(x, y):
 
     return ent
 
-def calc_ent_grap(x,y):
+
+def calc_ent_grap(x, y):
     """
         calculate ent grap
     """

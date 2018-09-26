@@ -9,8 +9,8 @@ result_csv = os.path.abspath('.') + "/result.csv"
 svc_model_file = os.path.abspath('.') + "/svc_model.pkl"
 keras_model_file = os.path.abspath('.') + "/keras_model.pkl"
 # svc keras
-#model_type = "svc"
-model_type = "keras"
+model_type = "svc"
+#model_type = "keras"
 # training / predict
 run_mode = "training"
 #run_mode = "predict"
